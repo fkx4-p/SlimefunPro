@@ -1,17 +1,13 @@
 package io.github.thebusybiscuit.slimefun4.api.network;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
-
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.api.Slimefun;
+import java.util.*;
 
 /**
  * An abstract Network class to manage networks in a stateful way
@@ -133,13 +129,20 @@ public abstract class Network {
 	}
 
 	public void display() {
-		Slimefun.runSync(() -> {
 			DustOptions options = new DustOptions(Color.BLUE, 2F);
 			
 			for (Location l : connectedLocations) {
-				l.getWorld().spawnParticle(Particle.REDSTONE, l.getX() + 0.5, l.getY() + 0.5, l.getZ() + 0.5, 1, 0, 0, 0, 1, options);
+				Slimefun.runSync(() ->
+						Objects.requireNonNull(l.getWorld()).spawnParticle(
+								Particle.REDSTONE,
+								l.getX() + 0.5,
+								l.getY() + 0.5,
+								l.getZ() + 0.5,
+								1, 0, 0, 0, 1,
+								options
+						)
+				);
 			}
-		});
 	}
 
 	public void tick() {

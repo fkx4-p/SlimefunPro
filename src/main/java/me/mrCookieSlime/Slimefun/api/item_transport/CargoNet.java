@@ -1,5 +1,7 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import io.github.thebusybiscuit.cscorelib2.chat.ChatColors;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.cscorelib2.math.DoubleHandler;
@@ -27,9 +29,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 public class CargoNet extends Network {
@@ -41,24 +41,31 @@ public class CargoNet extends Network {
     private static final int[] slots = new int[]{19, 20, 21, 28, 29, 30, 37, 38, 39};
 
     // Chest Terminal Stuff
-    public static final int[] terminal_slots = new int[]{0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
+    public static final int[] terminal_slots = new int[]{
+            0, 1, 2, 3, 4, 5, 6,
+            9, 10, 11, 12, 13, 14, 15,
+            18, 19, 20, 21, 22, 23, 24,
+            27, 28, 29, 30, 31, 32, 33,
+            36, 37, 38, 39, 40, 41, 42
+    };
     public static final int TERMINAL_OUT_SLOT = 17;
 
-    private static final ItemStack terminal_noitem_item = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
-    private static final MenuClickHandler terminal_noitem_handler = (p, slot, item, action) -> false;
+    private static final ItemStack terminal_noItem_item =
+            new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
+    private static final MenuClickHandler terminal_noItem_handler = (p, slot, item, action) -> false;
 
-    private Set<Location> inputNodes = new HashSet<>();
-    private Set<Location> outputNodes = new HashSet<>();
+    private Set<Location> inputNodes = Sets.newConcurrentHashSet();
+    private Set<Location> outputNodes = Sets.newConcurrentHashSet();
 
     // Chest Terminal Stuff
-    private final Set<Location> terminals = new HashSet<>();
-    private final Set<Location> imports = new HashSet<>();
-    private final Set<Location> exports = new HashSet<>();
+    private final Set<Location> terminals = Sets.newConcurrentHashSet();
+    private final Set<Location> imports = Sets.newConcurrentHashSet();
+    private final Set<Location> exports = Sets.newConcurrentHashSet();
 
-    private final Map<Location, Integer> roundRobin = new HashMap<>();
-    private final Set<ItemRequest> itemRequests = new HashSet<>();
+    private final ConcurrentMap<Location, Integer> roundRobin = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<ItemRequest> itemRequests = new ConcurrentLinkedQueue<>();
 
-    private final ExecutorService pool = Executors.newFixedThreadPool(4, new ThreadFactory() {
+    private static final ExecutorService pool = Executors.newFixedThreadPool(4, new ThreadFactory() {
         private int threadCount = 0;
 
         @Override
@@ -160,7 +167,7 @@ public class CargoNet extends Network {
             SimpleHologram.update(b, "&cNo Cargo Nodes found");
         } else {
             SimpleHologram.update(b, "&7Status: &a&lONLINE");
-            Map<Integer, List<Location>> output = new HashMap<>();
+            ConcurrentMap<Integer, List<Location>> output = new ConcurrentHashMap<>();
 
             List<Location> list = new LinkedList<>();
             int lastFrequency = -1;
@@ -206,338 +213,439 @@ public class CargoNet extends Network {
             // Code exported from runSync() - start
             try {
                 if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
-                    display();
+                    pool.execute(this::display);
                 }
 
                 //Chest Terminal Code
                 if (extraChannels) {
-                    for (Location bus : imports) {
-                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
-                        ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
+                    Set<Future<?>> futures = new HashSet<>();
+                    for (Location bus : imports)
+                        futures.add(pool.submit(() -> {
+                            try {
+                                BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
+                                ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
 
-                        if (item17 == null) {
-                            Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
-                            ItemSlot stack = CargoManager.withdraw(bus.getBlock(), target, -1);
+                                if (item17 == null) {
+                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
+                                    ItemSlot stack = CargoManager.withdraw(bus.getBlock(), target, -1);
 
-                            if (stack != null) {
-                                Slimefun.runSync(() -> menu.replaceExistingItem(17, stack.getItem()));
+                                    if (stack != null) {
+                                        Slimefun.runSync(() -> menu.replaceExistingItem(17, stack.getItem()));
+                                    }
+                                }
+
+                                if (item17 != null) {
+                                    itemRequests.add(new ItemRequest(bus, 17, item17, ItemTransportFlow.INSERT));
+                                }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
                             }
-                        }
-
-                        if (item17 != null) {
-                            itemRequests.add(new ItemRequest(bus, 17, item17, ItemTransportFlow.INSERT));
-                        }
-                    }
+                        }));
+                    for (Future<?> future : futures)
+                        future.get();
                 }
 
-                for (Location bus : exports) {
-                    BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
-                    ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
+                {
+                    Set<Future<?>> futures = new HashSet<>();
+                    for (Location bus : exports) {
+                        futures.add(pool.submit(() -> {
+                            try {
+                                BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
+                                ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
 
-                    if (item17 != null) {
-                        Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
+                                if (item17 != null) {
+                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
+                                    Slimefun.runSync(() -> menu.replaceExistingItem(
+                                            17,
+                                            CargoManager.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1)
+                                    ));
+                                }
 
-                        Slimefun.runSync(() -> menu.replaceExistingItem(
-                                17,
-                                CargoManager.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1)
-                        ));
-                    }
+                                if (item17 == null) {
+                                    List<ItemStack> items = new ArrayList<>();
+                                    for (int slot : slots) {
+                                        ItemStack template = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                                        if (template != null) items.add(new CustomItem(template, 1));
+                                    }
 
-                    if (item17 == null) {
-                        List<ItemStack> items = new ArrayList<>();
-                        for (int slot : slots) {
-                            ItemStack template = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
-                            if (template != null) items.add(new CustomItem(template, 1));
-                        }
+                                    if (!items.isEmpty()) {
+                                        int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
 
-                        if (!items.isEmpty()) {
-                            int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
+                                        index++;
+                                        if (index > (items.size() - 1)) index = 0;
 
-                            index++;
-                            if (index > (items.size() - 1)) index = 0;
-
-                            int finalIndex = index;
-                            Slimefun.runSync(() -> BlockStorage.addBlockInfo(bus, "index", String.valueOf(finalIndex)));
-                            itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW));
-                        }
-                    }
-                }
-
-                for (Location terminal : terminals) {
-                    BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(terminal)).get();
-                    if (menu == null) continue;
-                    ItemStack sendingItem = Slimefun.runSyncCallable(() -> menu.getItemInSlot(TERMINAL_OUT_SLOT)).get();
-
-                    if (sendingItem != null) {
-                        itemRequests.add(new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT));
-                    }
-                }
-
-                Iterator<ItemRequest> iterator = itemRequests.iterator();
-                while (iterator.hasNext()) {
-                    ItemRequest request = iterator.next();
-
-                    if (terminals.contains(request.getTerminal()) || imports.contains(request.getTerminal()) || exports.contains(request.getTerminal())) {
-                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(request.getTerminal())).get();
-                        if (menu == null) continue;
-
-                        switch (request.getDirection()) {
-                            case INSERT:
-                                ItemStack requestedItem = request.getItem();
-
-                                for (Location l : destinations) {
-                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
-                                    requestedItem = CargoManager.insert(l.getBlock(), target, requestedItem, -1);
-
-                                    if (requestedItem == null) {
-                                        Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), null));
-                                        break;
+                                        int finalIndex = index;
+                                        Slimefun.runSync(() -> BlockStorage.addBlockInfo(bus, "index", String.valueOf(finalIndex)));
+                                        itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW));
                                     }
                                 }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }));
+                    }
+                    for (Future<?> future : futures)
+                        future.get();
+                }
 
-                                if (requestedItem != null) {
-                                    ItemStack finalRequestedItem = requestedItem;
-                                    Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), finalRequestedItem));
+                {
+                    Set<Future<?>> futures = new HashSet<>();
+                    for (Location terminal : terminals) {
+                        futures.add(pool.submit(() -> {
+                            try {
+                                BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(terminal)).get();
+                                if (menu == null) return;
+                                ItemStack sendingItem = Slimefun.runSyncCallable(() -> menu.getItemInSlot(TERMINAL_OUT_SLOT)).get();
+
+                                if (sendingItem != null) {
+                                    itemRequests.add(
+                                            new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT));
                                 }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }));
+                    }
+                    for (Future<?> future : futures)
+                        future.get();
+                }
 
-                                iterator.remove();
-                                break;
-                            case WITHDRAW:
-                                int slot = Slimefun.runSyncCallable(request::getSlot).get();
-                                ItemStack prevStack = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                {
+                    Set<Future<?>> futures = new HashSet<>();
+                    while (true) {
+                        ItemRequest request = itemRequests.poll();
+                        if (request == null) break;
 
-                                if (!(prevStack == null || (prevStack.getAmount() + request.getItem().getAmount() <= prevStack.getMaxStackSize() && SlimefunManager.isItemSimilar(prevStack, new CustomItem(request.getItem(), 1), true)))) {
-                                    iterator.remove();
-                                    break;
-                                }
+                        futures.add(pool.submit(() -> {
+                            try {
+                                if (terminals.contains(request.getTerminal())
+                                        || imports.contains(request.getTerminal())
+                                        || exports.contains(request.getTerminal())) {
+                                    BlockMenu menu = Slimefun.runSyncCallable(() ->
+                                            BlockStorage.getInventory(request.getTerminal())).get();
+                                    if (menu == null) return;
 
-                                ItemStack stack = null;
-                                ItemStack requested = request.getItem();
+                                    switch (request.getDirection()) {
+                                        case INSERT:
+                                            ItemStack requestedItem = request.getItem();
 
-                                for (Location l : providers) {
-                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
-                                    ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested);
+                                            for (Location l : destinations) {
+                                                Block target = Slimefun.runSyncCallable(() ->
+                                                        getAttachedBlock(l.getBlock())).get();
+                                                requestedItem = CargoManager.insert(
+                                                        l.getBlock(), target, requestedItem, -1);
 
-                                    if (is != null) {
-                                        if (stack == null) {
-                                            stack = is;
-                                        } else {
-                                            stack = new CustomItem(stack, stack.getAmount() + is.getAmount());
-                                        }
+                                                if (requestedItem == null) {
+                                                    Slimefun.runSync(() ->
+                                                            menu.replaceExistingItem(request.getSlot(), null));
+                                                    break;
+                                                }
+                                            }
 
-                                        if (is.getAmount() == requested.getAmount()) {
+                                            if (requestedItem != null) {
+                                                ItemStack finalRequestedItem = requestedItem;
+                                                Slimefun.runSync(() ->
+                                                        menu.replaceExistingItem(request.getSlot(), finalRequestedItem));
+                                            }
+
                                             break;
-                                        } else {
-                                            requested = new CustomItem(requested, requested.getAmount() - is.getAmount());
-                                        }
+                                        case WITHDRAW:
+                                            int slot = Slimefun.runSyncCallable(request::getSlot).get();
+                                            ItemStack prevStack = Slimefun.runSyncCallable(() ->
+                                                    menu.getItemInSlot(slot)).get();
+
+                                            if (
+                                                    !(prevStack == null
+                                                            || (
+                                                            prevStack.getAmount() + request.getItem().getAmount()
+                                                                    <= prevStack.getMaxStackSize()
+                                                                    && SlimefunManager.isItemSimilar(
+                                                                    prevStack,
+                                                                    new CustomItem(request.getItem(), 1),
+                                                                    true)
+                                                    ))) {
+                                                break;
+                                            }
+
+                                            ItemStack stack = null;
+                                            ItemStack requested = request.getItem();
+
+                                            for (Location l : providers) {
+                                                Block target = Slimefun.runSyncCallable(() ->
+                                                        getAttachedBlock(l.getBlock())).get();
+                                                ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested);
+
+                                                if (is != null) {
+                                                    if (stack == null) {
+                                                        stack = is;
+                                                    } else {
+                                                        stack = new CustomItem(
+                                                                stack, stack.getAmount() + is.getAmount());
+                                                    }
+
+                                                    if (is.getAmount() == requested.getAmount()) {
+                                                        break;
+                                                    } else {
+                                                        requested = new CustomItem(
+                                                                requested,
+                                                                requested.getAmount() - is.getAmount());
+                                                    }
+                                                }
+                                            }
+
+                                            if (stack != null) {
+                                                ItemStack prev = Slimefun.runSyncCallable(() ->
+                                                        menu.getItemInSlot(slot)).get();
+
+                                                ItemStack finalStack = stack;
+                                                if (prev == null) {
+                                                    Slimefun.runSync(() -> menu.replaceExistingItem(slot, finalStack));
+                                                } else {
+                                                    Slimefun.runSync(() ->
+                                                            menu.replaceExistingItem(
+                                                                    slot, new CustomItem(
+                                                                            finalStack,
+                                                                            finalStack.getAmount()
+                                                                                    + prev.getAmount()
+                                                                    )
+                                                            )
+                                                    );
+                                                }
+                                            }
+
+                                            break;
+                                        default:
+                                            break;
                                     }
                                 }
-
-                                if (stack != null) {
-                                    ItemStack prev = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
-
-                                    if (prev == null) {
-                                        ItemStack finalStack = stack;
-                                        Slimefun.runSync(() -> menu.replaceExistingItem(slot, finalStack));
-                                    } else {
-                                        ItemStack finalStack1 = stack;
-                                        Slimefun.runSync(() -> menu.replaceExistingItem(slot, new CustomItem(finalStack1, finalStack1.getAmount() + prev.getAmount())));
-                                    }
-                                }
-
-                                iterator.remove();
-                                break;
-                            default:
-                                break;
-                        }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }));
+                        for (Future<?> future : futures)
+                            future.get();
                     }
                 }
 
                 // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
-                for (Location input : inputNodes) {
-                    int frequency = getFrequency(input);
-
-                    if (frequency < 0 || frequency > 15) {
-                        continue;
-                    }
-
-                    Block inputTarget = Slimefun.runSyncCallable(() -> getAttachedBlock(input.getBlock())).get();
-                    ItemStack stack = null;
-                    int previousSlot = -1;
-
-                    @SuppressWarnings("deprecation") Config cfg = BlockStorage.getLocationInfo(input);
-                    boolean roundRobin = "true".equals(cfg.getString("round-robin"));
-
-                    if (inputTarget != null) {
-                        ItemSlot slot = CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index")));
-
-                        if (slot != null) {
-                            stack = slot.getItem();
-                            previousSlot = slot.getSlot();
-                        }
-                    }
-
-                    if (stack != null) {
-                        List<Location> outputs = output.get(frequency);
-
-                        if (outputs != null) {
-                            List<Location> outputsList = new ArrayList<>(outputs);
-
-                            if (roundRobin) {
-                                int cIndex = this.roundRobin.getOrDefault(input, 0);
-
-                                if (cIndex < outputsList.size()) {
-                                    for (int i = 0; i < cIndex; i++) {
-                                        Location temp = outputsList.get(0);
-                                        outputsList.remove(temp);
-                                        outputsList.add(temp);
-                                    }
-                                    cIndex++;
-                                } else cIndex = 1;
-
-                                this.roundRobin.put(input, cIndex);
-                            }
-
-                            for (Location out : outputsList) {
-                                Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(out.getBlock())).get();
-
-                                if (target != null) {
-                                    stack = CargoManager.insert(out.getBlock(), target, stack, -1);
-                                    if (stack == null) break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (stack != null && previousSlot > -1) {
-                        DirtyChestMenu menu = Slimefun.runSyncCallable(() -> CargoManager.getChestMenu(inputTarget)).get();
-
-                        if (menu != null) {
-                            int finalPreviousSlot = previousSlot;
-                            ItemStack finalStack = stack;
-                            Slimefun.runSync(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack));
-                        } else {
-                            BlockState state;
+                {
+                    Set<Future<?>> futures = new HashSet<>();
+                    for (Location input : inputNodes) {
+                        futures.add(pool.submit(() -> {
                             try {
-                                state = Slimefun.runSyncCallable(inputTarget::getState).get();
+                                int frequency = getFrequency(input);
+
+                                if (frequency < 0 || frequency > 15) {
+                                    return;
+                                }
+
+                                Block inputTarget = Slimefun.runSyncCallable(() -> getAttachedBlock(input.getBlock())).get();
+                                ItemStack stack = null;
+                                int previousSlot = -1;
+
+                                @SuppressWarnings("deprecation")
+                                Config cfg = BlockStorage.getLocationInfo(input);
+                                boolean roundRobin = "true".equals(cfg.getString("round-robin"));
+
+                                if (inputTarget != null) {
+                                    ItemSlot slot = CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index")));
+
+                                    if (slot != null) {
+                                        stack = slot.getItem();
+                                        previousSlot = slot.getSlot();
+                                    }
+                                }
+
+                                if (stack != null) {
+                                    List<Location> outputs = output.get(frequency);
+
+                                    if (outputs != null) {
+                                        List<Location> outputsList = new ArrayList<>(outputs);
+
+                                        if (roundRobin) {
+                                            int cIndex = this.roundRobin.getOrDefault(input, 0);
+
+                                            if (cIndex < outputsList.size()) {
+                                                for (int i = 0; i < cIndex; i++) {
+                                                    Location temp = outputsList.get(0);
+                                                    outputsList.remove(temp);
+                                                    outputsList.add(temp);
+                                                }
+                                                cIndex++;
+                                            } else cIndex = 1;
+
+                                            this.roundRobin.put(input, cIndex);
+                                        }
+
+                                        for (Location out : outputsList) {
+                                            Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(out.getBlock())).get();
+
+                                            if (target != null) {
+                                                stack = CargoManager.insert(out.getBlock(), target, stack, -1);
+                                                if (stack == null) break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (stack != null && previousSlot > -1) {
+                                    DirtyChestMenu menu = Slimefun.runSyncCallable(() -> CargoManager.getChestMenu(inputTarget)).get();
+
+                                    if (menu != null) {
+                                        int finalPreviousSlot = previousSlot;
+                                        ItemStack finalStack = stack;
+                                        Slimefun.runSync(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack));
+                                    } else {
+                                        BlockState state;
+                                        try {
+                                            state = Slimefun.runSyncCallable(inputTarget::getState).get();
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        if (state instanceof InventoryHolder) {
+                                            Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+                                            int finalPreviousSlot1 = previousSlot;
+                                            ItemStack finalStack1 = stack;
+                                            Slimefun.runSync(() -> inv.setItem(finalPreviousSlot1, finalStack1));
+                                        }
+                                    }
+                                }
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                            if (state instanceof InventoryHolder) {
-                                Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
-                                int finalPreviousSlot1 = previousSlot;
-                                ItemStack finalStack1 = stack;
-                                Slimefun.runSync(() -> inv.setItem(finalPreviousSlot1, finalStack1));
-                            }
-                        }
+                        }));
                     }
+                    for (Future<?> future : futures)
+                        future.get();
                 }
 
                 //Chest Terminal Code
                 if (extraChannels) {
-                    List<StoredItem> items = new ArrayList<>();
+                    Set<StoredItem> items = new ConcurrentSkipListSet<>(Comparator.comparingInt(item -> -item.getAmount()));
 
-                    for (Location l : providers) {
-                        Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
-                        UniversalBlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getUniversalInventory(target)).get();
+                    {
+                        Set<Future<?>> futures = new HashSet<>();
+                        for (Location l : providers) {
+                            futures.add(pool.submit(() -> {
+                                try {
+                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
+                                    UniversalBlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getUniversalInventory(target)).get();
 
-                        if (menu != null) {
-                            for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
-                                ItemStack is = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
-                                filter(is, items, l);
-                            }
-                        } else if (BlockStorage.hasInventory(target)) {
-                            BlockMenu blockMenu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(target)).get();
-                            @SuppressWarnings("deprecation") Config cfg = BlockStorage.getLocationInfo(target.getLocation());
+                                    if (menu != null) {
+                                        for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
+                                            ItemStack is = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                                            filter(is, items, l);
+                                        }
+                                    } else if (BlockStorage.hasInventory(target)) {
+                                        BlockMenu blockMenu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(target)).get();
+                                        @SuppressWarnings("deprecation")
+                                        Config cfg = BlockStorage.getLocationInfo(target.getLocation());
 
-                            if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
-                                int stored = Integer.parseInt(cfg.getString("storedItems"));
+                                        if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
+                                            int stored = Integer.parseInt(cfg.getString("storedItems"));
 
-                                for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
-                                    ItemStack is = Slimefun.runSyncCallable(() -> blockMenu.getItemInSlot(slot)).get();
+                                            for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
+                                                ItemStack is = Slimefun.runSyncCallable(() -> blockMenu.getItemInSlot(slot)).get();
 
-                                    if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
-                                        boolean add = true;
+                                                if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
+                                                    boolean add = true;
 
-                                        for (StoredItem item : items) {
-                                            if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
-                                                add = false;
-                                                Slimefun.runSync(() -> item.add(is.getAmount() + stored));
+                                                    for (StoredItem item : items) {
+                                                        if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
+                                                            add = false;
+                                                            Slimefun.runSync(() -> item.add(is.getAmount() + stored));
+                                                        }
+                                                    }
+
+                                                    if (add) {
+                                                        Slimefun.runSync(() -> items.add(new StoredItem(new CustomItem(is, 1), is.getAmount() + stored)));
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            handleWithdraw(blockMenu, items, l);
+                                        }
+                                    } else {
+                                        BlockState state;
+                                        try {
+                                            state = Slimefun.runSyncCallable(target::getState).get();
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+
+                                        if (state instanceof InventoryHolder) {
+                                            Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+
+                                            for (ItemStack is : inv.getContents()) {
+                                                filter(is, items, l);
                                             }
                                         }
-
-                                        if (add) {
-                                            Slimefun.runSync(() -> items.add(new StoredItem(new CustomItem(is, 1), is.getAmount() + stored)));
-                                        }
                                     }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
                                 }
-                            } else {
-                                handleWithdraw(blockMenu, items, l);
-                            }
-                        } else {
-                            BlockState state;
-                            try {
-                                state = Slimefun.runSyncCallable(target::getState).get();
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            if (state instanceof InventoryHolder) {
-                                Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
-
-                                for (ItemStack is : inv.getContents()) {
-                                    filter(is, items, l);
-                                }
-                            }
+                            }));
                         }
+                        for (Future<?> future : futures)
+                            future.get();
                     }
 
-                    items.sort(Comparator.comparingInt(item -> -item.getAmount()));
 
-                    for (Location l : terminals) {
-                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(l)).get();
-                        int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
+                    {
+                        Set<Future<?>> futures = new HashSet<>();
+                        for (Location l : terminals) {
+                            futures.add(pool.submit(() -> {
+                                try {
+                                    BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(l)).get();
+                                    int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
 
-                        if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
-                            page = 1;
-                            BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
-                        }
+                                    if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
+                                        page = 1;
+                                        BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
+                                    }
 
-                        for (int i = 0; i < terminal_slots.length; i++) {
-                            int slot = terminal_slots[i];
+                                    for (int i = 0; i < terminal_slots.length; i++) {
+                                        int slot = terminal_slots[i];
 
-                            if (items.size() > i + (terminal_slots.length * (page - 1))) {
-                                StoredItem item = items.get(i + (terminal_slots.length * (page - 1)));
+                                        if (items.size() > i + (terminal_slots.length * (page - 1))) {
+                                            StoredItem item = Iterables.get(items, i + (terminal_slots.length * (page - 1)));
 
-                                ItemStack stack = item.getItem().clone();
-                                ItemMeta im = stack.getItemMeta();
-                                if (im == null) continue;
-                                List<String> lore = new ArrayList<>();
-                                lore.add("");
-                                lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount())));
+                                            ItemStack stack = item.getItem().clone();
+                                            ItemMeta im = stack.getItemMeta();
+                                            if (im == null) continue;
+                                            List<String> lore = new ArrayList<>();
+                                            lore.add("");
+                                            lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount())));
 
-                                if (stack.getMaxStackSize() > 1)
-                                    lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (Math.min(item.getAmount(), stack.getMaxStackSize())) + ">"));
-                                else lore.add(ChatColors.color("&7<Left Click: Request 1>"));
+                                            if (stack.getMaxStackSize() > 1)
+                                                lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (Math.min(item.getAmount(), stack.getMaxStackSize())) + ">"));
+                                            else lore.add(ChatColors.color("&7<Left Click: Request 1>"));
 
-                                lore.add("");
-                                if (im.hasLore()) {
-                                    lore.addAll(Objects.requireNonNull(im.getLore()));
+                                            lore.add("");
+                                            if (im.hasLore()) {
+                                                lore.addAll(Objects.requireNonNull(im.getLore()));
+                                            }
+
+                                            im.setLore(lore);
+                                            stack.setItemMeta(im);
+                                            menu.replaceExistingItem(slot, stack);
+                                            menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
+                                                int amount = Math.min(item.getAmount(), item.getItem().getMaxStackSize());
+                                                itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW));
+                                                return false;
+                                            });
+
+                                        } else {
+                                            Slimefun.runSync(() -> menu.replaceExistingItem(slot, terminal_noItem_item));
+                                            Slimefun.runSync(() -> menu.addMenuClickHandler(slot, terminal_noItem_handler));
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
                                 }
-
-                                im.setLore(lore);
-                                stack.setItemMeta(im);
-                                menu.replaceExistingItem(slot, stack);
-                                menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
-                                    int amount = Math.min(item.getAmount(), item.getItem().getMaxStackSize());
-                                    itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW));
-                                    return false;
-                                });
-
-                            } else {
-                                Slimefun.runSync(() -> menu.replaceExistingItem(slot, terminal_noitem_item));
-                                Slimefun.runSync(() -> menu.addMenuClickHandler(slot, terminal_noitem_handler));
-                            }
+                            }));
+                            for (Future<?> future : futures)
+                                future.get();
                         }
                     }
                 }
@@ -569,7 +677,7 @@ public class CargoNet extends Network {
         return freq;
     }
 
-    private void handleWithdraw(DirtyChestMenu menu, List<StoredItem> items, Location l) {
+    private void handleWithdraw(DirtyChestMenu menu, Set<StoredItem> items, Location l) {
         for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
             try {
                 filter(Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get(), items, l);
@@ -579,7 +687,7 @@ public class CargoNet extends Network {
         }
     }
 
-    private void filter(ItemStack is, List<StoredItem> items, Location l) {
+    private void filter(ItemStack is, Set<StoredItem> items, Location l) {
         if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
             boolean add = true;
 
