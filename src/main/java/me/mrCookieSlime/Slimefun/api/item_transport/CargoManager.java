@@ -24,11 +24,21 @@ public final class CargoManager {
     }
 
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
-        DirtyChestMenu menu = getChestMenu(target); // TODO may not async safe
+        DirtyChestMenu menu;
+        try {
+            menu = Slimefun.runSyncCallable(() -> getChestMenu(target)).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         if (menu != null) {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
-                ItemStack is = menu.getItemInSlot(slot); // TODO may not async safe
+                ItemStack is;
+                try {
+                    is = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                     if (is.getAmount() > template.getAmount()) {
@@ -41,7 +51,7 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = null;
+            BlockState state;
             try {
                 state = Slimefun.runSyncCallable(target::getState).get();
             } catch (Exception e) {
@@ -49,9 +59,16 @@ public final class CargoManager {
             }
 
             if (state instanceof InventoryHolder) {
-                Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
+                Inventory inv;
+                ItemStack[] invContents;
+                try {
+                    inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+                    invContents = Slimefun.runSyncCallable(inv::getContents).get();
+                } catch (Exception e) {
+                    throw new RuntimeException();
+                }
                 int minSlot = 0;
-                int maxSlot = inv.getContents().length;
+                int maxSlot = invContents.length;
 
                 if (inv instanceof FurnaceInventory) {
                     minSlot = 2;
@@ -60,7 +77,7 @@ public final class CargoManager {
                     maxSlot = 3;
                 }
                 for (int slot = minSlot; slot < maxSlot; slot++) {
-                    ItemStack is = inv.getContents()[slot].clone(); // TODO may not async safe
+                    ItemStack is = invContents[slot].clone();
 
                     if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                         if (is.getAmount() > template.getAmount()) {
@@ -80,11 +97,21 @@ public final class CargoManager {
     }
 
     public static ItemSlot withdraw(Block node, Block target, int index) { // Async safe
-        DirtyChestMenu menu = getChestMenu(target); // TODO may not async safe
+        DirtyChestMenu menu;
+        try {
+            menu = Slimefun.runSyncCallable(() -> getChestMenu(target)).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         if (menu != null) {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
-                ItemStack is = menu.getItemInSlot(slot); // TODO may not async safe
+                ItemStack is;
+                try {
+                    is = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 if (matchesFilter(node, is, index)) {
                     Slimefun.runSync(() -> menu.replaceExistingItem(slot, null));
@@ -92,7 +119,7 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = null;
+            BlockState state;
             try {
                 state = Slimefun.runSyncCallable(target::getState).get();
             } catch (Exception e) {
@@ -100,10 +127,21 @@ public final class CargoManager {
             }
 
             if (state instanceof InventoryHolder) {
-                Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
+                Inventory inv;
+                try {
+                    inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                ItemStack[] invContents;
+                try {
+                    invContents = Slimefun.runSyncCallable(inv::getContents).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 int minSlot = 0;
-                int maxSlot = inv.getContents().length;
+                int maxSlot = invContents.length;
 
                 if (inv instanceof FurnaceInventory) {
                     minSlot = 2;
@@ -113,9 +151,9 @@ public final class CargoManager {
                 }
 
                 for (int slot = minSlot; slot < maxSlot; slot++) {
-                    ItemStack is = inv.getContents()[slot].clone(); // TODO may not async safe
+                    ItemStack is = invContents[slot];
 
-                    if (matchesFilter(node, is, index)) {
+                    if (is != null && matchesFilter(node, is, index)) {
                         int slotI = slot;
                         Slimefun.runSync(() -> inv.setItem(slotI, null));
                         return new ItemSlot(is.clone(), slot);
@@ -129,11 +167,22 @@ public final class CargoManager {
     public static ItemStack insert(Block node, Block target, ItemStack stack, int index) {
         if (!matchesFilter(node, stack, index)) return stack;
 
-        DirtyChestMenu menu = getChestMenu(target); // TODO may not async safe
+        DirtyChestMenu menu;
+        try {
+            menu = Slimefun.runSyncCallable(() -> getChestMenu(target)).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         if (menu != null) {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.INSERT, stack)) {
-                ItemStack is = menu.getItemInSlot(slot) == null ? null : menu.getItemInSlot(slot).clone(); // TODO may not async safe
+                ItemStack itemStack;
+                try {
+                    itemStack = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                ItemStack is = (itemStack == null) ? null : itemStack.clone();
 
                 if (is == null) {
                     ItemStack stack1 = stack.clone();
@@ -143,10 +192,13 @@ public final class CargoManager {
                     int amount = is.getAmount() + stack.getAmount();
 
                     if (amount > is.getType().getMaxStackSize()) {
-                        is.setAmount(is.getType().getMaxStackSize());
-                        stack.setAmount(amount - is.getType().getMaxStackSize());
+                        ItemStack finalStack1 = stack;
+                        Slimefun.runSync(() -> {
+                            is.setAmount(is.getType().getMaxStackSize());
+                            finalStack1.setAmount(amount - is.getType().getMaxStackSize());
+                        });
                     } else {
-                        is.setAmount(amount);
+                        Slimefun.runSync(() -> is.setAmount(amount));
                         stack = null;
                     }
 
@@ -155,7 +207,7 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = null;
+            BlockState state;
             try {
                 state = Slimefun.runSyncCallable(target::getState).get();
             } catch (Exception e) {
@@ -163,10 +215,17 @@ public final class CargoManager {
             }
 
             if (state instanceof InventoryHolder) {
-                Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
+                Inventory inv;
+                ItemStack[] invContents;
+                try {
+                    inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+                    invContents = Slimefun.runSyncCallable(inv::getContents).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 int minSlot = 0;
-                int maxSlot = inv.getContents().length; // TODO may not async safe
+                int maxSlot = invContents.length;
 
                 //Check if it is a normal furnace
                 if (inv instanceof FurnaceInventory) {
@@ -193,7 +252,7 @@ public final class CargoManager {
                 }
 
                 for (int slot = minSlot; slot < maxSlot; slot++) {
-                    ItemStack is = inv.getContents()[slot]; // TODO may not async safe
+                    ItemStack is = invContents[slot];
 
                     if (is == null) {
                         int finalSlot = slot;
@@ -233,22 +292,38 @@ public final class CargoManager {
     }
 
     public static boolean matchesFilter(Block block, ItemStack item, int index) { // Async safe
-        if (item == null) return false;
+//        if (item == null) return false;
 
-        String id = BlockStorage.checkID(block);
+        String id;
+        try {
+            id = Slimefun.runSyncCallable(() -> BlockStorage.checkID(block)).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (id.equals("CARGO_NODE_OUTPUT")) return true;
 
         // Store the returned Config instance to avoid heavy calls
+        @SuppressWarnings("deprecation")
         Config blockInfo = BlockStorage.getLocationInfo(block.getLocation());
 
-        BlockMenu menu = BlockStorage.getInventory(block.getLocation());
+        BlockMenu menu;
+        try {
+            menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(block.getLocation())).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         boolean lore = "true".equals(blockInfo.getString("filter-lore"));
 
         if ("whitelist".equals(blockInfo.getString("filter-type"))) {
             List<ItemStack> items = new ArrayList<>();
 
             for (int slot : SLOTS) {
-                ItemStack template = menu.getItemInSlot(slot);
+                ItemStack template;
+                try {
+                    template = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 if (template != null) items.add(new CustomItem(template, 1));
             }
 
