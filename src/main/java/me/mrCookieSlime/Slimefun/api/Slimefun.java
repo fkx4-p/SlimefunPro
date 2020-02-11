@@ -1,22 +1,25 @@
 package me.mrCookieSlime.Slimefun.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
+import io.github.thebusybiscuit.cscorelib2.config.Config;
+import io.github.thebusybiscuit.slimefun4.api.gps.GPSNetwork;
+import me.mrCookieSlime.Slimefun.Objects.Research;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.ItemState;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.VanillaItem;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
-import io.github.thebusybiscuit.cscorelib2.config.Config;
-import io.github.thebusybiscuit.slimefun4.api.gps.GPSNetwork;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.Objects.Research;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.ItemState;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.VanillaItem;
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.logging.Logger;
 
 /**
  * Provides a few convenience methods.
@@ -238,13 +241,19 @@ public final class Slimefun {
 				if (message) SlimefunPlugin.getLocal().sendMessage(p, "messages.disabled-in-world", true);
 				return false;
 			}
-		}
-		else return true;
+		} else return true;
 	}
 
 	@Deprecated
 	public static List<GuideHandler> getGuideHandlers(int tier) {
 		return SlimefunPlugin.getRegistry().getGuideHandlers().getOrDefault(tier, new ArrayList<>());
+	}
+
+	@Nonnull
+	public static <T> Future<T> runSyncCallable(Callable<T> callable) {
+		FutureTask<T> task = new FutureTask<>(callable);
+		Bukkit.getScheduler().runTask(SlimefunPlugin.instance, task);
+		return task;
 	}
 
 	public static BukkitTask runSync(Runnable r) {

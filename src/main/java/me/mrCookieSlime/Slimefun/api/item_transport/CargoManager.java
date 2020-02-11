@@ -41,7 +41,12 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = target.getState(); // TODO may not async safe
+            BlockState state = null;
+            try {
+                state = Slimefun.runSyncCallable(target::getState).get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
             if (state instanceof InventoryHolder) {
                 Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
@@ -87,7 +92,12 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = target.getState(); // TODO may not async safe
+            BlockState state = null;
+            try {
+                state = Slimefun.runSyncCallable(target::getState).get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
             if (state instanceof InventoryHolder) {
                 Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
@@ -145,7 +155,12 @@ public final class CargoManager {
                 }
             }
         } else {
-            BlockState state = target.getState(); // TODO may not async safe
+            BlockState state = null;
+            try {
+                state = Slimefun.runSyncCallable(target::getState).get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
             if (state instanceof InventoryHolder) {
                 Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe

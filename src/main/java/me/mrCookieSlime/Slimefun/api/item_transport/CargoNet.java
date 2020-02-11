@@ -402,7 +402,12 @@ public class CargoNet extends Network {
                         ItemStack finalStack = stack;
                         Slimefun.runSync(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack));
                     } else {
-                        BlockState state = inputTarget.getState();
+                        BlockState state = null;
+                        try {
+                            state = Slimefun.runSyncCallable(inputTarget::getState).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                         if (state instanceof InventoryHolder) {
                             Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
                             int finalPreviousSlot1 = previousSlot;
@@ -455,7 +460,12 @@ public class CargoNet extends Network {
                             handleWithdraw(blockMenu, items, l); // TODO may not async safe inside method
                         }
                     } else {
-                        BlockState state = target.getState(); // TODO may not async safe
+                        BlockState state = null;
+                        try {
+                            state = Slimefun.runSyncCallable(target::getState).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
 
                         if (state instanceof InventoryHolder) {
                             Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
