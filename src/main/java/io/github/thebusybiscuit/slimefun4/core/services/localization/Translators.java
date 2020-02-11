@@ -43,6 +43,15 @@ public class Translators {
 		addTranslator("KillerXCoder", "sk", true);
 		addTranslator("PixelHotDog", "sk", true);
 		
+		// Translators - Czech
+		addTranslator("Nekomitsuki", "cs", true);
+		addTranslator("GGGEDR", "cs", true);
+		addTranslator("jakmanda05", "cs", true);
+		addTranslator("Aile-Minicraftcz", "cs", true);
+		addTranslator("Tengoblinekcz", "cs", true);
+		addTranslator("sirhCCC", "cs", true);
+		addTranslator("Thezerix", "cs", true);
+		
 		// Translators - Russian
 		addTranslator("SoSeDiK", "ru", false);
 		addTranslator("KostaTV", "ru", true);
