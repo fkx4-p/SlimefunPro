@@ -24,8 +24,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 
 public class CargoNet extends Network {
@@ -46,13 +50,22 @@ public class CargoNet extends Network {
     private Set<Location> inputNodes = new HashSet<>();
     private Set<Location> outputNodes = new HashSet<>();
 
-    //Chest Terminal Stuff
+    // Chest Terminal Stuff
     private final Set<Location> terminals = new HashSet<>();
     private final Set<Location> imports = new HashSet<>();
     private final Set<Location> exports = new HashSet<>();
 
     private final Map<Location, Integer> roundRobin = new HashMap<>();
     private final Set<ItemRequest> itemRequests = new HashSet<>();
+
+    private final ExecutorService pool = Executors.newFixedThreadPool(4, new ThreadFactory() {
+        private int threadCount = 0;
+
+        @Override
+        public synchronized Thread newThread(@NotNull Runnable runnable) {
+            return new Thread(runnable, "Slimefun Async CargoNet-" + threadCount++);
+        }
+    });
 
     public static CargoNet getNetworkFromLocation(Location l) {
         return SlimefunPlugin.getNetworkManager().getNetworkFromLocation(l, CargoNet.class);
@@ -112,7 +125,7 @@ public class CargoNet extends Network {
             exports.remove(l);
         }
         if (to == NetworkComponent.TERMINUS) {
-            switch (BlockStorage.checkID(l)) {
+            switch (Objects.requireNonNull(BlockStorage.checkID(l))) {
                 case "CARGO_NODE_INPUT":
                     inputNodes.add(l);
                     break;
@@ -191,339 +204,345 @@ public class CargoNet extends Network {
             }
 
             // Code exported from runSync() - start
-            if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
-                display();
-            }
-
-            //Chest Terminal Code
-            if (extraChannels) {
-                for (Location bus : imports) {
-                    BlockMenu menu = BlockStorage.getInventory(bus); // TODO may not async safe
-
-                    if (menu.getItemInSlot(17) == null) { // TODO may not async safe
-                        Block target = getAttachedBlock(bus.getBlock()); // TODO may not async safe
-                        ItemSlot stack = CargoManager.withdraw(bus.getBlock(), target, -1);
-
-                        if (stack != null) {
-                            Slimefun.runSync(() -> menu.replaceExistingItem(17, stack.getItem()));
-                        }
-                    }
-
-                    if (menu.getItemInSlot(17) != null) {
-                        itemRequests.add(new ItemRequest(bus, 17, menu.getItemInSlot(17), ItemTransportFlow.INSERT));
-                    }
-                }
-            }
-
-            for (Location bus : exports) {
-                BlockMenu menu = BlockStorage.getInventory(bus); // TODO may not async safe
-
-                if (menu.getItemInSlot(17) != null) { // TODO may not async safe
-                    Block target = getAttachedBlock(bus.getBlock()); // TODO may not async safe
-
-                    Slimefun.runSync(() -> menu.replaceExistingItem(
-                            17,
-                            CargoManager.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1)
-                    ));
+            try {
+                if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
+                    display();
                 }
 
-                if (menu.getItemInSlot(17) == null) { // TODO may not async safe
-                    List<ItemStack> items = new ArrayList<>(); // TODO may not async safe
-                    for (int slot : slots) {
-                        ItemStack template = menu.getItemInSlot(slot); // TODO may not async safe
-                        if (template != null) items.add(new CustomItem(template, 1));
-                    }
+                //Chest Terminal Code
+                if (extraChannels) {
+                    for (Location bus : imports) {
+                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
+                        ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
 
-                    if (!items.isEmpty()) {
-                        int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index")); // TODO may not async safe
-
-                        index++;
-                        if (index > (items.size() - 1)) index = 0;
-
-                        BlockStorage.addBlockInfo(bus, "index", String.valueOf(index));
-                        itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW));
-                    }
-                }
-            }
-
-            for (Location terminal : terminals) {
-                BlockMenu menu = BlockStorage.getInventory(terminal); // TODO may not async safe
-                ItemStack sendingItem = menu.getItemInSlot(TERMINAL_OUT_SLOT); // TODO may not async safe
-
-                if (sendingItem != null) {
-                    Slimefun.runSync(() ->
-                            itemRequests.add(
-                                    new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT))
-                    );
-                }
-            }
-
-            Iterator<ItemRequest> iterator = itemRequests.iterator();
-            while (iterator.hasNext()) {
-                ItemRequest request = iterator.next();
-
-                if (terminals.contains(request.getTerminal()) || imports.contains(request.getTerminal()) || exports.contains(request.getTerminal())) {
-                    BlockMenu menu = BlockStorage.getInventory(request.getTerminal()); // TODO may not async safe
-
-                    switch (request.getDirection()) {
-                        case INSERT:
-                            ItemStack requestedItem = request.getItem(); // TODO may not async safe
-
-                            for (Location l : destinations) {
-                                Block target = getAttachedBlock(l.getBlock()); // TODO may not async safe
-                                requestedItem = CargoManager.insert(l.getBlock(), target, requestedItem, -1); // TODO may not async safe inside method
-
-                                if (requestedItem == null) {
-                                    Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), null));
-                                    break;
-                                }
-                            }
-
-                            if (requestedItem != null) {
-                                ItemStack finalRequestedItem = requestedItem;
-                                Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), finalRequestedItem));
-                            }
-
-                            iterator.remove();
-                            break;
-                        case WITHDRAW:
-                            int slot = request.getSlot();
-                            ItemStack prevStack = menu.getItemInSlot(slot); // TODO may not async safe
-
-                            if (!(prevStack == null || (prevStack.getAmount() + request.getItem().getAmount() <= prevStack.getMaxStackSize() && SlimefunManager.isItemSimilar(prevStack, new CustomItem(request.getItem(), 1), true)))) {
-                                iterator.remove();
-                                break;
-                            }
-
-                            ItemStack stack = null;
-                            ItemStack requested = request.getItem();
-
-                            for (Location l : providers) {
-                                Block target = getAttachedBlock(l.getBlock()); // TODO may not async safe
-                                ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested); // TODO may not async safe inside method
-
-                                if (is != null) {
-                                    if (stack == null) {
-                                        stack = is;
-                                    } else {
-                                        stack = new CustomItem(stack, stack.getAmount() + is.getAmount());
-                                    }
-
-                                    if (is.getAmount() == requested.getAmount()) {
-                                        break;
-                                    } else {
-                                        requested = new CustomItem(requested, requested.getAmount() - is.getAmount());
-                                    }
-                                }
-                            }
+                        if (item17 == null) {
+                            Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
+                            ItemSlot stack = CargoManager.withdraw(bus.getBlock(), target, -1);
 
                             if (stack != null) {
-                                ItemStack prev = menu.getItemInSlot(slot); // TODO may not async safe
-
-                                if (prev == null) {
-                                    ItemStack finalStack = stack;
-                                    Slimefun.runSync(() -> menu.replaceExistingItem(slot, finalStack));
-                                } else {
-                                    ItemStack finalStack1 = stack;
-                                    ItemStack finalStack2 = stack;
-                                    Slimefun.runSync(() -> menu.replaceExistingItem(slot, new CustomItem(finalStack1, finalStack2.getAmount() + prev.getAmount())));
-                                }
-                            }
-
-                            iterator.remove();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
-            for (Location input : inputNodes) {
-                int frequency = getFrequency(input);
-
-                if (frequency < 0 || frequency > 15) {
-                    continue;
-                }
-
-                Block inputTarget = getAttachedBlock(input.getBlock()); // TODO may not async safe
-                ItemStack stack = null;
-                int previousSlot = -1;
-
-                Config cfg = BlockStorage.getLocationInfo(input); // TODO may not async safe
-                boolean roundrobin = "true".equals(cfg.getString("round-robin"));
-
-                if (inputTarget != null) {
-                    ItemSlot slot = CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))); // TODO may not async safe inside method
-
-                    if (slot != null) {
-                        stack = slot.getItem();
-                        previousSlot = slot.getSlot();
-                    }
-                }
-
-                if (stack != null) {
-                    List<Location> outputs = output.get(frequency);
-
-                    if (outputs != null) {
-                        List<Location> outputlist = new ArrayList<>(outputs);
-
-                        if (roundrobin) {
-                            int cIndex = roundRobin.getOrDefault(input, 0);
-
-                            if (cIndex < outputlist.size()) {
-                                for (int i = 0; i < cIndex; i++) {
-                                    Location temp = outputlist.get(0);
-                                    outputlist.remove(temp);
-                                    outputlist.add(temp);
-                                }
-                                cIndex++;
-                            } else cIndex = 1;
-
-                            roundRobin.put(input, cIndex);
-                        }
-
-                        for (Location out : outputlist) {
-                            Block target = getAttachedBlock(out.getBlock()); // TODO may not async safe
-
-                            if (target != null) {
-                                stack = CargoManager.insert(out.getBlock(), target, stack, -1); // TODO may not async safe inside method
-                                if (stack == null) break;
+                                Slimefun.runSync(() -> menu.replaceExistingItem(17, stack.getItem()));
                             }
                         }
-                    }
-                }
 
-                if (stack != null && previousSlot > -1) {
-                    DirtyChestMenu menu = CargoManager.getChestMenu(inputTarget); // TODO may not async safe
-
-                    if (menu != null) {
-                        int finalPreviousSlot = previousSlot;
-                        ItemStack finalStack = stack;
-                        Slimefun.runSync(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack));
-                    } else {
-                        BlockState state = null;
-                        try {
-                            state = Slimefun.runSyncCallable(inputTarget::getState).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                        if (state instanceof InventoryHolder) {
-                            Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
-                            int finalPreviousSlot1 = previousSlot;
-                            ItemStack finalStack1 = stack;
-                            Slimefun.runSync(() -> inv.setItem(finalPreviousSlot1, finalStack1));
+                        if (item17 != null) {
+                            itemRequests.add(new ItemRequest(bus, 17, item17, ItemTransportFlow.INSERT));
                         }
                     }
                 }
-            }
 
-            //Chest Terminal Code
-            if (extraChannels) {
-                List<StoredItem> items = new ArrayList<>();
+                for (Location bus : exports) {
+                    BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(bus)).get();
+                    ItemStack item17 = Slimefun.runSyncCallable(() -> menu.getItemInSlot(17)).get();
 
-                for (Location l : providers) {
-                    Block target = getAttachedBlock(l.getBlock()); // TODO may not async safe
-                    UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target); // TODO may not async safe
+                    if (item17 != null) {
+                        Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(bus.getBlock())).get();
 
-                    if (menu != null) {
-                        for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) { // TODO may not async safe
-                            ItemStack is = menu.getItemInSlot(slot); // TODO may not async safe
-                            filter(is, items, l);
+                        Slimefun.runSync(() -> menu.replaceExistingItem(
+                                17,
+                                CargoManager.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1)
+                        ));
+                    }
+
+                    if (item17 == null) {
+                        List<ItemStack> items = new ArrayList<>();
+                        for (int slot : slots) {
+                            ItemStack template = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+                            if (template != null) items.add(new CustomItem(template, 1));
                         }
-                    } else if (BlockStorage.hasInventory(target)) { // TODO may not async safe
-                        BlockMenu blockMenu = BlockStorage.getInventory(target); // TODO may not async safe
-                        Config cfg = BlockStorage.getLocationInfo(target.getLocation());
 
-                        if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
-                            int stored = Integer.parseInt(cfg.getString("storedItems"));
+                        if (!items.isEmpty()) {
+                            int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
 
-                            for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport((DirtyChestMenu) blockMenu, ItemTransportFlow.WITHDRAW, null)) { // TODO may not async safe
-                                ItemStack is = blockMenu.getItemInSlot(slot); // TODO may not async safe
+                            index++;
+                            if (index > (items.size() - 1)) index = 0;
 
-                                if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
-                                    boolean add = true;
+                            int finalIndex = index;
+                            Slimefun.runSync(() -> BlockStorage.addBlockInfo(bus, "index", String.valueOf(finalIndex)));
+                            itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW));
+                        }
+                    }
+                }
 
-                                    for (StoredItem item : items) {
-                                        if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
-                                            add = false;
-                                            item.add(is.getAmount() + stored);
+                for (Location terminal : terminals) {
+                    BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(terminal)).get();
+                    if (menu == null) continue;
+                    ItemStack sendingItem = Slimefun.runSyncCallable(() -> menu.getItemInSlot(TERMINAL_OUT_SLOT)).get();
+
+                    if (sendingItem != null) {
+                        itemRequests.add(new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT));
+                    }
+                }
+
+                Iterator<ItemRequest> iterator = itemRequests.iterator();
+                while (iterator.hasNext()) {
+                    ItemRequest request = iterator.next();
+
+                    if (terminals.contains(request.getTerminal()) || imports.contains(request.getTerminal()) || exports.contains(request.getTerminal())) {
+                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(request.getTerminal())).get();
+                        if (menu == null) continue;
+
+                        switch (request.getDirection()) {
+                            case INSERT:
+                                ItemStack requestedItem = request.getItem();
+
+                                for (Location l : destinations) {
+                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
+                                    requestedItem = CargoManager.insert(l.getBlock(), target, requestedItem, -1);
+
+                                    if (requestedItem == null) {
+                                        Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), null));
+                                        break;
+                                    }
+                                }
+
+                                if (requestedItem != null) {
+                                    ItemStack finalRequestedItem = requestedItem;
+                                    Slimefun.runSync(() -> menu.replaceExistingItem(request.getSlot(), finalRequestedItem));
+                                }
+
+                                iterator.remove();
+                                break;
+                            case WITHDRAW:
+                                int slot = Slimefun.runSyncCallable(request::getSlot).get();
+                                ItemStack prevStack = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+
+                                if (!(prevStack == null || (prevStack.getAmount() + request.getItem().getAmount() <= prevStack.getMaxStackSize() && SlimefunManager.isItemSimilar(prevStack, new CustomItem(request.getItem(), 1), true)))) {
+                                    iterator.remove();
+                                    break;
+                                }
+
+                                ItemStack stack = null;
+                                ItemStack requested = request.getItem();
+
+                                for (Location l : providers) {
+                                    Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
+                                    ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested);
+
+                                    if (is != null) {
+                                        if (stack == null) {
+                                            stack = is;
+                                        } else {
+                                            stack = new CustomItem(stack, stack.getAmount() + is.getAmount());
+                                        }
+
+                                        if (is.getAmount() == requested.getAmount()) {
+                                            break;
+                                        } else {
+                                            requested = new CustomItem(requested, requested.getAmount() - is.getAmount());
                                         }
                                     }
+                                }
 
-                                    if (add) {
-                                        items.add(new StoredItem(new CustomItem(is, 1), is.getAmount() + stored));
+                                if (stack != null) {
+                                    ItemStack prev = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
+
+                                    if (prev == null) {
+                                        ItemStack finalStack = stack;
+                                        Slimefun.runSync(() -> menu.replaceExistingItem(slot, finalStack));
+                                    } else {
+                                        ItemStack finalStack1 = stack;
+                                        Slimefun.runSync(() -> menu.replaceExistingItem(slot, new CustomItem(finalStack1, finalStack1.getAmount() + prev.getAmount())));
                                     }
                                 }
+
+                                iterator.remove();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
+                // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
+                for (Location input : inputNodes) {
+                    int frequency = getFrequency(input);
+
+                    if (frequency < 0 || frequency > 15) {
+                        continue;
+                    }
+
+                    Block inputTarget = Slimefun.runSyncCallable(() -> getAttachedBlock(input.getBlock())).get();
+                    ItemStack stack = null;
+                    int previousSlot = -1;
+
+                    @SuppressWarnings("deprecation") Config cfg = BlockStorage.getLocationInfo(input);
+                    boolean roundRobin = "true".equals(cfg.getString("round-robin"));
+
+                    if (inputTarget != null) {
+                        ItemSlot slot = CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index")));
+
+                        if (slot != null) {
+                            stack = slot.getItem();
+                            previousSlot = slot.getSlot();
+                        }
+                    }
+
+                    if (stack != null) {
+                        List<Location> outputs = output.get(frequency);
+
+                        if (outputs != null) {
+                            List<Location> outputsList = new ArrayList<>(outputs);
+
+                            if (roundRobin) {
+                                int cIndex = this.roundRobin.getOrDefault(input, 0);
+
+                                if (cIndex < outputsList.size()) {
+                                    for (int i = 0; i < cIndex; i++) {
+                                        Location temp = outputsList.get(0);
+                                        outputsList.remove(temp);
+                                        outputsList.add(temp);
+                                    }
+                                    cIndex++;
+                                } else cIndex = 1;
+
+                                this.roundRobin.put(input, cIndex);
                             }
+
+                            for (Location out : outputsList) {
+                                Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(out.getBlock())).get();
+
+                                if (target != null) {
+                                    stack = CargoManager.insert(out.getBlock(), target, stack, -1);
+                                    if (stack == null) break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (stack != null && previousSlot > -1) {
+                        DirtyChestMenu menu = Slimefun.runSyncCallable(() -> CargoManager.getChestMenu(inputTarget)).get();
+
+                        if (menu != null) {
+                            int finalPreviousSlot = previousSlot;
+                            ItemStack finalStack = stack;
+                            Slimefun.runSync(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack));
                         } else {
-                            handleWithdraw(blockMenu, items, l); // TODO may not async safe inside method
+                            BlockState state;
+                            try {
+                                state = Slimefun.runSyncCallable(inputTarget::getState).get();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            if (state instanceof InventoryHolder) {
+                                Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
+                                int finalPreviousSlot1 = previousSlot;
+                                ItemStack finalStack1 = stack;
+                                Slimefun.runSync(() -> inv.setItem(finalPreviousSlot1, finalStack1));
+                            }
                         }
-                    } else {
-                        BlockState state = null;
-                        try {
-                            state = Slimefun.runSyncCallable(target::getState).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
+                    }
+                }
 
-                        if (state instanceof InventoryHolder) {
-                            Inventory inv = ((InventoryHolder) state).getInventory(); // TODO may not async safe
+                //Chest Terminal Code
+                if (extraChannels) {
+                    List<StoredItem> items = new ArrayList<>();
 
-                            for (ItemStack is : inv.getContents()) {
+                    for (Location l : providers) {
+                        Block target = Slimefun.runSyncCallable(() -> getAttachedBlock(l.getBlock())).get();
+                        UniversalBlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getUniversalInventory(target)).get();
+
+                        if (menu != null) {
+                            for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
+                                ItemStack is = Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get();
                                 filter(is, items, l);
                             }
-                        }
-                    }
-                }
+                        } else if (BlockStorage.hasInventory(target)) {
+                            BlockMenu blockMenu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(target)).get();
+                            @SuppressWarnings("deprecation") Config cfg = BlockStorage.getLocationInfo(target.getLocation());
 
-                items.sort(Comparator.comparingInt(item -> -item.getAmount()));
+                            if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
+                                int stored = Integer.parseInt(cfg.getString("storedItems"));
 
-                for (Location l : terminals) {
-                    BlockMenu menu = BlockStorage.getInventory(l); // TODO may not async safe
-                    int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
+                                for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
+                                    ItemStack is = Slimefun.runSyncCallable(() -> blockMenu.getItemInSlot(slot)).get();
 
-                    if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
-                        page = 1;
-                        BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
-                    }
+                                    if (is != null && CargoManager.matchesFilter(l.getBlock(), is, -1)) {
+                                        boolean add = true;
 
-                    for (int i = 0; i < terminal_slots.length; i++) {
-                        int slot = terminal_slots[i];
+                                        for (StoredItem item : items) {
+                                            if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
+                                                add = false;
+                                                Slimefun.runSync(() -> item.add(is.getAmount() + stored));
+                                            }
+                                        }
 
-                        if (items.size() > i + (terminal_slots.length * (page - 1))) {
-                            StoredItem item = items.get(i + (terminal_slots.length * (page - 1)));
-
-                            ItemStack stack = item.getItem().clone();
-                            ItemMeta im = stack.getItemMeta();
-                            List<String> lore = new ArrayList<>();
-                            lore.add("");
-                            lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount())));
-
-                            if (stack.getMaxStackSize() > 1)
-                                lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (item.getAmount() > stack.getMaxStackSize() ? stack.getMaxStackSize() : item.getAmount()) + ">"));
-                            else lore.add(ChatColors.color("&7<Left Click: Request 1>"));
-
-                            lore.add("");
-                            if (im.hasLore()) {
-                                lore.addAll(im.getLore());
+                                        if (add) {
+                                            Slimefun.runSync(() -> items.add(new StoredItem(new CustomItem(is, 1), is.getAmount() + stored)));
+                                        }
+                                    }
+                                }
+                            } else {
+                                handleWithdraw(blockMenu, items, l);
+                            }
+                        } else {
+                            BlockState state;
+                            try {
+                                state = Slimefun.runSyncCallable(target::getState).get();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
                             }
 
-                            im.setLore(lore);
-                            stack.setItemMeta(im);
-                            menu.replaceExistingItem(slot, stack);
-                            menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
-                                int amount = item.getAmount() > item.getItem().getMaxStackSize() ? item.getItem().getMaxStackSize() : item.getAmount();
-                                itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW));
-                                return false;
-                            });
+                            if (state instanceof InventoryHolder) {
+                                Inventory inv = Slimefun.runSyncCallable(((InventoryHolder) state)::getInventory).get();
 
-                        } else {
-                            Slimefun.runSync(() -> menu.replaceExistingItem(slot, terminal_noitem_item));
-                            Slimefun.runSync(() -> menu.addMenuClickHandler(slot, terminal_noitem_handler));
+                                for (ItemStack is : inv.getContents()) {
+                                    filter(is, items, l);
+                                }
+                            }
+                        }
+                    }
+
+                    items.sort(Comparator.comparingInt(item -> -item.getAmount()));
+
+                    for (Location l : terminals) {
+                        BlockMenu menu = Slimefun.runSyncCallable(() -> BlockStorage.getInventory(l)).get();
+                        int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
+
+                        if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
+                            page = 1;
+                            BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
+                        }
+
+                        for (int i = 0; i < terminal_slots.length; i++) {
+                            int slot = terminal_slots[i];
+
+                            if (items.size() > i + (terminal_slots.length * (page - 1))) {
+                                StoredItem item = items.get(i + (terminal_slots.length * (page - 1)));
+
+                                ItemStack stack = item.getItem().clone();
+                                ItemMeta im = stack.getItemMeta();
+                                if (im == null) continue;
+                                List<String> lore = new ArrayList<>();
+                                lore.add("");
+                                lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getAmount())));
+
+                                if (stack.getMaxStackSize() > 1)
+                                    lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (Math.min(item.getAmount(), stack.getMaxStackSize())) + ">"));
+                                else lore.add(ChatColors.color("&7<Left Click: Request 1>"));
+
+                                lore.add("");
+                                if (im.hasLore()) {
+                                    lore.addAll(Objects.requireNonNull(im.getLore()));
+                                }
+
+                                im.setLore(lore);
+                                stack.setItemMeta(im);
+                                menu.replaceExistingItem(slot, stack);
+                                menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
+                                    int amount = Math.min(item.getAmount(), item.getItem().getMaxStackSize());
+                                    itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW));
+                                    return false;
+                                });
+
+                            } else {
+                                Slimefun.runSync(() -> menu.replaceExistingItem(slot, terminal_noitem_item));
+                                Slimefun.runSync(() -> menu.addMenuClickHandler(slot, terminal_noitem_handler));
+                            }
                         }
                     }
                 }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
 
             // Code exported from runSync() - end
@@ -551,8 +570,12 @@ public class CargoNet extends Network {
     }
 
     private void handleWithdraw(DirtyChestMenu menu, List<StoredItem> items, Location l) {
-        for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) { // TODO may not async safe
-            filter(menu.getItemInSlot(slot), items, l);
+        for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
+            try {
+                filter(Slimefun.runSyncCallable(() -> menu.getItemInSlot(slot)).get(), items, l);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
