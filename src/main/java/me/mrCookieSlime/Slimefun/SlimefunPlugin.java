@@ -1,18 +1,5 @@
 package me.mrCookieSlime.Slimefun;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectionManager;
 import io.github.thebusybiscuit.cscorelib2.recipes.RecipeSnapshot;
@@ -23,43 +10,8 @@ import io.github.thebusybiscuit.slimefun4.core.SlimefunRegistry;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunTabCompleter;
 import io.github.thebusybiscuit.slimefun4.core.hooks.SlimefunHooks;
-import io.github.thebusybiscuit.slimefun4.core.services.AutoSavingService;
-import io.github.thebusybiscuit.slimefun4.core.services.BackupService;
-import io.github.thebusybiscuit.slimefun4.core.services.BlockDataService;
-import io.github.thebusybiscuit.slimefun4.core.services.CustomItemDataService;
-import io.github.thebusybiscuit.slimefun4.core.services.CustomTextureService;
-import io.github.thebusybiscuit.slimefun4.core.services.GitHubService;
-import io.github.thebusybiscuit.slimefun4.core.services.LocalizationService;
-import io.github.thebusybiscuit.slimefun4.core.services.MetricsService;
-import io.github.thebusybiscuit.slimefun4.core.services.UpdaterService;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.AncientAltarListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.AndroidKillingListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.AutonomousToolsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BackpackListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BlockListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BlockPhysicsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.CoolerListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DamageListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DeathpointListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DebugFishListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.EnhancedFurnaceListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.ExplosionsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.GearListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.GrapplingHookListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.IgnitionChamberListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.ItemPickupListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.MultiBlockListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.PlayerProfileListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunBootsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunBowListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunGuideListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunItemListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SoulboundListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.TalismanListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.TeleporterListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.VanillaMachinesListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.WorldListener;
+import io.github.thebusybiscuit.slimefun4.core.services.*;
+import io.github.thebusybiscuit.slimefun4.implementation.listeners.*;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.NetherIceResource;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.OilResource;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.SaltResource;
@@ -82,6 +34,20 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.utils.ConfigCache;
 import me.mrCookieSlime.Slimefun.utils.Utilities;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public final class SlimefunPlugin extends JavaPlugin {
 
@@ -114,20 +80,21 @@ public final class SlimefunPlugin extends JavaPlugin {
 
 	// Supported Versions of Minecraft
 	private final String[] supported = {"v1_14_", "v1_15_"};
-	
+
 	private AncientAltarListener ancientAltarListener;
 	private BackpackListener backpackListener;
 	private SlimefunBowListener bowListener;
 
+	@SuppressWarnings({"ConstantConditions", "deprecation"})
 	@Override
 	public void onEnable() {
 		if (getServer().getPluginManager().isPluginEnabled("CS-CoreLib")) {
-			
+
 			if (isVersionUnsupported()) {
 				getServer().getPluginManager().disablePlugin(this);
 				return;
 			}
-			
+
 			instance = this;
 
 			// Creating all necessary Folders
@@ -154,7 +121,7 @@ public final class SlimefunPlugin extends JavaPlugin {
 
 			// Setting up Network classes
 			networkManager = new NetworkManager(config.getInt("options.max-network-size"));
-			
+
 			// Setting up other stuff
 			utilities = new Utilities();
 			gps = new GPSNetwork();
@@ -249,7 +216,7 @@ public final class SlimefunPlugin extends JavaPlugin {
 				if (SlimefunItem.getByID("ANCIENT_ALTAR") != null) {
 					ancientAltarListener.load(this);
 				}
-				
+
 				if (SlimefunItem.getByID("GRAPPLING_HOOK") != null) new GrapplingHookListener(this);
 				if (SlimefunItem.getByID("IGNITION_CHAMBER") != null) new IgnitionChamberListener(this);
 			}, 0);
@@ -272,8 +239,7 @@ public final class SlimefunPlugin extends JavaPlugin {
 			getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
 				try {
 					ticker.run();
-				}
-				catch(Exception x) {
+				} catch (Exception x) {
 					getLogger().log(Level.SEVERE, "An Exception was caught while ticking the Block Tickers Task for Slimefun v" + getVersion(), x);
 					ticker.abortTick();
 				}
@@ -281,16 +247,27 @@ public final class SlimefunPlugin extends JavaPlugin {
 
 			gitHubService.start(this);
 
+			Bukkit.getScheduler().runTaskTimer(this, () -> {
+				while (true) {
+					try {
+						FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(100, TimeUnit.MICROSECONDS);
+						if (task == null) return;
+						task.run();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}, 5, 1);
+
 			// Hooray!
 			getLogger().log(Level.INFO, "Finished!");
 			hooks = new SlimefunHooks(this);
 
-			utilities.oreWasherOutputs = new ItemStack[] {SlimefunItems.IRON_DUST, SlimefunItems.GOLD_DUST, SlimefunItems.ALUMINUM_DUST, SlimefunItems.COPPER_DUST, SlimefunItems.ZINC_DUST, SlimefunItems.TIN_DUST, SlimefunItems.LEAD_DUST, SlimefunItems.SILVER_DUST, SlimefunItems.MAGNESIUM_DUST};
+			utilities.oreWasherOutputs = new ItemStack[]{SlimefunItems.IRON_DUST, SlimefunItems.GOLD_DUST, SlimefunItems.ALUMINUM_DUST, SlimefunItems.COPPER_DUST, SlimefunItems.ZINC_DUST, SlimefunItems.TIN_DUST, SlimefunItems.LEAD_DUST, SlimefunItems.SILVER_DUST, SlimefunItems.MAGNESIUM_DUST};
 
 			// Do not show /sf elevator command in our Log, it could get quite spammy
 			CSCoreLib.getLib().filterLog("([A-Za-z0-9_]{3,16}) issued server command: /sf elevator (.{0,})");
-		}
-		else {
+		} else {
 			getLogger().log(Level.INFO, "#################### - INFO - ####################");
 			getLogger().log(Level.INFO, " ");
 			getLogger().log(Level.INFO, "Slimefun could not be loaded (yet).");
@@ -401,6 +378,7 @@ public final class SlimefunPlugin extends JavaPlugin {
 		}
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private void createDir(String path) {
 		File file = new File(path);
 		if (!file.exists()) file.mkdirs();
