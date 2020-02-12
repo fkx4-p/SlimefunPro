@@ -250,7 +250,7 @@ public class CargoNet extends Network {
                                 try {
                                     BlockMenu menu = Slimefun.runSyncFuture(() -> BlockStorage.getInventory(bus)).get();
 
-                                    runBlockWithLock(locks,
+                                    runBlockWithLock(
                                             Slimefun.runSyncFuture(() ->
                                                     Objects.requireNonNull(getAttachedBlock(bus.getBlock()))).get(),
                                             target -> {
@@ -286,7 +286,7 @@ public class CargoNet extends Network {
                                 try {
                                     BlockMenu menu = Slimefun.runSyncFuture(() -> BlockStorage.getInventory(bus)).get();
 
-                                    runBlockWithLock(locks, Slimefun.runSyncFuture(() -> getAttachedBlock(bus.getBlock())).get(), target -> {
+                                    runBlockWithLock(Slimefun.runSyncFuture(() -> getAttachedBlock(bus.getBlock())).get(), target -> {
                                         try {
                                             ItemStack item17 = Slimefun.runSyncFuture(() -> menu.getItemInSlot(17)).get();
                                             if (item17 != null) {
@@ -372,7 +372,7 @@ public class CargoNet extends Network {
 
                                                 for (Location l : destinations) {
                                                     try {
-                                                        runBlockWithLock(locks, Slimefun.runSyncFuture(() ->
+                                                        runBlockWithLock(Slimefun.runSyncFuture(() ->
                                                                 getAttachedBlock(l.getBlock())).get(), target -> {
                                                             requestedItem.set(CargoManager.insert(
                                                                     l.getBlock(), target, requestedItem.get(), -1));
@@ -426,7 +426,7 @@ public class CargoNet extends Network {
                                                 for (Location l : providers) {
 
                                                     try {
-                                                        runBlockWithLock(locks, Slimefun.runSyncFuture(() ->
+                                                        runBlockWithLock(Slimefun.runSyncFuture(() ->
                                                                 getAttachedBlock(l.getBlock())).get(), target -> {
                                                             ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested[0]);
 
@@ -503,7 +503,7 @@ public class CargoNet extends Network {
                                     Block inputTargetA = Slimefun.runSyncFuture(() -> getAttachedBlock(input.getBlock())).get();
                                     if (inputTargetA == null) return;
 
-                                    runBlockWithLock(locks, inputTargetA, inputTarget -> {
+                                    runBlockWithLock(inputTargetA, inputTarget -> {
                                         try {
                                             AtomicReference<ItemStack> stack = new AtomicReference<>(null);
                                             int previousSlot = -1;
@@ -542,7 +542,7 @@ public class CargoNet extends Network {
 
                                                     for (Location out : outputsList) {
                                                         try {
-                                                            runBlockWithLock(locks, Slimefun.runSyncFuture(() -> getAttachedBlock(out.getBlock())).get(), target -> {
+                                                            runBlockWithLock(Slimefun.runSyncFuture(() -> getAttachedBlock(out.getBlock())).get(), target -> {
                                                                 if (target != null) {
                                                                     stack.set(CargoManager.insert(out.getBlock(), target, stack.get(), -1));
                                                                     if (stack.get() == null)
@@ -603,7 +603,7 @@ public class CargoNet extends Network {
                             for (Location l : providers) {
                                 futures.add(pool.submit(() -> {
                                     try {
-                                        runBlockWithLock(locks, Slimefun.runSyncFuture(() -> getAttachedBlock(l.getBlock())).get(), target -> {
+                                        runBlockWithLock(Slimefun.runSyncFuture(() -> getAttachedBlock(l.getBlock())).get(), target -> {
                                             try {
                                                 UniversalBlockMenu menu = Slimefun.runSyncFuture(() -> BlockStorage.getUniversalInventory(target)).get();
 
@@ -738,7 +738,7 @@ public class CargoNet extends Network {
 
     }
 
-    private static void runBlockWithLock(Map<Location, SynchronizedLock<Block>> locks, Block block, Consumer<Block> consumer)
+    private static void runBlockWithLock(Block block, Consumer<Block> consumer)
             throws ExecutionException, InterruptedException {
         SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
         BlockState state = Slimefun.runSyncFuture(block::getState).get();
@@ -756,35 +756,35 @@ public class CargoNet extends Network {
                         ((Chest) Objects.requireNonNull(doubleChest.getLeftSide())).getLocation()).get();
                 Location rightLocation = Slimefun.runSyncFuture(() ->
                         ((Chest) Objects.requireNonNull(doubleChest.getRightSide())).getLocation()).get();
-                SynchronizedLock<Block> leftOriginalLock = locks.get(leftLocation);
-                SynchronizedLock<Block> rightOriginalLock = locks.get(rightLocation);
+                SynchronizedLock<Block> leftOriginalLock = CargoNet.locks.get(leftLocation);
+                SynchronizedLock<Block> rightOriginalLock = CargoNet.locks.get(rightLocation);
                 if (leftOriginalLock == null || !Objects.equals(leftOriginalLock, rightOriginalLock)) {
-                    Slimefun.getLogger().info("created double chest");
-                    locks.put(leftLocation, currentLock);
-                    locks.put(rightLocation, currentLock);
+                    // Slimefun.getLogger().info("created double chest");
+                    CargoNet.locks.put(leftLocation, currentLock);
+                    CargoNet.locks.put(rightLocation, currentLock);
                 } else {
-                    Slimefun.getLogger().info("reused double chest");
+                    // Slimefun.getLogger().info("reused double chest");
                     currentLock = leftOriginalLock;
                 }
             } else {
                 Location blockLocation = block.getLocation();
-                SynchronizedLock<Block> originalLock = locks.get(blockLocation);
+                SynchronizedLock<Block> originalLock = CargoNet.locks.get(blockLocation);
                 if (originalLock == null) {
-                    Slimefun.getLogger().info("created non double chest");
-                    locks.put(blockLocation, currentLock);
+                    // Slimefun.getLogger().info("created non double chest");
+                    CargoNet.locks.put(blockLocation, currentLock);
                 } else {
-                    Slimefun.getLogger().info("reused non double chest");
+                    // Slimefun.getLogger().info("reused non double chest");
                     currentLock = originalLock;
                 }
             }
         } else {
             Location blockLocation = block.getLocation();
-            SynchronizedLock<Block> originalLock = locks.get(blockLocation);
+            SynchronizedLock<Block> originalLock = CargoNet.locks.get(blockLocation);
             if (originalLock == null) {
-                Slimefun.getLogger().info("created block");
-                locks.put(blockLocation, currentLock);
+                // Slimefun.getLogger().info("created block");
+                CargoNet.locks.put(blockLocation, currentLock);
             } else {
-                Slimefun.getLogger().info("reused block");
+                // Slimefun.getLogger().info("reused block");
                 currentLock = originalLock;
             }
         }

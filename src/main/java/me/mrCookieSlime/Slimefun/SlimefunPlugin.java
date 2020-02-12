@@ -420,10 +420,11 @@ public final class SlimefunPlugin extends JavaPlugin {
 		return instance.ticker;
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isActive() {
 		return instance != null;
 	}
-	
+
 	public static String getVersion() {
 		return instance.getDescription().getVersion();
 	}
