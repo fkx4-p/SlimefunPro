@@ -247,8 +247,11 @@ public final class SlimefunPlugin extends JavaPlugin {
 
 			gitHubService.start(this);
 
+			// Slimefun Async CargoNet Scheduler
 			Bukkit.getScheduler().runTaskTimer(this, () -> {
-				while (true) {
+				long startTime = System.nanoTime();
+				int maxTimeMillis = 10;
+				while ((System.nanoTime() - startTime) / 1000 / 1000 < maxTimeMillis) {
 					try {
 						FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(100, TimeUnit.MICROSECONDS);
 						if (task == null) return;

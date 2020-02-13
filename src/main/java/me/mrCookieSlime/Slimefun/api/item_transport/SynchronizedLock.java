@@ -30,4 +30,8 @@ public class SynchronizedLock<T> {
     public int hashCode() {
         return Objects.hash(serial);
     }
+
+    public int getSerial() {
+        return serial;
+    }
 }

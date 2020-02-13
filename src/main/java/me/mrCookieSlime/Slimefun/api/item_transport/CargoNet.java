@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -69,23 +70,27 @@ public class CargoNet extends Network {
 
     private static final Map<Location, SynchronizedLock<Block>> locks = new ConcurrentHashMap<>();
 
-    private Future<?> lastFuture = null;
-
-    private static final ExecutorService pool = Executors.newFixedThreadPool(4, new ThreadFactory() {
+    public static Set<Thread> poolThreads = Sets.newConcurrentHashSet();
+    public static ExecutorService pool = Executors.newFixedThreadPool(4, new ThreadFactory() {
         private int threadCount = 0;
 
         @Override
         public synchronized Thread newThread(@NotNull Runnable runnable) {
-            return new Thread(runnable, "Slimefun Async CargoNet-" + threadCount++);
+            Thread thread = new Thread(runnable, "Slimefun Async CargoNet-" + threadCount++);
+            poolThreads.add(thread);
+            return thread;
         }
     });
 
-    private static final ExecutorService executePool = Executors.newCachedThreadPool(new ThreadFactory() {
+    public static Set<Thread> executePoolThreads = Sets.newConcurrentHashSet();
+    public static ExecutorService executePool = Executors.newCachedThreadPool(new ThreadFactory() {
         private int threadCount = 0;
 
         @Override
         public Thread newThread(@NotNull Runnable runnable) {
-            return new Thread(runnable, "Slimefun Async CargoNet Executor-" + threadCount++);
+            Thread thread = new Thread(runnable, "Slimefun Async CargoNet Executor-" + threadCount++);
+            executePoolThreads.add(thread);
+            return thread;
         }
     });
 
@@ -183,16 +188,7 @@ public class CargoNet extends Network {
         } else {
             SimpleHologram.update(b, "&7Status: &a&lONLINE");
 
-            if (lastFuture != null)
-                try {
-                    lastFuture.get();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    lastFuture = null;
-                }
-
-            this.lastFuture = executePool.submit(() -> {
+            executePool.execute(() -> {
                 ConcurrentMap<Integer, List<Location>> output = new ConcurrentHashMap<>();
 
                 List<Location> list = new LinkedList<>();
@@ -207,7 +203,7 @@ public class CargoNet extends Network {
                             return prev;
                         });
 
-                        list = Collections.synchronizedList(new LinkedList<>());
+                        list = new LinkedList<>();
                     }
 
                     list.add(outputNode);
@@ -503,87 +499,97 @@ public class CargoNet extends Network {
                                     Block inputTargetA = Slimefun.runSyncFuture(() -> getAttachedBlock(input.getBlock())).get();
                                     if (inputTargetA == null) return;
 
-                                    runBlockWithLock(inputTargetA, inputTarget -> {
-                                        try {
-                                            AtomicReference<ItemStack> stack = new AtomicReference<>(null);
-                                            int previousSlot = -1;
+                                    SynchronizedLock<Block> lock = getLock(inputTargetA);
 
-                                            @SuppressWarnings("deprecation")
-                                            Config cfg = BlockStorage.getLocationInfo(input);
-                                            boolean roundRobin = "true".equals(cfg.getString("round-robin"));
+                                    try {
+                                        AtomicReference<ItemStack> stack = new AtomicReference<>(null);
+                                        AtomicInteger previousSlot = new AtomicInteger(-1);
 
-                                            ItemSlot slot = CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index")));
+                                        @SuppressWarnings("deprecation")
+                                        Config cfg = BlockStorage.getLocationInfo(input);
+                                        boolean roundRobin = "true".equals(cfg.getString("round-robin"));
 
-                                            if (slot != null) {
-                                                stack.set(slot.getItem());
-                                                previousSlot = slot.getSlot();
-                                            }
-
-                                            if (stack.get() != null) {
-                                                List<Location> outputs = output.get(frequency);
-
-                                                if (outputs != null) {
-                                                    List<Location> outputsList = new ArrayList<>(outputs);
-
-                                                    if (roundRobin) {
-                                                        int cIndex = this.roundRobin.getOrDefault(input, 0);
-
-                                                        if (cIndex < outputsList.size()) {
-                                                            for (int i = 0; i < cIndex; i++) {
-                                                                Location temp = outputsList.get(0);
-                                                                outputsList.remove(temp);
-                                                                outputsList.add(temp);
-                                                            }
-                                                            cIndex++;
-                                                        } else cIndex = 1;
-
-                                                        this.roundRobin.put(input, cIndex);
+                                        AtomicReference<ItemSlot> slot = new AtomicReference<>();
+                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
+                                                    slot.set(CargoManager.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))));
+                                                    if (slot.get() != null) {
+                                                        stack.set(slot.get().getItem());
+                                                        previousSlot.set(slot.get().getSlot());
                                                     }
+                                                }
+                                        );
 
-                                                    for (Location out : outputsList) {
-                                                        try {
-                                                            runBlockWithLock(Slimefun.runSyncFuture(() -> getAttachedBlock(out.getBlock())).get(), target -> {
-                                                                if (target != null) {
-                                                                    stack.set(CargoManager.insert(out.getBlock(), target, stack.get(), -1));
-                                                                    if (stack.get() == null)
-                                                                        throw new RuntimeException("break");
-                                                                }
-                                                            });
-                                                        } catch (Exception e) {
-                                                            if (e.getMessage().equals("break")) break;
-                                                            else throw new RuntimeException(e);
+                                        if (stack.get() != null) {
+                                            List<Location> outputs = output.get(frequency);
+
+                                            if (outputs != null) {
+                                                List<Location> outputsList = new ArrayList<>(outputs);
+
+                                                if (roundRobin) {
+                                                    int cIndex = this.roundRobin.getOrDefault(input, 0);
+
+                                                    if (cIndex < outputsList.size()) {
+                                                        for (int i = 0; i < cIndex; i++) {
+                                                            Location temp = outputsList.get(0);
+                                                            outputsList.remove(temp);
+                                                            outputsList.add(temp);
                                                         }
-                                                    }
+                                                        cIndex++;
+                                                    } else cIndex = 1;
+
+                                                    this.roundRobin.put(input, cIndex);
                                                 }
-                                            }
 
-                                            if (stack.get() != null && previousSlot > -1) {
-                                                DirtyChestMenu menu = Slimefun.runSyncFuture(() -> CargoManager.getChestMenu(inputTarget)).get();
-
-                                                if (menu != null) {
-                                                    int finalPreviousSlot = previousSlot;
-                                                    ItemStack finalStack = stack.get();
-                                                    Slimefun.runSyncFuture(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack)).get();
-                                                } else {
-                                                    BlockState state;
+                                                for (Location out : outputsList) {
                                                     try {
-                                                        state = Slimefun.runSyncFuture(inputTarget::getState).get();
+                                                        runBlockWithLock(Slimefun.runSyncFuture(() -> getAttachedBlock(out.getBlock())).get(), target -> {
+                                                            if (target != null) {
+                                                                stack.set(CargoManager.insert(out.getBlock(), target, stack.get(), -1));
+                                                                if (stack.get() == null)
+                                                                    throw new RuntimeException("break");
+                                                            }
+                                                        });
                                                     } catch (Exception e) {
-                                                        throw new RuntimeException(e);
+                                                        if (e.getMessage().equals("break")) break;
+                                                        else throw new RuntimeException(e);
                                                     }
-                                                    if (state instanceof InventoryHolder) {
-                                                        Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
-                                                        int finalPreviousSlot1 = previousSlot;
-                                                        ItemStack finalStack1 = stack.get();
-                                                        Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
-                                                    }
-
                                                 }
                                             }
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
                                         }
-                                    });
+
+                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
+                                            try {
+                                                if (stack.get() != null && previousSlot.get() > -1) {
+                                                    DirtyChestMenu menu = Slimefun.runSyncFuture(() -> CargoManager.getChestMenu(inputTarget)).get();
+
+                                                    if (menu != null) {
+                                                        int finalPreviousSlot = previousSlot.get();
+                                                        ItemStack finalStack = stack.get();
+                                                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack)).get();
+                                                    } else {
+                                                        BlockState state;
+                                                        try {
+                                                            state = Slimefun.runSyncFuture(inputTarget::getState).get();
+                                                        } catch (Exception e) {
+                                                            throw new RuntimeException(e);
+                                                        }
+                                                        if (state instanceof InventoryHolder) {
+                                                            Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                                                            int finalPreviousSlot1 = previousSlot.get();
+                                                            ItemStack finalStack1 = stack.get();
+                                                            Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
+                                                        }
+
+                                                    }
+                                                }
+                                            } catch (Exception e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        });
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+
 
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
@@ -740,6 +746,14 @@ public class CargoNet extends Network {
 
     private static void runBlockWithLock(Block block, Consumer<Block> consumer)
             throws ExecutionException, InterruptedException {
+        getLock(block).run(consumer, block);
+    }
+
+    private static void runBlockWithLock(SynchronizedLock<Block> lock, Block block, Consumer<Block> consumer) {
+        lock.run(consumer, block);
+    }
+
+    private static SynchronizedLock<Block> getLock(Block block) throws ExecutionException, InterruptedException {
         SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
         BlockState state = Slimefun.runSyncFuture(block::getState).get();
         if (state instanceof Container) {
@@ -788,8 +802,7 @@ public class CargoNet extends Network {
                 currentLock = originalLock;
             }
         }
-
-        currentLock.run(consumer, block);
+        return currentLock;
     }
 
     private static Block getAttachedBlock(Block block) {
@@ -835,6 +848,21 @@ public class CargoNet extends Network {
             if (add) {
                 items.add(new StoredItem(new CustomItem(is, 1), is.getAmount()));
             }
+        }
+    }
+
+    private static void printStackTrace(@NotNull Set<Thread> threads) {
+        for (Thread thread : threads) {
+            if (!thread.isAlive()) continue;
+            Slimefun.getLogger().warning("Thread: " + thread.getName());
+            Slimefun.getLogger().warning("ID: " + thread.getId() +
+                    " | State: " + thread.getState().name());
+            Slimefun.getLogger().warning("");
+            Slimefun.getLogger().warning("Stacktrace: ");
+            for (StackTraceElement stackTrace : thread.getStackTrace())
+                Slimefun.getLogger().warning(stackTrace.toString());
+            Slimefun.getLogger().warning("");
+            Slimefun.getLogger().warning("--------------------------------");
         }
     }
 }

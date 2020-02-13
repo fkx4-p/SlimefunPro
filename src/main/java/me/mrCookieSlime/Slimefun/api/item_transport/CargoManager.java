@@ -129,7 +129,7 @@ public final class CargoManager {
                     throw new RuntimeException(e);
                 }
 
-                if (matchesFilter(node, is, index)) {
+                if (is != null && matchesFilter(node, is, index)) {
                     try {
                         Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, null)).get();
                     } catch (Exception e) {
