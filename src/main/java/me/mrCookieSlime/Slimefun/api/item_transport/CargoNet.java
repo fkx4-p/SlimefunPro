@@ -321,373 +321,369 @@ public class CargoNet extends Network {
                     }
                 }
 
-                Slimefun.runSync(() -> {
+                // Code exported from runSync() - start
+                try {
+                    if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
+                        tickingPool.execute(this::display);
+                    }
 
-                    // Code exported from runSync() - start
-                    try {
-                        if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
-                            tickingPool.execute(this::display);
-                        }
+                    Set<Future<?>> futures = Sets.newConcurrentHashSet();
 
-                        Set<Future<?>> futures = Sets.newConcurrentHashSet();
+                    //Chest Terminal Code
+                    if (extraChannels) {
+                        for (Location bus : imports)
+                            futures.add(tickingPool.submit(() -> {
+                                try {
+                                    BlockMenu menu = BlockStorage.getInventory(bus);
+                                    if (menu == null) return;
 
-                        //Chest Terminal Code
-                        if (extraChannels) {
-                            for (Location bus : imports)
-                                futures.add(tickingPool.submit(() -> {
-                                    try {
-                                        BlockMenu menu = BlockStorage.getInventory(bus);
-                                        if (menu == null) return;
+                                    runBlockWithLock(
+                                            getAttachedBlock(bus.getBlock()),
+                                            target -> {
+                                                try {
+                                                    ItemStack item17 = menu.getItemInSlot(17);
+                                                    if (item17 == null) {
+                                                        ItemAndInt stack = CargoUtils.withdraw(bus.getBlock(), target, -1);
 
-                                        runBlockWithLock(
-                                                getAttachedBlock(bus.getBlock()),
-                                                target -> {
-                                                    try {
-                                                        ItemStack item17 = menu.getItemInSlot(17);
-                                                        if (item17 == null) {
-                                                            ItemAndInt stack = CargoUtils.withdraw(bus.getBlock(), target, -1);
-
-                                                            if (stack != null) {
-                                                                menu.replaceExistingItem(17, stack.getItem());
-                                                            }
+                                                        if (stack != null) {
+                                                            menu.replaceExistingItem(17, stack.getItem());
                                                         }
-
-                                                        if (item17 != null) {
-                                                            itemRequests.add(new ItemRequest(bus, 17, item17, ItemTransportFlow.INSERT, providers, destinations));
-                                                        }
-                                                    } catch (Exception e) {
-                                                        throw new RuntimeException(e);
                                                     }
-                                                });
-                                    } catch (Exception e) {
-                                        Slimefun.getLogger().log(Level.WARNING, e.getMessage(), e);
-                                    }
-                                }));
-                        }
 
-                        {
-                            for (Location bus : exports) {
-                                futures.add(tickingPool.submit(() -> {
-                                    try {
-                                        BlockMenu menu = BlockStorage.getInventory(bus);
-                                        if (menu == null) return;
+                                                    if (item17 != null) {
+                                                        itemRequests.add(new ItemRequest(bus, 17, item17, ItemTransportFlow.INSERT, providers, destinations));
+                                                    }
+                                                } catch (Exception e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                            });
+                                } catch (Exception e) {
+                                    Slimefun.getLogger().log(Level.WARNING, e.getMessage(), e);
+                                }
+                            }));
+                    }
 
-                                        runBlockWithLock(getAttachedBlock(bus.getBlock()), target -> {
-                                            try {
-                                                ItemStack item17 = menu.getItemInSlot(17);
-                                                if (item17 != null) {
-                                                    menu.replaceExistingItem(
-                                                            17,
-                                                            CargoUtils.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1));
+                    {
+                        for (Location bus : exports) {
+                            futures.add(tickingPool.submit(() -> {
+                                try {
+                                    BlockMenu menu = BlockStorage.getInventory(bus);
+                                    if (menu == null) return;
+
+                                    runBlockWithLock(getAttachedBlock(bus.getBlock()), target -> {
+                                        try {
+                                            ItemStack item17 = menu.getItemInSlot(17);
+                                            if (item17 != null) {
+                                                menu.replaceExistingItem(
+                                                        17,
+                                                        CargoUtils.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1));
+                                            }
+
+                                            if (item17 == null) {
+                                                List<ItemStack> items = new ArrayList<>();
+                                                for (int slot : slots) {
+                                                    ItemStack template = menu.getItemInSlot(slot);
+                                                    if (template != null) items.add(new CustomItem(template, 1));
                                                 }
 
-                                                if (item17 == null) {
-                                                    List<ItemStack> items = new ArrayList<>();
-                                                    for (int slot : slots) {
-                                                        ItemStack template = menu.getItemInSlot(slot);
-                                                        if (template != null) items.add(new CustomItem(template, 1));
+                                                if (!items.isEmpty()) {
+                                                    int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
+
+                                                    index++;
+                                                    if (index > (items.size() - 1)) index = 0;
+
+                                                    int finalIndex = index;
+                                                    BlockStorage.addBlockInfo(bus, "index", String.valueOf(finalIndex));
+                                                    itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW, providers, destinations));
+                                                }
+                                            }
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+
+                                    });
+
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }));
+                        }
+                    }
+
+                    {
+                        for (Location terminal : terminals) {
+                            futures.add(tickingPool.submit(() -> {
+                                try {
+                                    BlockMenu menu = BlockStorage.getInventory(terminal);
+                                    if (menu == null) return;
+                                    ItemStack sendingItem = menu.getItemInSlot(TERMINAL_OUT_SLOT);
+
+                                    if (sendingItem != null) {
+                                        itemRequests.add(
+                                                new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT, providers, destinations));
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }));
+                        }
+                    }
+
+
+                    // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
+                    {
+                        for (Location input : inputNodes) {
+                            futures.add(tickingPool.submit(() -> {
+                                try {
+                                    int frequency = getFrequency(input);
+
+                                    if (frequency < 0 || frequency > 15) {
+                                        return;
+                                    }
+
+                                    Block inputTargetA = getAttachedBlock(input.getBlock());
+                                    if (inputTargetA == null) return;
+
+                                    SynchronizedLock<Block> lock = getLock(inputTargetA);
+
+                                    try {
+                                        AtomicReference<ItemStack> stack = new AtomicReference<>(null);
+                                        AtomicInteger previousSlot = new AtomicInteger(-1);
+
+                                        @SuppressWarnings("deprecation")
+                                        Config cfg = BlockStorage.getLocationInfo(input);
+                                        boolean roundRobin = "true".equals(cfg.getString("round-robin"));
+
+                                        AtomicReference<ItemAndInt> slot = new AtomicReference<>();
+                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
+                                                    slot.set(CargoUtils.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))));
+                                                    if (slot.get() != null) {
+                                                        stack.set(slot.get().getItem());
+                                                        previousSlot.set(slot.get().getInt());
                                                     }
+                                                }
+                                        );
 
-                                                    if (!items.isEmpty()) {
-                                                        int index = Integer.parseInt(BlockStorage.getLocationInfo(bus, "index"));
+                                        if (stack.get() != null) {
+                                            List<Location> outputs = output.get(frequency);
 
-                                                        index++;
-                                                        if (index > (items.size() - 1)) index = 0;
+                                            if (outputs != null) {
+                                                List<Location> outputsList = new ArrayList<>(outputs);
 
-                                                        int finalIndex = index;
-                                                        BlockStorage.addBlockInfo(bus, "index", String.valueOf(finalIndex));
-                                                        itemRequests.add(new ItemRequest(bus, 17, items.get(index), ItemTransportFlow.WITHDRAW, providers, destinations));
+                                                if (roundRobin) {
+                                                    int cIndex = this.roundRobin.getOrDefault(input, 0);
+
+                                                    if (cIndex < outputsList.size()) {
+                                                        for (int i = 0; i < cIndex; i++) {
+                                                            Location temp = outputsList.get(0);
+                                                            outputsList.remove(temp);
+                                                            outputsList.add(temp);
+                                                        }
+                                                        cIndex++;
+                                                    } else cIndex = 1;
+
+                                                    this.roundRobin.put(input, cIndex);
+                                                }
+
+                                                for (Location out : outputsList) {
+                                                    try {
+                                                        runBlockWithLock(getAttachedBlock(out.getBlock()), target -> {
+                                                            if (target != null) {
+                                                                stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
+                                                                if (stack.get() == null)
+                                                                    throw new RuntimeException("break");
+                                                            }
+                                                        });
+                                                    } catch (Exception e) {
+                                                        if (e.getMessage().equals("break")) break;
+                                                        else throw new RuntimeException(e);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
+                                            try {
+                                                if (stack.get() != null && previousSlot.get() > -1) {
+                                                    DirtyChestMenu menu = Slimefun.runSyncFuture(() -> CargoUtils.getChestMenu(inputTarget)).get();
+
+                                                    if (menu != null) {
+                                                        int finalPreviousSlot = previousSlot.get();
+                                                        ItemStack finalStack = stack.get();
+                                                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack)).get();
+                                                    } else {
+                                                        BlockState state;
+                                                        try {
+                                                            state = Slimefun.runSyncFuture(inputTarget::getState).get();
+                                                        } catch (Exception e) {
+                                                            throw new RuntimeException(e);
+                                                        }
+                                                        if (state instanceof InventoryHolder) {
+                                                            Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                                                            int finalPreviousSlot1 = previousSlot.get();
+                                                            ItemStack finalStack1 = stack.get();
+                                                            Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
+                                                        }
+
                                                     }
                                                 }
                                             } catch (Exception e) {
                                                 throw new RuntimeException(e);
                                             }
-
                                         });
-
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }
-                                }));
-                            }
-                        }
-
-                        {
-                            for (Location terminal : terminals) {
-                                futures.add(tickingPool.submit(() -> {
-                                    try {
-                                        BlockMenu menu = BlockStorage.getInventory(terminal);
-                                        if (menu == null) return;
-                                        ItemStack sendingItem = menu.getItemInSlot(TERMINAL_OUT_SLOT);
-
-                                        if (sendingItem != null) {
-                                            itemRequests.add(
-                                                    new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT, providers, destinations));
-                                        }
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }));
-                            }
-                        }
 
 
-                        // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
-                        {
-                            for (Location input : inputNodes) {
-                                futures.add(tickingPool.submit(() -> {
-                                    try {
-                                        int frequency = getFrequency(input);
-
-                                        if (frequency < 0 || frequency > 15) {
-                                            return;
-                                        }
-
-                                        Block inputTargetA = getAttachedBlock(input.getBlock());
-                                        if (inputTargetA == null) return;
-
-                                        SynchronizedLock<Block> lock = getLock(inputTargetA);
-
-                                        try {
-                                            AtomicReference<ItemStack> stack = new AtomicReference<>(null);
-                                            AtomicInteger previousSlot = new AtomicInteger(-1);
-
-                                            @SuppressWarnings("deprecation")
-                                            Config cfg = BlockStorage.getLocationInfo(input);
-                                            boolean roundRobin = "true".equals(cfg.getString("round-robin"));
-
-                                            AtomicReference<ItemAndInt> slot = new AtomicReference<>();
-                                            runBlockWithLock(lock, inputTargetA, inputTarget -> {
-                                                        slot.set(CargoUtils.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))));
-                                                        if (slot.get() != null) {
-                                                            stack.set(slot.get().getItem());
-                                                            previousSlot.set(slot.get().getInt());
-                                                        }
-                                                    }
-                                            );
-
-                                            if (stack.get() != null) {
-                                                List<Location> outputs = output.get(frequency);
-
-                                                if (outputs != null) {
-                                                    List<Location> outputsList = new ArrayList<>(outputs);
-
-                                                    if (roundRobin) {
-                                                        int cIndex = this.roundRobin.getOrDefault(input, 0);
-
-                                                        if (cIndex < outputsList.size()) {
-                                                            for (int i = 0; i < cIndex; i++) {
-                                                                Location temp = outputsList.get(0);
-                                                                outputsList.remove(temp);
-                                                                outputsList.add(temp);
-                                                            }
-                                                            cIndex++;
-                                                        } else cIndex = 1;
-
-                                                        this.roundRobin.put(input, cIndex);
-                                                    }
-
-                                                    for (Location out : outputsList) {
-                                                        try {
-                                                            runBlockWithLock(getAttachedBlock(out.getBlock()), target -> {
-                                                                if (target != null) {
-                                                                    stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
-                                                                    if (stack.get() == null)
-                                                                        throw new RuntimeException("break");
-                                                                }
-                                                            });
-                                                        } catch (Exception e) {
-                                                            if (e.getMessage().equals("break")) break;
-                                                            else throw new RuntimeException(e);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            runBlockWithLock(lock, inputTargetA, inputTarget -> {
-                                                try {
-                                                    if (stack.get() != null && previousSlot.get() > -1) {
-                                                        DirtyChestMenu menu = Slimefun.runSyncFuture(() -> CargoUtils.getChestMenu(inputTarget)).get();
-
-                                                        if (menu != null) {
-                                                            int finalPreviousSlot = previousSlot.get();
-                                                            ItemStack finalStack = stack.get();
-                                                            Slimefun.runSyncFuture(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack)).get();
-                                                        } else {
-                                                            BlockState state;
-                                                            try {
-                                                                state = Slimefun.runSyncFuture(inputTarget::getState).get();
-                                                            } catch (Exception e) {
-                                                                throw new RuntimeException(e);
-                                                            }
-                                                            if (state instanceof InventoryHolder) {
-                                                                Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
-                                                                int finalPreviousSlot1 = previousSlot.get();
-                                                                ItemStack finalStack1 = stack.get();
-                                                                Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
-                                                            }
-
-                                                        }
-                                                    }
-                                                } catch (Exception e) {
-                                                    throw new RuntimeException(e);
-                                                }
-                                            });
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-
-
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }));
-                            }
-                        }
-
-                        //Chest Terminal Code
-                        if (extraChannels) {
-                            Set<ItemAndInt> items = new ConcurrentSkipListSet<>(Comparator.comparingInt(item -> -item.getInt()));
-
-                            {
-                                for (Location l : providers) {
-                                    futures.add(tickingPool.submit(() -> {
-                                        try {
-                                            runBlockWithLock(getAttachedBlock(l.getBlock()), target -> {
-                                                try {
-                                                    UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
-
-                                                    if (menu != null) {
-                                                        for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
-                                                            ItemStack is = menu.getItemInSlot(slot);
-                                                            filter(is, items, l);
-                                                        }
-                                                    } else if (BlockStorage.hasInventory(target)) {
-                                                        BlockMenu blockMenu = BlockStorage.getInventory(target);
-                                                        @SuppressWarnings("deprecation")
-                                                        Config cfg = BlockStorage.getLocationInfo(target.getLocation());
-
-                                                        if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
-                                                            int stored = Integer.parseInt(cfg.getString("storedItems"));
-
-                                                            for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
-                                                                ItemStack is = blockMenu.getItemInSlot(slot);
-
-                                                                if (is != null && CargoUtils.matchesFilter(l.getBlock(), is, -1)) {
-                                                                    boolean add = true;
-
-                                                                    for (ItemAndInt item : items) {
-                                                                        if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
-                                                                            add = false;
-                                                                            item.add(is.getAmount() + stored);
-                                                                        }
-                                                                    }
-
-                                                                    if (add) {
-                                                                        items.add(new ItemAndInt(new CustomItem(is, 1), is.getAmount() + stored));
-                                                                    }
-                                                                }
-                                                            }
-                                                        } else {
-                                                            handleWithdraw(blockMenu, items, l);
-                                                        }
-                                                    } else {
-                                                        BlockState state;
-                                                        try {
-                                                            state = Slimefun.runSyncFuture(target::getState).get();
-                                                        } catch (Exception e) {
-                                                            throw new RuntimeException(e);
-                                                        }
-
-                                                        if (state instanceof InventoryHolder) {
-                                                            Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
-
-                                                            for (ItemStack is : inv.getContents()) {
-                                                                filter(is, items, l);
-                                                            }
-                                                        }
-                                                    }
-                                                } catch (Exception e) {
-                                                    throw new RuntimeException(e);
-                                                }
-                                            });
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }));
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
                                 }
-                            }
-
-
-                            {
-                                for (Location l : terminals) {
-                                    futures.add(tickingPool.submit(() -> {
-                                        try {
-                                            BlockMenu menu = BlockStorage.getInventory(l);
-                                            if (menu == null) return;
-                                            int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
-
-                                            if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
-                                                page = 1;
-                                                BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
-                                            }
-
-                                            for (int i = 0; i < terminal_slots.length; i++) {
-                                                int slot = terminal_slots[i];
-
-                                                if (items.size() > i + (terminal_slots.length * (page - 1))) {
-
-                                                    if (items.size() > i + (terminal_slots.length * (page - 1))) {
-                                                        ItemAndInt item = Iterables.get(items, i + (terminal_slots.length * (page - 1)));
-
-                                                        ItemStack stack = item.getItem().clone();
-                                                        ItemMeta im = stack.getItemMeta();
-                                                        if (im == null) continue;
-                                                        List<String> lore = new ArrayList<>();
-                                                        lore.add("");
-                                                        lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getInt())));
-
-                                                        if (stack.getMaxStackSize() > 1)
-                                                            lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (Math.min(item.getInt(), stack.getMaxStackSize())) + ">"));
-                                                        else
-                                                            lore.add(ChatColors.color("&7<Left Click: Request 1>"));
-
-                                                        lore.add("");
-                                                        if (im.hasLore()) {
-                                                            lore.addAll(Objects.requireNonNull(im.getLore()));
-                                                        }
-
-                                                        im.setLore(lore);
-                                                        stack.setItemMeta(im);
-                                                        menu.replaceExistingItem(slot, stack);
-                                                        menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
-                                                            int amount = Math.min(item.getInt(), item.getItem().getMaxStackSize());
-                                                            itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW, providers, destinations));
-                                                            return false;
-                                                        });
-
-                                                    } else {
-                                                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, terminal_noItem_item)).get();
-                                                        menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
-                                                    }
-                                                }
-                                            }
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }));
-                                }
-                                for (Future<?> future : futures)
-                                    future.get();
-                            }
-                            // Code exported from runSync() - end
+                            }));
                         }
-                        ;
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
 
-                });
+                    //Chest Terminal Code
+                    if (extraChannels) {
+                        Set<ItemAndInt> items = new ConcurrentSkipListSet<>(Comparator.comparingInt(item -> -item.getInt()));
+
+                        {
+                            for (Location l : providers) {
+                                futures.add(tickingPool.submit(() -> {
+                                    try {
+                                        runBlockWithLock(getAttachedBlock(l.getBlock()), target -> {
+                                            try {
+                                                UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
+
+                                                if (menu != null) {
+                                                    for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
+                                                        ItemStack is = menu.getItemInSlot(slot);
+                                                        filter(is, items, l);
+                                                    }
+                                                } else if (BlockStorage.hasInventory(target)) {
+                                                    BlockMenu blockMenu = BlockStorage.getInventory(target);
+                                                    @SuppressWarnings("deprecation")
+                                                    Config cfg = BlockStorage.getLocationInfo(target.getLocation());
+
+                                                    if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
+                                                        int stored = Integer.parseInt(cfg.getString("storedItems"));
+
+                                                        for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
+                                                            ItemStack is = blockMenu.getItemInSlot(slot);
+
+                                                            if (is != null && CargoUtils.matchesFilter(l.getBlock(), is, -1)) {
+                                                                boolean add = true;
+
+                                                                for (ItemAndInt item : items) {
+                                                                    if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
+                                                                        add = false;
+                                                                        item.add(is.getAmount() + stored);
+                                                                    }
+                                                                }
+
+                                                                if (add) {
+                                                                    items.add(new ItemAndInt(new CustomItem(is, 1), is.getAmount() + stored));
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        handleWithdraw(blockMenu, items, l);
+                                                    }
+                                                } else {
+                                                    BlockState state;
+                                                    try {
+                                                        state = Slimefun.runSyncFuture(target::getState).get();
+                                                    } catch (Exception e) {
+                                                        throw new RuntimeException(e);
+                                                    }
+
+                                                    if (state instanceof InventoryHolder) {
+                                                        Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+
+                                                        for (ItemStack is : inv.getContents()) {
+                                                            filter(is, items, l);
+                                                        }
+                                                    }
+                                                }
+                                            } catch (Exception e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        });
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }));
+                            }
+                        }
+
+
+                        {
+                            for (Location l : terminals) {
+                                futures.add(tickingPool.submit(() -> {
+                                    try {
+                                        BlockMenu menu = BlockStorage.getInventory(l);
+                                        if (menu == null) return;
+                                        int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
+
+                                        if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
+                                            page = 1;
+                                            BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
+                                        }
+
+                                        for (int i = 0; i < terminal_slots.length; i++) {
+                                            int slot = terminal_slots[i];
+
+                                            if (items.size() > i + (terminal_slots.length * (page - 1))) {
+
+                                                if (items.size() > i + (terminal_slots.length * (page - 1))) {
+                                                    ItemAndInt item = Iterables.get(items, i + (terminal_slots.length * (page - 1)));
+
+                                                    ItemStack stack = item.getItem().clone();
+                                                    ItemMeta im = stack.getItemMeta();
+                                                    if (im == null) continue;
+                                                    List<String> lore = new ArrayList<>();
+                                                    lore.add("");
+                                                    lore.add(ChatColors.color("&7Stored Items: &r" + DoubleHandler.getFancyDouble(item.getInt())));
+
+                                                    if (stack.getMaxStackSize() > 1)
+                                                        lore.add(ChatColors.color("&7<Left Click: Request 1 | Right Click: Request " + (Math.min(item.getInt(), stack.getMaxStackSize())) + ">"));
+                                                    else
+                                                        lore.add(ChatColors.color("&7<Left Click: Request 1>"));
+
+                                                    lore.add("");
+                                                    if (im.hasLore()) {
+                                                        lore.addAll(Objects.requireNonNull(im.getLore()));
+                                                    }
+
+                                                    im.setLore(lore);
+                                                    stack.setItemMeta(im);
+                                                    menu.replaceExistingItem(slot, stack);
+                                                    menu.addMenuClickHandler(slot, (p, sl, is, action) -> {
+                                                        int amount = Math.min(item.getInt(), item.getItem().getMaxStackSize());
+                                                        itemRequests.add(new ItemRequest(l, 44, new CustomItem(item.getItem(), action.isRightClicked() ? amount : 1), ItemTransportFlow.WITHDRAW, providers, destinations));
+                                                        return false;
+                                                    });
+
+                                                } else {
+                                                    Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, terminal_noItem_item)).get();
+                                                    menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }));
+                            }
+                            for (Future<?> future : futures)
+                                future.get();
+                        }
+                        // Code exported from runSync() - end
+                    }
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             });
         }
     }
