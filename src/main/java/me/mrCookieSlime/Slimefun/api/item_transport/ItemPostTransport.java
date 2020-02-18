@@ -38,7 +38,7 @@ public class ItemPostTransport {
                             for (Location l : request.getDestinations()) {
                                 try {
                                     CargoNet.runBlockWithLock(CargoNet.getAttachedBlock(l.getBlock()), target -> {
-                                        requestedItem.set(CargoManager.insert(
+                                        requestedItem.set(CargoUtils.insert(
                                                 l.getBlock(), target, requestedItem.get(), -1));
 
                                         if (requestedItem.get() == null) {
@@ -91,7 +91,7 @@ public class ItemPostTransport {
 
                                 try {
                                     CargoNet.runBlockWithLock(CargoNet.getAttachedBlock(l.getBlock()), target -> {
-                                        ItemStack is = CargoManager.withdraw(l.getBlock(), target, requested[0]);
+                                        ItemStack is = CargoUtils.withdraw(l.getBlock(), target, requested[0]);
 
                                         if (is != null) {
                                             if (stack[0] == null) {

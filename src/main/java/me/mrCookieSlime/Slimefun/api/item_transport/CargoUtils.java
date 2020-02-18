@@ -1,17 +1,5 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.inventory.BrewerInventory;
-import org.bukkit.inventory.FurnaceInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
@@ -32,7 +20,8 @@ public final class CargoUtils {
     //Whitelist or blacklist slots
     private static final int[] SLOTS = {19, 20, 21, 28, 29, 30, 37, 38, 39};
 
-    private CargoUtils() {}
+    private CargoUtils() {
+    }
 
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
         DirtyChestMenu menu;
@@ -97,10 +86,12 @@ public final class CargoUtils {
                 }
                 for (int slot = minSlot; slot < maxSlot; slot++) {
                     ItemStack is = invContents[slot].clone();
-                return withdrawFromVanillaInventory(node, template, ((InventoryHolder) state).getInventory());
+                    return withdrawFromVanillaInventory(node, template, ((InventoryHolder) state).getInventory());
+                }
             }
-        }
 
+            return null;
+        }
         return null;
     }
 
@@ -111,8 +102,7 @@ public final class CargoUtils {
         if (inv instanceof FurnaceInventory) {
             minSlot = 2;
             maxSlot = 3;
-        }
-        else if (inv instanceof BrewerInventory) {
+        } else if (inv instanceof BrewerInventory) {
             maxSlot = 3;
         }
 
@@ -122,28 +112,28 @@ public final class CargoUtils {
             if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                 if (is.getAmount() > template.getAmount()) {
                     int finalSlot = slot;
-                            try {
-                                Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
+                    try {
+                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                     return template;
                 } else {
-                            int finalSlot1 = slot;
-                            try {
-                                Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
+                    int finalSlot1 = slot;
+                    try {
+                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                     return is.clone();
                 }
             }
         }
 
         return null;
-	}
+    }
 
-	public static ItemAndInt withdraw(Block node, Block target, int index) { // Async safe
+    public static ItemAndInt withdraw(Block node, Block target, int index) { // Async safe
         DirtyChestMenu menu;
         try {
             menu = Slimefun.runSyncFuture(() -> getChestMenu(target)).get();
@@ -294,80 +284,80 @@ public final class CargoUtils {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                return insertIntoVanillaInventory(stack, ((InventoryHolder) state).getInventory());
+                return insertIntoVanillaInventory(invContents, stack, ((InventoryHolder) state).getInventory());
             }
         }
 
         return stack;
     }
 
-    private static ItemStack insertIntoVanillaInventory(ItemStack stack, Inventory inv) {
-    	int minSlot = 0;
+    private static ItemStack insertIntoVanillaInventory(ItemStack[] invContents, ItemStack stack, Inventory inv) {
+        int minSlot = 0;
         int maxSlot = invContents.length;
 
-                //Check if it is a normal furnace
-                if (inv instanceof FurnaceInventory) {
-                    //Check if it is fuel or not
-                    if (stack.getType().isFuel()) {
-                        minSlot = 1;
-                        maxSlot = 2;
-                    } else {
-                        maxSlot = 1;
-                    }
-                } else if (inv instanceof BrewerInventory) {
-                    //Check if it goes in the potion slot,
-                    if (stack.getType() == Material.POTION || stack.getType() == Material.LINGERING_POTION || stack.getType() == Material.SPLASH_POTION) {
-                        maxSlot = 3;
-                        //The blaze powder slot,
-                    } else if (stack.getType() == Material.BLAZE_POWDER) {
-                        minSlot = 4;
-                        maxSlot = 5;
-                    } else {
-                        //Or the input
-                        minSlot = 3;
-                        maxSlot = 4;
-                    }
-                }
+        //Check if it is a normal furnace
+        if (inv instanceof FurnaceInventory) {
+            //Check if it is fuel or not
+            if (stack.getType().isFuel()) {
+                minSlot = 1;
+                maxSlot = 2;
+            } else {
+                maxSlot = 1;
+            }
+        } else if (inv instanceof BrewerInventory) {
+            //Check if it goes in the potion slot,
+            if (stack.getType() == Material.POTION || stack.getType() == Material.LINGERING_POTION || stack.getType() == Material.SPLASH_POTION) {
+                maxSlot = 3;
+                //The blaze powder slot,
+            } else if (stack.getType() == Material.BLAZE_POWDER) {
+                minSlot = 4;
+                maxSlot = 5;
+            } else {
+                //Or the input
+                minSlot = 3;
+                maxSlot = 4;
+            }
+        }
 
         for (int slot = minSlot; slot < maxSlot; slot++) {
             ItemStack is = invContents[slot];
 
             if (is == null) {
                 int finalSlot = slot;
-                        ItemStack finalStack = stack;
-                        try {
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, finalStack.clone())).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                        return null;
-                    } else if (SlimefunManager.isItemSimilar(new CustomItem(is, 1), new CustomItem(stack, 1), true) && is.getAmount() < is.getType().getMaxStackSize()) {
-                        is = is.clone();
-                        int amount = is.getAmount() + stack.getAmount();
+                ItemStack finalStack = stack;
+                try {
+                    Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, finalStack.clone())).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            } else if (SlimefunManager.isItemSimilar(new CustomItem(is, 1), new CustomItem(stack, 1), true) && is.getAmount() < is.getType().getMaxStackSize()) {
+                is = is.clone();
+                int amount = is.getAmount() + stack.getAmount();
 
-                        if (amount > is.getType().getMaxStackSize()) {
-                            is.setAmount(is.getType().getMaxStackSize());
-                            stack.setAmount(amount - is.getType().getMaxStackSize());
-                        } else {
-                            is.setAmount(amount);
-                            stack = null;
-                        }
+                if (amount > is.getType().getMaxStackSize()) {
+                    is.setAmount(is.getType().getMaxStackSize());
+                    stack.setAmount(amount - is.getType().getMaxStackSize());
+                } else {
+                    is.setAmount(amount);
+                    stack = null;
+                }
 
                 int finalSlot1 = slot;
-                        ItemStack finalIs = is;
-                        try {
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, finalIs)).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
+                ItemStack finalIs = is;
+                try {
+                    Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, finalIs)).get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 return stack;
             }
         }
 
         return stack;
-	}
+    }
 
-	public static DirtyChestMenu getChestMenu(Block block) {
+    public static DirtyChestMenu getChestMenu(Block block) {
         if (BlockStorage.hasInventory(block)) {
             return BlockStorage.getInventory(block);
         }
@@ -426,7 +416,7 @@ public final class CargoUtils {
             } else {
                 for (ItemStack stack : items) {
                     if (SlimefunManager.isItemSimilar(item, stack, lore)) {
-                    	return true;
+                        return true;
                     }
                 }
 
