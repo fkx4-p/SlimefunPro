@@ -132,7 +132,7 @@ public abstract class Network {
 			DustOptions options = new DustOptions(Color.BLUE, 2F);
 			
 			for (Location l : connectedLocations) {
-				Slimefun.runSync(() ->
+				Slimefun.runSyncFuture(() ->
 						Objects.requireNonNull(l.getWorld()).spawnParticle(
 								Particle.REDSTONE,
 								l.getX() + 0.5,

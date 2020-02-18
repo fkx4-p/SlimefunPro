@@ -31,6 +31,8 @@ public final class Slimefun {
 
     public static final LinkedBlockingQueue<FutureTask<?>> FUTURE_TASKS = new LinkedBlockingQueue<>();
 
+    public static boolean isStopping = false;
+
     private Slimefun() {
     }
 
@@ -250,14 +252,18 @@ public final class Slimefun {
     @Nonnull
     public static <T> Future<T> runSyncFuture(Callable<T> callable) {
         FutureTask<T> task = new FutureTask<>(callable);
-        FUTURE_TASKS.add(task);
+        if (!Thread.currentThread().getName().equals("Server thread"))
+            FUTURE_TASKS.add(task);
+        else task.run();
         return task;
     }
 
     @Nonnull
     public static Future<Void> runSyncFuture(Runnable runnable) {
         FutureTask<Void> task = new FutureTask<>(runnable, null);
-        FUTURE_TASKS.add(task);
+        if (!Thread.currentThread().getName().equals("Server thread"))
+            FUTURE_TASKS.add(task);
+        else task.run();
         return task;
     }
 
