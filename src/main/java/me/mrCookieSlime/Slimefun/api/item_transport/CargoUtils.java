@@ -1,5 +1,17 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.inventory.BrewerInventory;
+import org.bukkit.inventory.FurnaceInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
@@ -15,13 +27,12 @@ import org.bukkit.inventory.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class CargoManager {
+public final class CargoUtils {
 
     //Whitelist or blacklist slots
-    private static final int[] SLOTS = new int[]{19, 20, 21, 28, 29, 30, 37, 38, 39};
+    private static final int[] SLOTS = {19, 20, 21, 28, 29, 30, 37, 38, 39};
 
-    private CargoManager() {
-    }
+    private CargoUtils() {}
 
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
         DirtyChestMenu menu;
@@ -86,33 +97,53 @@ public final class CargoManager {
                 }
                 for (int slot = minSlot; slot < maxSlot; slot++) {
                     ItemStack is = invContents[slot].clone();
+                return withdrawFromVanillaInventory(node, template, ((InventoryHolder) state).getInventory());
+            }
+        }
 
-                    if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
-                        if (is.getAmount() > template.getAmount()) {
-                            int finalSlot = slot;
+        return null;
+    }
+
+    private static ItemStack withdrawFromVanillaInventory(Block node, ItemStack template, Inventory inv) {
+        int minSlot = 0;
+        int maxSlot = inv.getContents().length;
+
+        if (inv instanceof FurnaceInventory) {
+            minSlot = 2;
+            maxSlot = 3;
+        }
+        else if (inv instanceof BrewerInventory) {
+            maxSlot = 3;
+        }
+
+        for (int slot = minSlot; slot < maxSlot; slot++) {
+            ItemStack is = inv.getContents()[slot];
+
+            if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
+                if (is.getAmount() > template.getAmount()) {
+                    int finalSlot = slot;
                             try {
                                 Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                            return template;
-                        } else {
+                    return template;
+                } else {
                             int finalSlot1 = slot;
                             try {
                                 Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                            return is.clone();
-                        }
-                    }
+                    return is.clone();
                 }
             }
         }
-        return null;
-    }
 
-    public static ItemSlot withdraw(Block node, Block target, int index) { // Async safe
+        return null;
+	}
+
+	public static ItemAndInt withdraw(Block node, Block target, int index) { // Async safe
         DirtyChestMenu menu;
         try {
             menu = Slimefun.runSyncFuture(() -> getChestMenu(target)).get();
@@ -135,7 +166,7 @@ public final class CargoManager {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                    return new ItemSlot(is.clone(), slot);
+                    return new ItemAndInt(is.clone(), slot);
                 }
             }
         } else {
@@ -180,7 +211,7 @@ public final class CargoManager {
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
-                        return new ItemSlot(is.clone(), slot);
+                        return new ItemAndInt(is.clone(), slot);
                     }
                 }
             }
@@ -263,9 +294,16 @@ public final class CargoManager {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+                return insertIntoVanillaInventory(stack, ((InventoryHolder) state).getInventory());
+            }
+        }
 
-                int minSlot = 0;
-                int maxSlot = invContents.length;
+        return stack;
+    }
+
+    private static ItemStack insertIntoVanillaInventory(ItemStack stack, Inventory inv) {
+    	int minSlot = 0;
+        int maxSlot = invContents.length;
 
                 //Check if it is a normal furnace
                 if (inv instanceof FurnaceInventory) {
@@ -291,11 +329,11 @@ public final class CargoManager {
                     }
                 }
 
-                for (int slot = minSlot; slot < maxSlot; slot++) {
-                    ItemStack is = invContents[slot];
+        for (int slot = minSlot; slot < maxSlot; slot++) {
+            ItemStack is = invContents[slot];
 
-                    if (is == null) {
-                        int finalSlot = slot;
+            if (is == null) {
+                int finalSlot = slot;
                         ItemStack finalStack = stack;
                         try {
                             Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, finalStack.clone())).get();
@@ -315,23 +353,21 @@ public final class CargoManager {
                             stack = null;
                         }
 
-                        int finalSlot1 = slot;
+                int finalSlot1 = slot;
                         ItemStack finalIs = is;
                         try {
                             Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, finalIs)).get();
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
-                        return stack;
-                    }
-                }
+                return stack;
             }
         }
 
         return stack;
-    }
+	}
 
-    public static DirtyChestMenu getChestMenu(Block block) {
+	public static DirtyChestMenu getChestMenu(Block block) {
         if (BlockStorage.hasInventory(block)) {
             return BlockStorage.getInventory(block);
         }
@@ -339,8 +375,8 @@ public final class CargoManager {
         return BlockStorage.getUniversalInventory(block);
     }
 
-    public static boolean matchesFilter(Block block, ItemStack item, int index) { // Async safe
-//        if (item == null) return false;
+    public static boolean matchesFilter(Block block, ItemStack item, int index) {
+        if (item == null) return false;
 
         String id;
         try {
@@ -353,6 +389,7 @@ public final class CargoManager {
         // Store the returned Config instance to avoid heavy calls
         @SuppressWarnings("deprecation")
         Config blockInfo = BlockStorage.getLocationInfo(block.getLocation());
+        if (blockInfo.getString("id").equals("CARGO_NODE_OUTPUT")) return true;
 
         BlockMenu menu;
         try {
@@ -388,7 +425,9 @@ public final class CargoManager {
                 return SlimefunManager.isItemSimilar(item, items.get(index), lore);
             } else {
                 for (ItemStack stack : items) {
-                    if (SlimefunManager.isItemSimilar(item, stack, lore)) return true;
+                    if (SlimefunManager.isItemSimilar(item, stack, lore)) {
+                    	return true;
+                    }
                 }
 
                 return false;

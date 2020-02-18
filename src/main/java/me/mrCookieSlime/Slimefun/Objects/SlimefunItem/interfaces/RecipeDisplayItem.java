@@ -5,17 +5,17 @@ import java.util.List;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-@FunctionalInterface
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+
 public interface RecipeDisplayItem {
 	
 	List<ItemStack> getDisplayRecipes();
 	
-	@Deprecated
-	default String getRecipeSectionLabel() {
-		return "&7\u21E9 Recipes made in this Machine \u21E9";
+	default String getLabelLocalPath() {
+		return "guide.tooltips.recipes.machine";
 	}
 	
 	default String getRecipeSectionLabel(Player p) {
-		return getRecipeSectionLabel();
+		return "&7\u21E9 " + SlimefunPlugin.getLocal().getMessage(p, getLabelLocalPath()) + " \u21E9";
 	}
 }

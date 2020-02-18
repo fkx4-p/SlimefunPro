@@ -246,8 +246,8 @@ public abstract class AGenerator extends SlimefunItem implements RecipeDisplayIt
 	}
 	
 	@Override
-	public String getRecipeSectionLabel() {
-		return "&7\u21E9 Available Types of Fuel \u21E9";
+	public String getLabelLocalPath() {
+		return "guide.tooltips.recipes.generator";
 	}
 	
 	@Override

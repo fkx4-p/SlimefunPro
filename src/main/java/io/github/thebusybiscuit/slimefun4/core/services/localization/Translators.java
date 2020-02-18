@@ -51,6 +51,8 @@ public class Translators {
 		addTranslator("Tengoblinekcz", "cs", true);
 		addTranslator("sirhCCC", "cs", true);
 		addTranslator("Thezerix", "cs", true);
+		addTranslator("IsLineCZ", "cs", true);
+		addTranslator("MrFriggo", "cs", true);
 		
 		// Translators - Russian
 		addTranslator("SoSeDiK", "ru", false);
@@ -85,6 +87,13 @@ public class Translators {
 		
 		// Translators - Arabic
 		addTranslator("mohkamfer", "citBabY", "ar", false);
+		
+		// Translators - Japanese
+		addTranslator("bito-blosh", "ja", true);
+		
+		// Translators - Portuguese (Brazil)
+		addTranslator("G4stavoM1ster", "pt-BR", true);
+		addTranslator("yurinogueira", "pt-BR", true);
 	}
 
 	private void addTranslator(String name, String language, boolean lock) {

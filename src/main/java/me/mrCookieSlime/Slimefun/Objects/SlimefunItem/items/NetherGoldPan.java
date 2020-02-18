@@ -62,6 +62,11 @@ public class NetherGoldPan extends SimpleSlimefunItem<ItemUseHandler> implements
 	}
 	
 	@Override
+	public String getLabelLocalPath() {
+		return "guide.tooltips.recipes.gold-pan";
+	}
+	
+	@Override
 	public ItemUseHandler getItemHandler() {
 		return e -> {
 			Optional<Block> block = e.getClickedBlock();

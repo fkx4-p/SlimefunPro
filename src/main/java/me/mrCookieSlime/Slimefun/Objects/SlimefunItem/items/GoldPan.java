@@ -54,6 +54,11 @@ public class GoldPan extends SimpleSlimefunItem<ItemUseHandler> implements Recip
 		randomizer.add(item, chance);
 		weights += chance;
 	}
+	
+	@Override
+	public String getLabelLocalPath() {
+		return "guide.tooltips.recipes.gold-pan";
+	}
 
 	@Override
 	public ItemUseHandler getItemHandler() {

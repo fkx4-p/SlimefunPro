@@ -2,30 +2,50 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **List of Releases**
 
-- [Release Candidate 6 (TBD)](#release-candidate-6-tbd)
+- [Release Candidate 7 (TBD)](#release-candidate-7-tbd)
+  - [Additions](#additions)
   - [Changes](#changes)
   - [Fixes](#fixes)
-- [Release Candidate 5 (09 Feb 2020)](#release-candidate-5-09-feb-2020)
-  - [Additions](#additions)
+- [Release Candidate 6 (16 Feb 2020)](#release-candidate-6-16-feb-2020)
+  - [Additions](#additions-1)
   - [Changes](#changes-1)
   - [Fixes](#fixes-1)
-- [Release Candidate 4 (06 Jan 2020)](#release-candidate-4-06-jan-2020)
-  - [Additions](#additions-1)
+- [Release Candidate 5 (09 Feb 2020)](#release-candidate-5-09-feb-2020)
+  - [Additions](#additions-2)
   - [Changes](#changes-2)
   - [Fixes](#fixes-2)
-- [Release Candidate 3 (21 Nov 2019)](#release-candidate-3-21-nov-2019)
-  - [Additions](#additions-2)
+- [Release Candidate 4 (06 Jan 2020)](#release-candidate-4-06-jan-2020)
+  - [Additions](#additions-3)
   - [Changes](#changes-3)
   - [Fixes](#fixes-3)
-- [Release Candidate 2 (29 Sep 2019)](#release-candidate-2-29-sep-2019)
-  - [Additions](#additions-3)
+- [Release Candidate 3 (21 Nov 2019)](#release-candidate-3-21-nov-2019)
+  - [Additions](#additions-4)
   - [Changes](#changes-4)
   - [Fixes](#fixes-4)
+- [Release Candidate 2 (29 Sep 2019)](#release-candidate-2-29-sep-2019)
+  - [Additions](#additions-5)
+  - [Changes](#changes-5)
+  - [Fixes](#fixes-5)
 - [Release Candidate 1 (26 Sep 2019)](#release-candidate-1-26-sep-2019)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Release Candidate 6 (TBD)
+## Release Candidate 7 (TBD)
+
+### Additions
+
+### Changes
+
+### Fixes
+
+## Release Candidate 6 (16 Feb 2020)
+
+### Additions
+* Added a new language: Japanese
+* Added a new language: Swedish
+* Added a new language: Czech
+* Added a new language: Portuguese (Brazil)
+* Added a new language: Arabic
 
 ### Changes
 * /sf research now uses namespaced keys instead of ids
@@ -33,6 +53,8 @@
 ### Fixes
 * Fixed #1515
 * Fixed back-button in guide-settings not working via commands
+* Fixed #1516
+* Fixed magician talisman not being able to enchant books
 
 ## Release Candidate 5 (09 Feb 2020)
 

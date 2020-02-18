@@ -121,8 +121,8 @@ public abstract class GEOMiner extends AContainer implements InventoryBlock, Rec
 	}
 	
 	@Override
-	public String getRecipeSectionLabel() {
-		return "&7\u21E9 Resources you can obtain \u21E9";
+	public String getLabelLocalPath() {
+		return "guide.tooltips.recipes.miner";
 	}
 	
 	@Override
