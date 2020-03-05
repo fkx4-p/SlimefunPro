@@ -14,6 +14,7 @@ import org.bukkit.inventory.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class CargoUtils {
 
@@ -26,7 +27,7 @@ public final class CargoUtils {
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
         DirtyChestMenu menu;
         try {
-            menu = Slimefun.runSyncFuture(() -> getChestMenu(target)).get();
+            menu = getChestMenu(target);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -35,7 +36,7 @@ public final class CargoUtils {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
                 ItemStack is;
                 try {
-                    is = Slimefun.runSyncFuture(() -> menu.getItemInSlot(slot)).get();
+                    is = menu.getItemInSlot(slot);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -43,14 +44,14 @@ public final class CargoUtils {
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                     if (is.getAmount() > template.getAmount()) {
                         try {
-                            Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                            menu.replaceExistingItem(slot, new CustomItem(is, is.getAmount() - template.getAmount()));
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
                         return template;
                     } else {
                         try {
-                            Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, null)).get();
+                            menu.replaceExistingItem(slot, null);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -113,7 +114,8 @@ public final class CargoUtils {
                 if (is.getAmount() > template.getAmount()) {
                     int finalSlot = slot;
                     try {
-                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot,
+                                new CustomItem(is, is.getAmount() - template.getAmount())));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -121,7 +123,8 @@ public final class CargoUtils {
                 } else {
                     int finalSlot1 = slot;
                     try {
-                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1, new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                        Slimefun.runSyncFuture(() -> inv.setItem(finalSlot1,
+                                new CustomItem(is, is.getAmount() - template.getAmount())));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -152,7 +155,7 @@ public final class CargoUtils {
 
                 if (is != null && matchesFilter(node, is, index)) {
                     try {
-                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, null)).get();
+                        menu.replaceExistingItem(slot, null);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -214,7 +217,7 @@ public final class CargoUtils {
 
         DirtyChestMenu menu;
         try {
-            menu = Slimefun.runSyncFuture(() -> getChestMenu(target)).get();
+            menu = getChestMenu(target);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -223,7 +226,7 @@ public final class CargoUtils {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.INSERT, stack)) {
                 ItemStack itemStack;
                 try {
-                    itemStack = Slimefun.runSyncFuture(() -> menu.getItemInSlot(slot)).get();
+                    itemStack = menu.getItemInSlot(slot);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -232,7 +235,7 @@ public final class CargoUtils {
                 if (is == null) {
                     ItemStack stack1 = stack.clone();
                     try {
-                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, stack1)).get();
+                        menu.replaceExistingItem(slot, stack1);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -243,16 +246,14 @@ public final class CargoUtils {
                     if (amount > is.getType().getMaxStackSize()) {
                         ItemStack finalStack1 = stack;
                         try {
-                            Slimefun.runSyncFuture(() -> {
-                                is.setAmount(is.getType().getMaxStackSize());
-                                finalStack1.setAmount(amount - is.getType().getMaxStackSize());
-                            }).get();
+                            is.setAmount(is.getType().getMaxStackSize());
+                            finalStack1.setAmount(amount - is.getType().getMaxStackSize());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
                     } else {
                         try {
-                            Slimefun.runSyncFuture(() -> is.setAmount(amount)).get();
+                            is.setAmount(amount);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -260,7 +261,7 @@ public final class CargoUtils {
                     }
 
                     try {
-                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, is)).get();
+                        menu.replaceExistingItem(slot, is);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -279,12 +280,13 @@ public final class CargoUtils {
                 Inventory inv;
                 ItemStack[] invContents;
                 try {
-                    inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                    inv = Slimefun.runSyncFuture(() ->
+                            Objects.requireNonNull(((InventoryHolder) state).getInventory().getHolder()).getInventory()).get();
                     invContents = Slimefun.runSyncFuture(inv::getContents).get();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                return insertIntoVanillaInventory(invContents, stack, ((InventoryHolder) state).getInventory());
+                return insertIntoVanillaInventory(invContents, stack, inv);
             }
         }
 
@@ -383,7 +385,7 @@ public final class CargoUtils {
 
         BlockMenu menu;
         try {
-            menu = Slimefun.runSyncFuture(() -> BlockStorage.getInventory(block.getLocation())).get();
+            menu = BlockStorage.getInventory(block.getLocation());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -395,7 +397,7 @@ public final class CargoUtils {
             for (int slot : SLOTS) {
                 ItemStack template;
                 try {
-                    template = Slimefun.runSyncFuture(() -> menu.getItemInSlot(slot)).get();
+                    template = menu.getItemInSlot(slot);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

@@ -1,5 +1,11 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
+import io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuideLayout;
+import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunGuide;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import org.bukkit.block.BrewingStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,13 +17,6 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import io.github.thebusybiscuit.slimefun4.core.guide.SlimefunGuideLayout;
-import me.mrCookieSlime.Slimefun.SlimefunGuide;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 
 public class VanillaMachinesListener implements Listener {
 
@@ -65,14 +64,20 @@ public class VanillaMachinesListener implements Listener {
 	@EventHandler
 	public void onAnvil(InventoryClickEvent e) {
 		if (e.getRawSlot() == 2 && e.getWhoClicked() instanceof Player && e.getInventory().getType() == InventoryType.ANVIL) {
-			ItemStack item1 = e.getInventory().getContents()[0];
-			ItemStack item2 = e.getInventory().getContents()[1];
-			
-			if (!SlimefunManager.isItemSimilar(item1, SlimefunItems.ELYTRA, true) && checkForUnallowedItems(item1, item2)) {
-				e.setCancelled(true);
-				SlimefunPlugin.getLocal().sendMessage((Player) e.getWhoClicked(), "anvil.not-working", true);
-			}
-		}
+            ItemStack item1 = e.getInventory().getContents()[0];
+            ItemStack item2 = e.getInventory().getContents()[1];
+
+            SlimefunItem sfItem1 = SlimefunItem.getByItem(item1);
+            SlimefunItem sfItem2 = SlimefunItem.getByItem(item2);
+
+            if ((sfItem1 != null && !sfItem1.isUseableInWorkbench()) || (sfItem2 != null && !sfItem2.isUseableInWorkbench())) {
+                e.setCancelled(true);
+                SlimefunPlugin.getLocal().sendMessage(e.getWhoClicked(), "anvil.not-working", true);
+            } else if (!SlimefunManager.isItemSimilar(item1, SlimefunItems.ELYTRA, true) && checkForUnallowedItems(item1, item2)) {
+                e.setCancelled(true);
+                SlimefunPlugin.getLocal().sendMessage(e.getWhoClicked(), "anvil.not-working", true);
+            }
+        }
 	}
 
 	@EventHandler(ignoreCancelled = true)

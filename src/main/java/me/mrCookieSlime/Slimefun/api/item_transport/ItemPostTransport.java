@@ -8,7 +8,6 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -16,7 +15,7 @@ import java.util.logging.Level;
 public class ItemPostTransport {
 
     static void runTask(ItemRequest request, CargoNet instance) {
-        if (instance == null)
+        if (instance == null || CargoNet.instances.get(instance.location) == null)
             return;
         if (request == null) {
             CargoNet.requestQueuePool.execute(() -> runNewTask(instance));
@@ -27,8 +26,7 @@ public class ItemPostTransport {
                 if (instance.terminals.contains(request.getTerminal())
                         || instance.imports.contains(request.getTerminal())
                         || instance.exports.contains(request.getTerminal())) {
-                    BlockMenu menu = Slimefun.runSyncFuture(() ->
-                            BlockStorage.getInventory(request.getTerminal())).get();
+                    BlockMenu menu = BlockStorage.getInventory(request.getTerminal());
                     if (menu == null) return;
 
                     switch (request.getDirection()) {
@@ -42,12 +40,7 @@ public class ItemPostTransport {
                                                 l.getBlock(), target, requestedItem.get(), -1));
 
                                         if (requestedItem.get() == null) {
-                                            try {
-                                                Slimefun.runSyncFuture(() ->
-                                                        menu.replaceExistingItem(request.getSlot(), null)).get();
-                                            } catch (InterruptedException | ExecutionException e) {
-                                                throw new RuntimeException(e);
-                                            }
+                                            menu.replaceExistingItem(request.getSlot(), null);
                                             throw new RuntimeException("break");
                                         }
                                     });
@@ -61,15 +54,13 @@ public class ItemPostTransport {
 
                             if (requestedItem.get() != null) {
                                 ItemStack finalRequestedItem = requestedItem.get();
-                                Slimefun.runSyncFuture(() ->
-                                        menu.replaceExistingItem(request.getSlot(), finalRequestedItem)).get();
+                                menu.replaceExistingItem(request.getSlot(), finalRequestedItem);
                             }
 
                             break;
                         case WITHDRAW:
-                            int slot = Slimefun.runSyncFuture(request::getSlot).get();
-                            ItemStack prevStack = Slimefun.runSyncFuture(() ->
-                                    menu.getItemInSlot(slot)).get();
+                            int slot = request.getSlot();
+                            ItemStack prevStack = menu.getItemInSlot(slot);
 
                             if (
                                     !(prevStack == null
@@ -118,22 +109,19 @@ public class ItemPostTransport {
                             }
 
                             if (stack[0] != null) {
-                                ItemStack prev = Slimefun.runSyncFuture(() ->
-                                        menu.getItemInSlot(slot)).get();
+                                ItemStack prev = menu.getItemInSlot(slot);
 
                                 ItemStack finalStack = stack[0];
                                 if (prev == null) {
-                                    Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, finalStack)).get();
+                                    menu.replaceExistingItem(slot, finalStack);
                                 } else {
-                                    Slimefun.runSyncFuture(() ->
-                                            menu.replaceExistingItem(
-                                                    slot, new CustomItem(
-                                                            finalStack,
-                                                            finalStack.getAmount()
-                                                                    + prev.getAmount()
-                                                    )
+                                    menu.replaceExistingItem(
+                                            slot, new CustomItem(
+                                                    finalStack,
+                                                    finalStack.getAmount()
+                                                            + prev.getAmount()
                                             )
-                                    ).get();
+                                    );
                                 }
                             }
 
@@ -150,13 +138,13 @@ public class ItemPostTransport {
         });
     }
 
-    public static Object runNewTask(CargoNet instance) {
-        if (instance == null) return null;
+    public static void runNewTask(CargoNet instance) {
+        if (instance == null) return;
         try {
+            if (!CargoNet.consume(instance, CargoNet.energyConsumptionSlot)) return;
             runTask(instance.itemRequests.poll(1, TimeUnit.SECONDS), instance);
         } catch (InterruptedException e) {
-            return runNewTask(instance);
+            runNewTask(instance);
         }
-        return null;
     }
 }

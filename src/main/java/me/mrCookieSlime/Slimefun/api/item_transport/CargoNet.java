@@ -10,11 +10,11 @@ import io.github.thebusybiscuit.slimefun4.api.network.NetworkComponent;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.MenuClickHandler;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
+import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
@@ -38,6 +38,11 @@ import java.util.logging.Level;
 
 public class CargoNet extends Network {
 
+    public static final int energyConsumptionManager = 8;
+    public static final int energyConsumptionConnector = 4;
+    public static final int energyConsumptionNode = 2;
+    public static final int energyConsumptionSlot = 1;
+
     public static boolean extraChannels = false;
 
     private static final int RANGE = 5;
@@ -46,8 +51,6 @@ public class CargoNet extends Network {
 
     // Chest Terminal Stuff
     public static final int TERMINAL_OUT_SLOT = 17;
-
-    private static final ItemStack terminal_noitem_item = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 
     // Chest Terminal Stuff
     public static final int[] terminal_slots = new int[]{
@@ -60,10 +63,14 @@ public class CargoNet extends Network {
 
     private static final ItemStack terminal_noItem_item =
             new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
-    private static final MenuClickHandler terminal_noItem_handler = (p, slot, item, action) -> false;
 
     private Set<Location> inputNodes = Sets.newConcurrentHashSet();
     private Set<Location> outputNodes = Sets.newConcurrentHashSet();
+
+    private final Object consumeLock = new Object();
+    private Integer triedConsume = 0;
+    private Integer successConsume = 0;
+    private boolean secondTick = false;
 
     // Chest Terminal Stuff
     final Set<Location> terminals = Sets.newConcurrentHashSet();
@@ -87,6 +94,8 @@ public class CargoNet extends Network {
     public static ConcurrentMap<Location, CargoNet> instances = new ConcurrentHashMap<>();
 
     private Future<?> lastFuture = null;
+
+    public Location location;
 
     public static int maxServerThreadTime = 10;
 
@@ -114,6 +123,7 @@ public class CargoNet extends Network {
 
     protected CargoNet(Location l) {
         super(l);
+        this.location = l;
     }
 
     public int getRange() {
@@ -142,6 +152,8 @@ public class CargoNet extends Network {
     }
 
     public void locationClassificationChange(Location l, NetworkComponent from, NetworkComponent to) {
+        if (from == NetworkComponent.REGULATOR)
+            CargoNet.instances.remove(l);
         if (from == NetworkComponent.TERMINUS) {
             inputNodes.remove(l);
             outputNodes.remove(l);
@@ -222,7 +234,10 @@ public class CargoNet extends Network {
             {
                 Set<Callable<Object>> runnables = Sets.newConcurrentHashSet();
                 for (CargoNet instance : instances.values())
-                    runnables.add(() -> ItemPostTransport.runNewTask(instance));
+                    runnables.add(() -> {
+                        ItemPostTransport.runNewTask(instance);
+                        return null;
+                    });
                 try {
                     requestQueuePool.invokeAll(runnables);
                 } catch (InterruptedException ignored) {
@@ -239,6 +254,28 @@ public class CargoNet extends Network {
         if (tickingPool != null)
             tickingPool.shutdown();
 
+        new Thread(() -> {
+            Set<CargoNet> aInstances = Sets.newConcurrentHashSet(instances.values());
+            while (!aInstances.isEmpty()) {
+                Iterator<CargoNet> iterator = aInstances.iterator();
+                while (iterator.hasNext()) {
+                    CargoNet instance = iterator.next();
+                    if (!instance.itemRequests.isEmpty()) {
+                        try {
+                            Thread.sleep(60);
+                        } catch (InterruptedException ignored) {
+                        }
+                    }
+                    if (instance.itemRequests.isEmpty())
+                        iterator.remove();
+
+                }
+            }
+
+            if (requestQueuePool != null)
+                requestQueuePool.shutdown();
+        }).start();
+
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
             try {
                 FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
@@ -248,9 +285,6 @@ public class CargoNet extends Network {
                 throw new RuntimeException(e);
             }
         }
-
-        if (requestQueuePool != null)
-            requestQueuePool.shutdown();
     }
 
     public void tick(Block b) {
@@ -264,7 +298,14 @@ public class CargoNet extends Network {
         if (connectorNodes.isEmpty() && terminusNodes.isEmpty()) {
             SimpleHologram.update(b, "&cNo Cargo Nodes found");
         } else {
-            SimpleHologram.update(b, "&7Status: &a&lONLINE");
+            if (secondTick) {
+                SimpleHologram.update(b,
+                        (triedConsume > successConsume ? "&c&l" : "&a&l") + successConsume + " &r&fJ/s &7 " +
+                                "(Tried " + triedConsume + " J/s)");
+                secondTick = false;
+                triedConsume = 0;
+                successConsume = 0;
+            } else secondTick = true;
 
             if (lastFuture != null)
                 try {
@@ -321,10 +362,21 @@ public class CargoNet extends Network {
                     }
                 }
 
+                if (!consume(this,
+                        energyConsumptionManager
+                                + (energyConsumptionConnector * connectorNodes.size() + 1))) return;
+
+                //if(!consume(this,
+                //        energyConsumptionManager // Manager consumption
+                //                + inputNodes.size() * energyConsumptionNode // Input Node consumption
+                //                + outputNodes.size() * energyConsumptionNode // Output Node consumption
+                //                + connectorNodes.size() * energyConsumptionConnector // Connector consumption
+                //)) return;
+
                 // Code exported from runSync() - start
                 try {
                     if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
-                        tickingPool.execute(this::display);
+                        this.display();
                     }
 
                     Set<Future<?>> futures = Sets.newConcurrentHashSet();
@@ -336,6 +388,8 @@ public class CargoNet extends Network {
                                 try {
                                     BlockMenu menu = BlockStorage.getInventory(bus);
                                     if (menu == null) return;
+
+                                    if (!consume(this, energyConsumptionNode)) return;
 
                                     runBlockWithLock(
                                             getAttachedBlock(bus.getBlock()),
@@ -369,6 +423,8 @@ public class CargoNet extends Network {
                                 try {
                                     BlockMenu menu = BlockStorage.getInventory(bus);
                                     if (menu == null) return;
+
+                                    if (!consume(this, energyConsumptionNode)) return;
 
                                     runBlockWithLock(getAttachedBlock(bus.getBlock()), target -> {
                                         try {
@@ -416,6 +472,9 @@ public class CargoNet extends Network {
                                 try {
                                     BlockMenu menu = BlockStorage.getInventory(terminal);
                                     if (menu == null) return;
+
+                                    if (!consume(this, energyConsumptionNode)) return;
+
                                     ItemStack sendingItem = menu.getItemInSlot(TERMINAL_OUT_SLOT);
 
                                     if (sendingItem != null) {
@@ -443,6 +502,8 @@ public class CargoNet extends Network {
 
                                     Block inputTargetA = getAttachedBlock(input.getBlock());
                                     if (inputTargetA == null) return;
+
+                                    if (!consume(this, energyConsumptionNode)) return;
 
                                     SynchronizedLock<Block> lock = getLock(inputTargetA);
 
@@ -490,8 +551,9 @@ public class CargoNet extends Network {
                                                         runBlockWithLock(getAttachedBlock(out.getBlock()), target -> {
                                                             if (target != null) {
                                                                 stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
-                                                                if (stack.get() == null)
+                                                                if (stack.get() == null) {
                                                                     throw new RuntimeException("break");
+                                                                }
                                                             }
                                                         });
                                                     } catch (Exception e) {
@@ -505,12 +567,12 @@ public class CargoNet extends Network {
                                         runBlockWithLock(lock, inputTargetA, inputTarget -> {
                                             try {
                                                 if (stack.get() != null && previousSlot.get() > -1) {
-                                                    DirtyChestMenu menu = Slimefun.runSyncFuture(() -> CargoUtils.getChestMenu(inputTarget)).get();
+                                                    DirtyChestMenu menu = CargoUtils.getChestMenu(inputTarget);
 
                                                     if (menu != null) {
                                                         int finalPreviousSlot = previousSlot.get();
                                                         ItemStack finalStack = stack.get();
-                                                        Slimefun.runSyncFuture(() -> menu.replaceExistingItem(finalPreviousSlot, finalStack)).get();
+                                                        menu.replaceExistingItem(finalPreviousSlot, finalStack);
                                                     } else {
                                                         BlockState state;
                                                         try {
@@ -551,6 +613,7 @@ public class CargoNet extends Network {
                             for (Location l : providers) {
                                 futures.add(tickingPool.submit(() -> {
                                     try {
+                                        if (!consume(this, energyConsumptionNode)) return;
                                         runBlockWithLock(getAttachedBlock(l.getBlock()), target -> {
                                             try {
                                                 UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
@@ -623,6 +686,9 @@ public class CargoNet extends Network {
                                     try {
                                         BlockMenu menu = BlockStorage.getInventory(l);
                                         if (menu == null) return;
+
+                                        if (!consume(this, energyConsumptionNode)) return;
+
                                         int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
 
                                         if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
@@ -665,7 +731,7 @@ public class CargoNet extends Network {
                                                     });
 
                                                 } else {
-                                                    Slimefun.runSyncFuture(() -> menu.replaceExistingItem(slot, terminal_noItem_item)).get();
+                                                    menu.replaceExistingItem(slot, terminal_noItem_item);
                                                     menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
                                                 }
                                             }
@@ -675,12 +741,12 @@ public class CargoNet extends Network {
                                     }
                                 }));
                             }
-                            for (Future<?> future : futures)
-                                future.get();
                         }
                         // Code exported from runSync() - end
                     }
 
+                    for (Future<?> future : futures)
+                        future.get();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -751,7 +817,8 @@ public class CargoNet extends Network {
 
     static Block getAttachedBlock(Block block) throws ExecutionException, InterruptedException {
         if (Slimefun.runSyncFuture(block::getBlockData).get() instanceof Directional) {
-            return Slimefun.runSyncFuture(() -> block.getRelative(((Directional) block.getBlockData()).getFacing().getOppositeFace())).get();
+            return Slimefun.runSyncFuture(() -> block.getRelative(((Directional) block.getBlockData())
+                    .getFacing().getOppositeFace())).get();
         }
 
         return null;
@@ -809,5 +876,18 @@ public class CargoNet extends Network {
             Slimefun.getLogger().warning("");
             Slimefun.getLogger().warning("--------------------------------");
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    static boolean consume(CargoNet instance, int consumption) {
+        synchronized (instance.consumeLock) {
+            instance.triedConsume += consumption;
+        }
+        if (ChargableBlock.getCharge(instance.location) < consumption) return false;
+        ChargableBlock.addCharge(instance.location, -consumption);
+        synchronized (instance.consumeLock) {
+            instance.successConsume += consumption;
+        }
+        return true;
     }
 }
