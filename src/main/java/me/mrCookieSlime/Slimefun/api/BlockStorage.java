@@ -1,48 +1,42 @@
- package me.mrCookieSlime.Slimefun.api;
+package me.mrCookieSlime.Slimefun.api;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import io.github.thebusybiscuit.cscorelib2.math.DoubleHandler;
+import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
+import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.TileState;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-
-import io.github.thebusybiscuit.cscorelib2.math.DoubleHandler;
-import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
-import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
-import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BlockStorage {
-	
+
 	private static final String PATH_BLOCKS = "data-storage/Slimefun/stored-blocks/";
 	private static final String PATH_CHUNKS = "data-storage/Slimefun/stored-chunks/";
-	
+
 	private World world;
 	private Map<Location, Config> storage = new ConcurrentHashMap<>();
 	private Map<Location, BlockMenu> inventories = new ConcurrentHashMap<>();
@@ -554,12 +548,17 @@ public class BlockStorage {
 	}
 	
 	public static String checkID(Block b) {
-		if (b.getState() instanceof TileState) {
-			Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) b.getState());
-			
-			if (blockData.isPresent()) return blockData.get();
+		try {
+			final BlockState state = Slimefun.runSyncFuture(b::getState).get();
+			if (state instanceof TileState) {
+				Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) state);
+
+				if (blockData.isPresent()) return blockData.get();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException();
 		}
-		
+
 		return checkID(b.getLocation());
 	}
 

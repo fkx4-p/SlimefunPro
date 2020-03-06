@@ -72,7 +72,7 @@ public final class CargoUtils {
                 ItemStack[] invContents;
                 try {
                     inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
-                    invContents = Slimefun.runSyncFuture(inv::getContents).get();
+                    invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException();
                 }
@@ -139,7 +139,7 @@ public final class CargoUtils {
     public static ItemAndInt withdraw(Block node, Block target, int index) { // Async safe
         DirtyChestMenu menu;
         try {
-            menu = Slimefun.runSyncFuture(() -> getChestMenu(target)).get();
+            menu = getChestMenu(target);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -148,7 +148,7 @@ public final class CargoUtils {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
                 ItemStack is;
                 try {
-                    is = Slimefun.runSyncFuture(() -> menu.getItemInSlot(slot)).get();
+                    is = menu.getItemInSlot(slot);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -179,7 +179,7 @@ public final class CargoUtils {
                 }
                 ItemStack[] invContents;
                 try {
-                    invContents = Slimefun.runSyncFuture(inv::getContents).get();
+                    invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -282,7 +282,7 @@ public final class CargoUtils {
                 try {
                     inv = Slimefun.runSyncFuture(() ->
                             Objects.requireNonNull(((InventoryHolder) state).getInventory().getHolder()).getInventory()).get();
-                    invContents = Slimefun.runSyncFuture(inv::getContents).get();
+                    invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -372,7 +372,7 @@ public final class CargoUtils {
 
         String id;
         try {
-            id = Slimefun.runSyncFuture(() -> BlockStorage.checkID(block)).get();
+            id = BlockStorage.checkID(block);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
