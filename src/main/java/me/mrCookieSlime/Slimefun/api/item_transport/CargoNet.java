@@ -18,6 +18,8 @@ import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.*;
@@ -71,6 +73,7 @@ public class CargoNet extends Network {
     private Integer triedConsume = 0;
     private Integer successConsume = 0;
     private boolean secondTick = false;
+    private long lastUpdate = System.currentTimeMillis();
 
     // Chest Terminal Stuff
     final Set<Location> terminals = Sets.newConcurrentHashSet();
@@ -298,14 +301,21 @@ public class CargoNet extends Network {
         if (connectorNodes.isEmpty() && terminusNodes.isEmpty()) {
             SimpleHologram.update(b, "&cNo Cargo Nodes found");
         } else {
-            if (secondTick) {
-                SimpleHologram.update(b,
-                        (triedConsume > successConsume ? "&c&l" : "&a&l") + successConsume + " &r&fJ/s &7 " +
-                                "(Tried " + triedConsume + " J/s)");
-                secondTick = false;
-                triedConsume = 0;
-                successConsume = 0;
-            } else secondTick = true;
+            {
+                final double elapsedTime = (System.currentTimeMillis() - lastUpdate) / 1000.0;
+                if (elapsedTime > 0.9D) {
+                    String text;
+                    synchronized (consumeLock) {
+                        text = (triedConsume > successConsume ? "&c&l" : "&a&l") +
+                                successConsume / elapsedTime +
+                                " &r&fJ/s &7 " + "(Tried " +
+                                triedConsume / elapsedTime + " J/s)";
+                        triedConsume = successConsume = 0;
+                        lastUpdate = System.currentTimeMillis();
+                    }
+                    SimpleHologram.update(b, text);
+                }
+            }
 
             if (lastFuture != null)
                 try {
@@ -576,12 +586,12 @@ public class CargoNet extends Network {
                                                     } else {
                                                         BlockState state;
                                                         try {
-                                                            state = Slimefun.runSyncFuture(inputTarget::getState).get();
+                                                            state = BlockStateCache.query(inputTarget);
                                                         } catch (Exception e) {
                                                             throw new RuntimeException(e);
                                                         }
-                                                        if (state instanceof InventoryHolder) {
-                                                            Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                                                        if (state instanceof Container) {
+                                                            Inventory inv = InventoryCache.query((Container) state);
                                                             int finalPreviousSlot1 = previousSlot.get();
                                                             ItemStack finalStack1 = stack.get();
                                                             Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
@@ -655,13 +665,13 @@ public class CargoNet extends Network {
                                                 } else {
                                                     BlockState state;
                                                     try {
-                                                        state = Slimefun.runSyncFuture(target::getState).get();
+                                                        state = BlockStateCache.query(target);
                                                     } catch (Exception e) {
                                                         throw new RuntimeException(e);
                                                     }
 
-                                                    if (state instanceof InventoryHolder) {
-                                                        Inventory inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                                                    if (state instanceof Container) {
+                                                        Inventory inv = InventoryCache.query((Container) state);
 
                                                         for (ItemStack is : inv.getContents()) {
                                                             filter(is, items, l);
@@ -765,11 +775,11 @@ public class CargoNet extends Network {
 
     static SynchronizedLock<Block> getLock(Block block) throws ExecutionException, InterruptedException {
         SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
-        BlockState state = Slimefun.runSyncFuture(block::getState).get();
+        BlockState state = BlockStateCache.query(block);
         if (state instanceof Container) {
             Inventory inventory;
             try {
-                inventory = Slimefun.runSyncFuture(((Container) state)::getInventory).get();
+                inventory = InventoryCache.query((Container) state);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

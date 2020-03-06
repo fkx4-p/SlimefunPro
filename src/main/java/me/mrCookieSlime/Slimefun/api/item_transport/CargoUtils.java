@@ -7,14 +7,16 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.bukkit.inventory.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class CargoUtils {
 
@@ -62,16 +64,16 @@ public final class CargoUtils {
         } else {
             BlockState state;
             try {
-                state = Slimefun.runSyncFuture(target::getState).get();
+                state = BlockStateCache.query(target);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (state instanceof InventoryHolder) {
+            if (state instanceof Container) {
                 Inventory inv;
                 ItemStack[] invContents;
                 try {
-                    inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                    inv = InventoryCache.query((Container) state);
                     invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException();
@@ -165,15 +167,15 @@ public final class CargoUtils {
         } else {
             BlockState state;
             try {
-                state = Slimefun.runSyncFuture(target::getState).get();
+                state = BlockStateCache.query(target);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (state instanceof InventoryHolder) {
+            if (state instanceof Container) {
                 Inventory inv;
                 try {
-                    inv = Slimefun.runSyncFuture(((InventoryHolder) state)::getInventory).get();
+                    inv = InventoryCache.query((Container) state);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -271,17 +273,16 @@ public final class CargoUtils {
         } else {
             BlockState state;
             try {
-                state = Slimefun.runSyncFuture(target::getState).get();
+                state = BlockStateCache.query(target);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (state instanceof InventoryHolder) {
+            if (state instanceof Container) {
                 Inventory inv;
                 ItemStack[] invContents;
                 try {
-                    inv = Slimefun.runSyncFuture(() ->
-                            Objects.requireNonNull(((InventoryHolder) state).getInventory().getHolder()).getInventory()).get();
+                    inv = InventoryCache.query((Container) state);
                     invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException(e);

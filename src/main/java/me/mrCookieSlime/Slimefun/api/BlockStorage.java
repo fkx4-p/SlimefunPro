@@ -11,6 +11,7 @@ import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -549,7 +550,7 @@ public class BlockStorage {
 	
 	public static String checkID(Block b) {
 		try {
-			final BlockState state = Slimefun.runSyncFuture(b::getState).get();
+			final BlockState state = BlockStateCache.query(b);
 			if (state instanceof TileState) {
 				Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) state);
 

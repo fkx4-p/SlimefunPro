@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.mrCookieSlime</groupId>
     <artifactId>Slimefun</artifactId>
     <version>UNOFFICIAL</version>
-    
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <repositories>
         <repository>
             <id>paper-repo</id>
@@ -38,11 +39,11 @@
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
     </repositories>
-    
+
     <build>
         <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
         <finalName>${project.name} v${project.version}</finalName>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -57,12 +58,12 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.2</version>
-                
+
                 <configuration>
                     <relocations>
                         <relocation>
@@ -75,7 +76,7 @@
                         </relocation>
                     </relocations>
                 </configuration>
-                
+
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -86,12 +87,12 @@
                 </executions>
             </plugin>
         </plugins>
-        
+
         <resources>
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
-                
+
                 <includes>
                     <include>*</include>
                     <include>languages/*</include>
@@ -99,11 +100,11 @@
             </resource>
         </resources>
     </build>
-    
+
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

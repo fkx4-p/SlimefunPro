@@ -1,18 +1,5 @@
 package me.mrCookieSlime.Slimefun;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectionManager;
 import io.github.thebusybiscuit.cscorelib2.recipes.RecipeSnapshot;
@@ -24,43 +11,8 @@ import io.github.thebusybiscuit.slimefun4.core.SlimefunRegistry;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunTabCompleter;
 import io.github.thebusybiscuit.slimefun4.core.hooks.SlimefunHooks;
-import io.github.thebusybiscuit.slimefun4.core.services.AutoSavingService;
-import io.github.thebusybiscuit.slimefun4.core.services.BackupService;
-import io.github.thebusybiscuit.slimefun4.core.services.BlockDataService;
-import io.github.thebusybiscuit.slimefun4.core.services.CustomItemDataService;
-import io.github.thebusybiscuit.slimefun4.core.services.CustomTextureService;
-import io.github.thebusybiscuit.slimefun4.core.services.GitHubService;
-import io.github.thebusybiscuit.slimefun4.core.services.LocalizationService;
-import io.github.thebusybiscuit.slimefun4.core.services.MetricsService;
-import io.github.thebusybiscuit.slimefun4.core.services.UpdaterService;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.AncientAltarListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.AndroidKillingListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DispenserListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BackpackListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BlockListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.BlockPhysicsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.CoolerListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DamageListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DeathpointListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.DebugFishListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.EnhancedFurnaceListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.ExplosionsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.GearListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.GrapplingHookListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.IgnitionChamberListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.ItemPickupListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.MultiBlockListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.PlayerProfileListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunBootsListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunBowListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunGuideListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SlimefunItemListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.SoulboundListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.TalismanListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.TeleporterListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.VanillaMachinesListener;
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.WorldListener;
+import io.github.thebusybiscuit.slimefun4.core.services.*;
+import io.github.thebusybiscuit.slimefun4.implementation.listeners.*;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.NetherIceResource;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.OilResource;
 import io.github.thebusybiscuit.slimefun4.implementation.resources.SaltResource;
@@ -82,6 +34,7 @@ import me.mrCookieSlime.Slimefun.api.PlayerProfile;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import me.mrCookieSlime.Slimefun.utils.ConfigCache;
 import me.mrCookieSlime.Slimefun.utils.Utilities;
 import org.bukkit.Bukkit;
@@ -316,6 +269,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 }
             }, 5, 1);
             config.save();
+            if (BlockStateCache.isPaper)
+                Bukkit.getPluginManager().registerEvents(new BlockStateCache(), this);
 
             // Hooray!
             getLogger().log(Level.INFO, "Finished!");
@@ -548,14 +503,14 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 .collect(Collectors.toSet());
     }
 
-	@Override
-	public JavaPlugin getJavaPlugin() {
-		return this;
-	}
+    @Override
+    public JavaPlugin getJavaPlugin() {
+        return this;
+    }
 
-	@Override
-	public String getBugTrackerURL() {
-		return "https://github.com/TheBusyBiscuit/Slimefun4/issues";
-	}
+    @Override
+    public String getBugTrackerURL() {
+        return "https://github.com/TheBusyBiscuit/Slimefun4/issues";
+    }
 
 }
