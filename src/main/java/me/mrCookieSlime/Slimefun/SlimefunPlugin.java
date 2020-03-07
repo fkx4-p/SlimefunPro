@@ -35,6 +35,7 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import me.mrCookieSlime.Slimefun.utils.ConfigCache;
 import me.mrCookieSlime.Slimefun.utils.Utilities;
 import org.bukkit.Bukkit;
@@ -269,8 +270,10 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 }
             }, 5, 1);
             config.save();
-            if (BlockStateCache.isPaper)
+            if (BlockStateCache.isPaper) {
                 Bukkit.getPluginManager().registerEvents(new BlockStateCache(), this);
+                Bukkit.getPluginManager().registerEvents(new InventoryCache(), this);
+            }
 
             // Hooray!
             getLogger().log(Level.INFO, "Finished!");
