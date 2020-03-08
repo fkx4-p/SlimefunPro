@@ -10,7 +10,6 @@ import io.github.thebusybiscuit.slimefun4.api.network.NetworkComponent;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -67,7 +66,7 @@ public class CargoNet extends Network {
     private static final ItemStack terminal_noItem_item =
             new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
     // Chest Terminal Stuff
-    public static final int[] TERMINAL_SLOTS = { 0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42 };
+    public static final int[] TERMINAL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
 
     private final ItemStack terminalPlaceholderItem = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 
@@ -530,7 +529,7 @@ public class CargoNet extends Network {
                                         Config cfg = BlockStorage.getLocationInfo(input);
                                         boolean roundRobin = "true".equals(cfg.getString("round-robin"));
 
-                                        AtomicReference<ItemAndInt> slot = new AtomicReference<>();
+                                        AtomicReference<ItemStackAndInteger> slot = new AtomicReference<>();
                                         runBlockWithLock(lock, inputTargetA, inputTarget -> {
                                                     slot.set(CargoUtils.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))));
                                                     if (slot.get() != null) {
@@ -717,7 +716,7 @@ public class CargoNet extends Network {
                                             if (items.size() > i + (terminal_slots.length * (page - 1))) {
 
                                                 if (items.size() > i + (terminal_slots.length * (page - 1))) {
-                                                    ItemAndInt item = Iterables.get(items, i + (terminal_slots.length * (page - 1)));
+                                                    ItemStackAndInteger item = Iterables.get(items, i + (terminal_slots.length * (page - 1)));
 
                                                     ItemStack stack = item.getItem().clone();
                                                     ItemMeta im = stack.getItemMeta();
@@ -844,8 +843,7 @@ public class CargoNet extends Network {
         try {
             String str = BlockStorage.getLocationInfo(l).getString("frequency");
             if (str != null) freq = Integer.parseInt(str);
-        }
-        catch (Exception x) {
+        } catch (Exception x) {
             Slimefun.getLogger().log(Level.SEVERE, "An Error occured while parsing a Cargo Node Frequency", x);
         }
         return freq;

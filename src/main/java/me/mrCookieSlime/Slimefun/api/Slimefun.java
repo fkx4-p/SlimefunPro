@@ -1,23 +1,10 @@
 package me.mrCookieSlime.Slimefun.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
-
 import io.github.thebusybiscuit.cscorelib2.config.Config;
-import io.github.thebusybiscuit.slimefun4.api.gps.GPSNetwork;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.ItemState;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.VanillaItem;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -56,7 +43,6 @@ public final class Slimefun {
     }
 
 
-
     public static Logger getLogger() {
         return SlimefunPlugin.instance.getLogger();
     }
@@ -64,13 +50,10 @@ public final class Slimefun {
     /**
      * Returns the value associated to this key for the SlimefunItem corresponding to this id.
      *
-     * @param id
-     *            the id of the SlimefunItem, not null
-     * @param key
-     *            the key of the value to get, not null
-     *
+     * @param id  the id of the SlimefunItem, not null
+     * @param key the key of the value to get, not null
      * @return the value associated to the key for the SlimefunItem corresponding to the id,
-     *         or null if it doesn't exist.
+     * or null if it doesn't exist.
      */
     public static Object getItemValue(String id, String key) {
         return getItemConfig().getValue(id + '.' + key);
@@ -79,12 +62,9 @@ public final class Slimefun {
     /**
      * Sets a default value associated to this key for the SlimefunItem corresponding to this id.
      *
-     * @param id
-     *            the id of the SlimefunItem, not null
-     * @param key
-     *            the key of the value to set, not null
-     * @param value
-     *            the value to set, can be null
+     * @param id    the id of the SlimefunItem, not null
+     * @param key   the key of the value to set, not null
+     * @param value the value to set, can be null
      */
     public static void setItemVariable(String id, String key, Object value) {
         getItemConfig().setDefaultValue(id + '.' + key, value);
@@ -108,19 +88,17 @@ public final class Slimefun {
      *
      * <pre>
      *     {@code
-     *		Research r = new Research(7, "Glowstone Armor", 3);
-     *		r.addItems(SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_HELMET),
-     *		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_CHESTPLATE),
-     *		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_LEGGINGS),
-     *		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_BOOTS));
-     *		r.register();
+     * 		Research r = new Research(7, "Glowstone Armor", 3);
+     * 		r.addItems(SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_HELMET),
+     * 		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_CHESTPLATE),
+     * 		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_LEGGINGS),
+     * 		           SlimefunItem.getByItem(SlimefunItems.GLOWSTONE_BOOTS));
+     * 		r.register();
      *     }*
      * </pre>
      *
-     * @param research
-     *            the research to register, not null
-     * @param items
-     *            the items to bind, not null
+     * @param research the research to register, not null
+     * @param items    the items to bind, not null
      */
     public static void registerResearch(Research research, ItemStack... items) {
         for (ItemStack item : items) {
@@ -143,16 +121,12 @@ public final class Slimefun {
     /**
      * Checks if this player can use this item.
      *
-     * @param p
-     *            the player to check, not null
-     * @param item
-     *            the item to check, not null
-     * @param message
-     *            whether a message should be sent to the player or not
-     *
+     * @param p       the player to check, not null
+     * @param item    the item to check, not null
+     * @param message whether a message should be sent to the player or not
      * @return <code>true</code> if the item is a SlimefunItem, enabled, researched and if the player has the permission
-     *         to use it,
-     *         <code>false</code> otherwise.
+     * to use it,
+     * <code>false</code> otherwise.
      */
     public static boolean hasUnlocked(Player p, ItemStack item, boolean message) {
         SlimefunItem sfItem = SlimefunItem.getByItem(item);
@@ -173,31 +147,26 @@ public final class Slimefun {
 
                     return false;
                 }
-            }
-            else return false;
-        }
-        else return true;
+            } else return false;
+        } else return true;
     }
 
     /**
      * Checks if this player can use this item.
      *
-     * @param p
-     *            the player to check, not null
-     * @param sfItem
-     *            the item to check, not null
-     * @param message
-     *            whether a message should be sent to the player or not
-     *
+     * @param p       the player to check, not null
+     * @param sfItem  the item to check, not null
+     * @param message whether a message should be sent to the player or not
      * @return <code>true</code> if the item is enabled, researched and the player has the permission to use it,
-     *         <code>false</code> otherwise.
+     * <code>false</code> otherwise.
      */
     public static boolean hasUnlocked(Player p, SlimefunItem sfItem, boolean message) {
         if (isEnabled(p, sfItem, message) && hasPermission(p, sfItem, message)) {
             if (sfItem.getResearch() == null) return true;
             else if (PlayerProfile.get(p).hasUnlocked(sfItem.getResearch())) return true;
             else {
-                if (message && !(sfItem instanceof VanillaItem)) SlimefunPlugin.getLocal().sendMessage(p, "messages.not-researched", true);
+                if (message && !(sfItem instanceof VanillaItem))
+                    SlimefunPlugin.getLocal().sendMessage(p, "messages.not-researched", true);
                 return false;
             }
         }
@@ -207,15 +176,11 @@ public final class Slimefun {
     /**
      * Checks if this player has the permission to use this item.
      *
-     * @param p
-     *            the player to check, not null
-     * @param item
-     *            the item to check, null returns <code>true</code>
-     * @param message
-     *            whether a message should be sent to the player or not
-     *
+     * @param p       the player to check, not null
+     * @param item    the item to check, null returns <code>true</code>
+     * @param message whether a message should be sent to the player or not
      * @return <code>true</code> if the item is not null and if the player has the permission to use it,
-     *         <code>false</code> otherwise.
+     * <code>false</code> otherwise.
      */
     public static boolean hasPermission(Player p, SlimefunItem item, boolean message) {
         if (item == null) return true;
@@ -230,15 +195,11 @@ public final class Slimefun {
     /**
      * Checks if this item is enabled in the world this player is in.
      *
-     * @param p
-     *            the player to get the world he is in, not null
-     * @param item
-     *            the item to check, not null
-     * @param message
-     *            whether a message should be sent to the player or not
-     *
+     * @param p       the player to get the world he is in, not null
+     * @param item    the item to check, not null
+     * @param message whether a message should be sent to the player or not
      * @return <code>true</code> if the item is a SlimefunItem and is enabled in the world the player is in,
-     *         <code>false</code> otherwise.
+     * <code>false</code> otherwise.
      */
     public static boolean isEnabled(Player p, ItemStack item, boolean message) {
         SlimefunItem sfItem = SlimefunItem.getByItem(item);
@@ -250,15 +211,11 @@ public final class Slimefun {
     /**
      * Checks if this item is enabled in the world this player is in.
      *
-     * @param p
-     *            the player to get the world he is in, not null
-     * @param sfItem
-     *            the item to check, not null
-     * @param message
-     *            whether a message should be sent to the player or not
-     *
+     * @param p       the player to get the world he is in, not null
+     * @param sfItem  the item to check, not null
+     * @param message whether a message should be sent to the player or not
      * @return <code>true</code> if the item is enabled in the world the player is in,
-     *         <code>false</code> otherwise.
+     * <code>false</code> otherwise.
      */
     public static boolean isEnabled(Player p, SlimefunItem sfItem, boolean message) {
         if (sfItem.isDisabled()) {
@@ -269,19 +226,18 @@ public final class Slimefun {
         String world = p.getWorld().getName();
         if (SlimefunPlugin.getWhitelist().contains(world + ".enabled")) {
             if (SlimefunPlugin.getWhitelist().getBoolean(world + ".enabled")) {
-                if (!SlimefunPlugin.getWhitelist().contains(world + ".enabled-items." + sfItem.getID())) SlimefunPlugin.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getID(), true);
+                if (!SlimefunPlugin.getWhitelist().contains(world + ".enabled-items." + sfItem.getID()))
+                    SlimefunPlugin.getWhitelist().setDefaultValue(world + ".enabled-items." + sfItem.getID(), true);
                 if (SlimefunPlugin.getWhitelist().getBoolean(world + ".enabled-items." + sfItem.getID())) return true;
                 else {
                     if (message) SlimefunPlugin.getLocal().sendMessage(p, "messages.disabled-in-world", true);
                     return false;
                 }
-            }
-            else {
+            } else {
                 if (message) SlimefunPlugin.getLocal().sendMessage(p, "messages.disabled-in-world", true);
                 return false;
             }
-        }
-        else return true;
+        } else return true;
     }
 
     @SuppressWarnings("DeprecatedIsStillUsed")

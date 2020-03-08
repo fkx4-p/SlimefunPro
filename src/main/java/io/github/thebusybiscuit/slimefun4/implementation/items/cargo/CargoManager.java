@@ -1,13 +1,9 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.cargo;
 
-import java.util.Optional;
-
-import org.bukkit.ChatColor;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent;
+import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
+import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNet;
+import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
@@ -18,8 +14,14 @@ import me.mrCookieSlime.Slimefun.Objects.handlers.BlockUseHandler;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
+import org.bukkit.ChatColor;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public class CargoManager extends SlimefunItem {
+import java.util.Optional;
+
+public class CargoManager extends SlimefunItem implements EnergyNetComponent {
 
     public CargoManager(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(category, item, recipeType, recipe);
@@ -59,8 +61,7 @@ public class CargoManager extends SlimefunItem {
                     if (BlockStorage.getLocationInfo(b.getLocation(), visualizerKey) == null) {
                         BlockStorage.addBlockInfo(b, visualizerKey, "disabled");
                         p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCargo Net Visualizer: " + "&4\u2718"));
-                    }
-                    else {
+                    } else {
                         BlockStorage.addBlockInfo(b, visualizerKey, null);
                         p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCargo Net Visualizer: " + "&2\u2714"));
                     }
@@ -69,4 +70,25 @@ public class CargoManager extends SlimefunItem {
         });
     }
 
+    /**
+     * This method returns the Type of {@link EnergyNetComponentType} this {@link SlimefunItem} represents.
+     * It describes how this Block will interact with an {@link EnergyNet}.
+     *
+     * @return The {@link EnergyNetComponentType} this {@link SlimefunItem} represents.
+     */
+    @Override
+    public EnergyNetComponentType getEnergyComponentType() {
+        return EnergyNetComponentType.CONSUMER;
+    }
+
+    /**
+     * This method returns the max amount of electricity this Block can hold.
+     * If the capacity is zero, then this Block cannot hold any electricity.
+     *
+     * @return The max amount of electricity this Block can store.
+     */
+    @Override
+    public int getCapacity() {
+        return 8192;
+    }
 }
