@@ -40,9 +40,14 @@ public class InventoryCache implements Listener {
     public static Inventory query(Container container) throws ExecutionException, InterruptedException {
         final Location blockLocation = container.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
-        if (isPaper)
+
+        // Faster query
+        Inventory cachedInventory = cache.get(blockLocation);
+        if (cachedInventory != null) return cachedInventory;
+
+        else if (isPaper)
             synchronized (locks.get(blockLocation)) {
-                final Inventory cachedInventory = cache.get(blockLocation);
+                cachedInventory = cache.get(blockLocation);
                 if (cachedInventory != null) return cachedInventory;
                 return getInventorySlow(container, blockLocation);
             }

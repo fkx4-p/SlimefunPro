@@ -38,9 +38,14 @@ public class BlockStateCache implements Listener {
     public static BlockState query(Block block) throws ExecutionException, InterruptedException {
         final Location blockLocation = block.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
-        if (isPaper)
+
+        // Faster query
+        BlockState cachedState = cache.get(blockLocation);
+        if (cachedState != null) return cachedState;
+
+        else if (isPaper)
             synchronized (locks.get(blockLocation)) {
-                final BlockState cachedState = cache.get(blockLocation);
+                cachedState = cache.get(blockLocation);
                 if (cachedState != null) return cachedState;
                 return getBlockStateSlow(block, blockLocation);
             }
