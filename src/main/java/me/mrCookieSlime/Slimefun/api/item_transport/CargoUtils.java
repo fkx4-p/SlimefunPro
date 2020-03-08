@@ -1,5 +1,17 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.inventory.BrewerInventory;
+import org.bukkit.inventory.FurnaceInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
@@ -23,8 +35,7 @@ public final class CargoUtils {
     //Whitelist or blacklist slots
     private static final int[] SLOTS = {19, 20, 21, 28, 29, 30, 37, 38, 39};
 
-    private CargoUtils() {
-    }
+    private CargoUtils() {}
 
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
         DirtyChestMenu menu;
@@ -138,7 +149,7 @@ public final class CargoUtils {
         return null;
     }
 
-    public static ItemAndInt withdraw(Block node, Block target, int index) { // Async safe
+    public static ItemStackAndInteger withdraw(Block node, Block target, int index) { // Async safe
         DirtyChestMenu menu;
         try {
             menu = getChestMenu(target);
@@ -161,7 +172,7 @@ public final class CargoUtils {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                    return new ItemAndInt(is.clone(), slot);
+                    return new ItemStackAndInteger(is.clone(), slot);
                 }
             }
         } else {
@@ -206,7 +217,7 @@ public final class CargoUtils {
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
-                        return new ItemAndInt(is.clone(), slot);
+                        return new ItemStackAndInteger(is.clone(), slot);
                     }
                 }
             }

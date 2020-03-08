@@ -27,6 +27,7 @@ import io.github.thebusybiscuit.cscorelib2.chat.ChatColors;
 import io.github.thebusybiscuit.cscorelib2.chat.json.ChatComponent;
 import io.github.thebusybiscuit.cscorelib2.chat.json.HoverEvent;
 import io.github.thebusybiscuit.slimefun4.api.ErrorReport;
+import io.github.thebusybiscuit.slimefun4.utils.PatternUtils;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
@@ -175,7 +176,7 @@ public class TickerTask implements Runnable {
 
 		if (errors == 1) {
 			// Generate a new Error-Report
-			new ErrorReport(x, this, l, item);
+			new ErrorReport(x, l, item);
 
 			buggedBlocks.put(l, errors);
 		}
@@ -237,7 +238,7 @@ public class TickerTask implements Runnable {
 			}
 
 			builder.append("\n\n&c+ &4").append(hidden).append(" Hidden");
-			component.setHoverEvent(new HoverEvent(builder.toString()));
+			component.setHoverEvent(new HoverEvent(ChatColors.color(builder.toString())));
 
 			component.sendMessage((Player) sender);
 		}
@@ -276,14 +277,14 @@ public class TickerTask implements Runnable {
 						.append(chunkItemCount.getOrDefault(entry.getKey(), 0))
 						.append("x &7(")
 						.append(toMillis(entry.getValue()))
-						.append(")");
+						.append(')');
 					}
 					else hidden++;
 				}
 			}
 			
 			builder.append("\n\n&c+ &4").append(hidden).append(" Hidden");
-			component.setHoverEvent(new HoverEvent(builder.toString()));
+			component.setHoverEvent(new HoverEvent(ChatColors.color(builder.toString())));
 			
 			component.sendMessage((Player) sender);
 		}
@@ -303,8 +304,8 @@ public class TickerTask implements Runnable {
 	}
 	
 	private String formatChunk(String chunk) {
-		String[] components = chunk.split(";");
-		return components[0] + " [" + components[2] + "," + components[3] + "]";
+		String[] components = PatternUtils.SEMICOLON.split(chunk);
+		return components[0] + " [" + components[2] + ',' + components[3] + ']';
 	}
 	
 	public long getTimings(Block b) {

@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 
+import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
 import java.util.ArrayDeque;
 import java.util.Objects;
 import java.util.Queue;
@@ -17,14 +18,33 @@ import java.util.Set;
  * An abstract Network class to manage networks in a stateful way
  *
  * @author meiamsome
+ *
+ * @see NetworkListener
+ * @see NetworkManager
+ *
  */
 public abstract class Network {
 
-    public abstract int getRange();
+    /**
+     * This method returns the range of the {@link Network}.
+     * The range determines how far the {@link Network} will search for
+     * nearby nodes from any given node.
+     *
+     * It basically translates to the maximum distance between nodes.
+     *
+     * @return the range of this {@link Network}
+     */public abstract int getRange();
 
-    public abstract NetworkComponent classifyLocation(Location l);
+    /**
+     * This method assigns the given {@link Location} a type of {@link NetworkComponent}
+     * for classification.
+     *
+     * @param l
+     *            The {@link Location} to classify
+     * @return The assigned type of {@link NetworkComponent} for this {@link Location}
+     */public abstract NetworkComponent classifyLocation(Location l);
 
-    public abstract void locationClassificationChange(Location l, NetworkComponent from, NetworkComponent to);
+    public abstract void onClassificationChange(Location l, NetworkComponent from, NetworkComponent to);
 
     protected Location regulator;
     private Queue<Location> nodeQueue = new ArrayDeque<>();
@@ -58,7 +78,13 @@ public abstract class Network {
         nodeQueue.add(l.clone());
     }
 
-    public boolean connectsTo(Location l) {
+    /**
+     * This method checks whether the given {@link Location} is part of this {@link Network}.
+     *
+     * @param l
+     *            The {@link Location} to check for
+     * @return Whether the given {@link Location} is part of this {@link Network}
+     */public boolean connectsTo(Location l) {
         return connectedLocations.contains(l);
     }
 
@@ -102,7 +128,7 @@ public abstract class Network {
                     terminusNodes.add(l);
                 }
 
-                locationClassificationChange(l, currentAssignment, classification);
+                onClassificationChange(l, currentAssignment, classification);
             }
             steps += 1;
 

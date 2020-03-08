@@ -12,6 +12,21 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import io.github.thebusybiscuit.slimefun4.utils.PatternUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -64,12 +79,12 @@ public class BlockStorage {
 	}
 	
 	private static String serializeChunk(World world, int x, int z) {
-		return world.getName() + ";Chunk;" + x + ";" + z;
+		return world.getName() + ";Chunk;" + x + ';' + z;
 	}
 	
 	private static Location deserializeLocation(String l) {
 		try {
-			String[] components = l.split(";");
+			String[] components = PatternUtils.SEMICOLON.split(l);
 			if (components.length != 4) return null;
 			
 			World w = Bukkit.getWorld(components[0]);
@@ -165,7 +180,7 @@ public class BlockStorage {
 			
 			for (String key : cfg.getKeys(false)) {
 				try {
-					if (world.getName().equals(key.split(";")[0])) {
+					if (world.getName().equals(PatternUtils.SEMICOLON.split(key)[0])) {
 						SlimefunPlugin.getRegistry().getChunks().put(key, new BlockInfoConfig(parseJSON(cfg.getString(key))));
 					}
 				} catch (Exception x) {
@@ -409,21 +424,23 @@ public class BlockStorage {
 		BlockStorage storage = getStorage(l.getWorld());
 		storage.storage.put(l, cfg);
 		
-		if (BlockMenuPreset.isInventory(cfg.getString("id"))) {
-			if (BlockMenuPreset.isUniversalInventory(cfg.getString("id"))) {
-				if (!SlimefunPlugin.getRegistry().getUniversalInventories().containsKey(cfg.getString("id"))) {
-					storage.loadUniversalInventory(BlockMenuPreset.getPreset(cfg.getString("id")));
+		String id = cfg.getString("id");
+
+		if (BlockMenuPreset.isInventory(id)) {
+			if (BlockMenuPreset.isUniversalInventory(id)) {
+				if (!SlimefunPlugin.getRegistry().getUniversalInventories().containsKey(id)) {
+					storage.loadUniversalInventory(BlockMenuPreset.getPreset(id));
 				}
 			}
 			else if (!storage.hasInventory(l)) {
 				File file = new File("data-storage/Slimefun/stored-inventories/" + serializeLocation(l) + ".sfi");
 				
-				if (file.exists()) storage.inventories.put(l, new BlockMenu(BlockMenuPreset.getPreset(cfg.getString("id")), l, new io.github.thebusybiscuit.cscorelib2.config.Config(file)));
-				else storage.loadInventory(l, BlockMenuPreset.getPreset(cfg.getString("id")));
+				if (file.exists()) storage.inventories.put(l, new BlockMenu(BlockMenuPreset.getPreset(id), l, new io.github.thebusybiscuit.cscorelib2.config.Config(file)));
+				else storage.loadInventory(l, BlockMenuPreset.getPreset(id));
 			}
 		}
 		
-		refreshCache(getStorage(l.getWorld()), l, cfg.getString("id"), serializeBlockInfo(cfg), updateTicker);
+		refreshCache(getStorage(l.getWorld()), l, id, serializeBlockInfo(cfg), updateTicker);
 	}
 	
 	public static void setBlockInfo(Block b, String json, boolean updateTicker) {
@@ -518,6 +535,12 @@ public class BlockStorage {
 	}
 
 	private static void refreshCache(BlockStorage storage, Location l, String key, String value, boolean updateTicker) {
+		if (key == null) {
+			// This Block is no longer valid...
+			// Fixes #1577
+			return;
+		}
+
 		Config cfg = storage.blocksCache.computeIfAbsent(key, k -> new Config(PATH_BLOCKS + l.getWorld().getName() + '/' + key + ".sfb"));
 		cfg.setValue(serializeLocation(l), value);
 		

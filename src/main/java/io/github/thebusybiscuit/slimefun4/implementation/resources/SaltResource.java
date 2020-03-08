@@ -9,71 +9,71 @@ import io.github.thebusybiscuit.slimefun4.api.geo.GEOResource;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 
-public class SaltResource implements GEOResource {
-	
-	private final NamespacedKey key = new NamespacedKey(SlimefunPlugin.instance, "salt");
-	
-	@Override
-	public int getDefaultSupply(Environment environment, Biome biome) {
-		
-		if (environment != Environment.NORMAL) {
-			return 0;
-		}
-		
-		switch (biome) {
-		case SNOWY_BEACH:
-		case STONE_SHORE:
-		case BEACH:
-		case DESERT_LAKES:
-		case RIVER:
-		case ICE_SPIKES:
-		case FROZEN_RIVER: 
-			return 40;
-		
-		case DEEP_OCEAN:
-		case OCEAN:
-		case COLD_OCEAN:
-		case DEEP_COLD_OCEAN:
-		case DEEP_FROZEN_OCEAN:
-		case DEEP_LUKEWARM_OCEAN:
-		case DEEP_WARM_OCEAN:
-		case FROZEN_OCEAN:
-		case LUKEWARM_OCEAN:
-		case WARM_OCEAN:
-			return 60;
+class SaltResource implements GEOResource {
 
-		case SWAMP:
-		case SWAMP_HILLS:
-			return 20;
+    private final NamespacedKey key = new NamespacedKey(SlimefunPlugin.instance, "salt");
 
-		default:
-			return 6;
-		}
-	}
-	
-	@Override
-	public int getMaxDeviation() {
-		return 18;
-	}
-	
-	@Override
-	public NamespacedKey getKey() {
-		return key;
-	}
+    @Override
+    public int getDefaultSupply(Environment environment, Biome biome) {
 
-	@Override
-	public String getName() {
-		return "Salt";
-	}
+        if (environment != Environment.NORMAL) {
+            return 0;
+        }
 
-	@Override
-	public ItemStack getItem() {
-		return SlimefunItems.SALT.clone();
-	}
+        switch (biome) {
+        case SNOWY_BEACH:
+        case STONE_SHORE:
+        case BEACH:
+        case DESERT_LAKES:
+        case RIVER:
+        case ICE_SPIKES:
+        case FROZEN_RIVER:
+            return 40;
 
-	@Override
-	public boolean isObtainableFromGEOMiner() {
-		return true;
-	}
+        case DEEP_OCEAN:
+        case OCEAN:
+        case COLD_OCEAN:
+        case DEEP_COLD_OCEAN:
+        case DEEP_FROZEN_OCEAN:
+        case DEEP_LUKEWARM_OCEAN:
+        case DEEP_WARM_OCEAN:
+        case FROZEN_OCEAN:
+        case LUKEWARM_OCEAN:
+        case WARM_OCEAN:
+            return 60;
+
+        case SWAMP:
+        case SWAMP_HILLS:
+            return 20;
+
+        default:
+            return 6;
+        }
+    }
+
+    @Override
+    public int getMaxDeviation() {
+        return 18;
+    }
+
+    @Override
+    public NamespacedKey getKey() {
+        return key;
+    }
+
+    @Override
+    public String getName() {
+        return "Salt";
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return SlimefunItems.SALT.clone();
+    }
+
+    @Override
+    public boolean isObtainableFromGEOMiner() {
+        return true;
+    }
 
 }

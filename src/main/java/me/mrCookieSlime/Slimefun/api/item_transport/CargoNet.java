@@ -10,6 +10,7 @@ import io.github.thebusybiscuit.slimefun4.api.network.NetworkComponent;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -65,6 +66,10 @@ public class CargoNet extends Network {
 
     private static final ItemStack terminal_noItem_item =
             new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
+    // Chest Terminal Stuff
+    public static final int[] TERMINAL_SLOTS = { 0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42 };
+
+    private final ItemStack terminalPlaceholderItem = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 
     private Set<Location> inputNodes = Sets.newConcurrentHashSet();
     private Set<Location> outputNodes = Sets.newConcurrentHashSet();
@@ -154,7 +159,7 @@ public class CargoNet extends Network {
         }
     }
 
-    public void locationClassificationChange(Location l, NetworkComponent from, NetworkComponent to) {
+    public void onClassificationChange(Location l, NetworkComponent from, NetworkComponent to) {
         if (from == NetworkComponent.REGULATOR)
             CargoNet.instances.remove(l);
         if (from == NetworkComponent.TERMINUS) {
@@ -392,7 +397,7 @@ public class CargoNet extends Network {
                     Set<Future<?>> futures = Sets.newConcurrentHashSet();
 
                     //Chest Terminal Code
-                    if (extraChannels) {
+                    if (SlimefunPlugin.getNetworkManager().isChestTerminalInstalled()) {
                         for (Location bus : imports)
                             futures.add(tickingPool.submit(() -> {
                                 try {
@@ -407,7 +412,7 @@ public class CargoNet extends Network {
                                                 try {
                                                     ItemStack item17 = menu.getItemInSlot(17);
                                                     if (item17 == null) {
-                                                        ItemAndInt stack = CargoUtils.withdraw(bus.getBlock(), target, -1);
+                                                        ItemStackAndInteger stack = CargoUtils.withdraw(bus.getBlock(), target, -1);
 
                                                         if (stack != null) {
                                                             menu.replaceExistingItem(17, stack.getItem());
@@ -499,7 +504,7 @@ public class CargoNet extends Network {
                     }
 
 
-                    // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
+                    // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal// Buses)
                     {
                         for (Location input : inputNodes) {
                             futures.add(tickingPool.submit(() -> {
@@ -616,8 +621,8 @@ public class CargoNet extends Network {
                     }
 
                     //Chest Terminal Code
-                    if (extraChannels) {
-                        Set<ItemAndInt> items = new ConcurrentSkipListSet<>(Comparator.comparingInt(item -> -item.getInt()));
+                    if (SlimefunPlugin.getNetworkManager().isChestTerminalInstalled()) {
+                        Set<ItemStackAndInteger> items = new ConcurrentSkipListSet<>(Comparator.comparingInt(item -> -item.getInt()));
 
                         {
                             for (Location l : providers) {
@@ -647,7 +652,7 @@ public class CargoNet extends Network {
                                                             if (is != null && CargoUtils.matchesFilter(l.getBlock(), is, -1)) {
                                                                 boolean add = true;
 
-                                                                for (ItemAndInt item : items) {
+                                                                for (ItemStackAndInteger item : items) {
                                                                     if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
                                                                         add = false;
                                                                         item.add(is.getAmount() + stored);
@@ -655,7 +660,7 @@ public class CargoNet extends Network {
                                                                 }
 
                                                                 if (add) {
-                                                                    items.add(new ItemAndInt(new CustomItem(is, 1), is.getAmount() + stored));
+                                                                    items.add(new ItemStackAndInteger(new CustomItem(is, 1), is.getAmount() + stored));
                                                                 }
                                                             }
                                                         }
@@ -701,7 +706,7 @@ public class CargoNet extends Network {
 
                                         int page = Integer.parseInt(BlockStorage.getLocationInfo(l, "page"));
 
-                                        if (!items.isEmpty() && items.size() < (page - 1) * terminal_slots.length + 1) {
+                                        if (!items.isEmpty() && items.size() < (page - 1) * TERMINAL_SLOTS.length + 1) {
                                             page = 1;
                                             BlockStorage.addBlockInfo(l, "page", String.valueOf(1));
                                         }
@@ -741,7 +746,7 @@ public class CargoNet extends Network {
                                                     });
 
                                                 } else {
-                                                    menu.replaceExistingItem(slot, terminal_noItem_item);
+                                                    menu.replaceExistingItem(slot, terminalPlaceholderItem);
                                                     menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
                                                 }
                                             }
@@ -839,13 +844,14 @@ public class CargoNet extends Network {
         try {
             String str = BlockStorage.getLocationInfo(l).getString("frequency");
             if (str != null) freq = Integer.parseInt(str);
-        } catch (Exception x) {
+        }
+        catch (Exception x) {
             Slimefun.getLogger().log(Level.SEVERE, "An Error occured while parsing a Cargo Node Frequency", x);
         }
         return freq;
     }
 
-    private void handleWithdraw(DirtyChestMenu menu, Set<ItemAndInt> items, Location l) {
+    private void handleWithdraw(DirtyChestMenu menu, Set<ItemStackAndInteger> items, Location l) {
         for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
             try {
                 filter(menu.getItemInSlot(slot), items, l);
@@ -855,11 +861,11 @@ public class CargoNet extends Network {
         }
     }
 
-    private void filter(ItemStack is, Set<ItemAndInt> items, Location l) {
+    private void filter(ItemStack is, Set<ItemStackAndInteger> items, Location l) {
         if (is != null && CargoUtils.matchesFilter(l.getBlock(), is, -1)) {
             boolean add = true;
 
-            for (ItemAndInt item : items) {
+            for (ItemStackAndInteger item : items) {
                 if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
                     add = false;
                     item.add(is.getAmount());
@@ -867,7 +873,7 @@ public class CargoNet extends Network {
             }
 
             if (add) {
-                items.add(new ItemAndInt(new CustomItem(is, 1), is.getAmount()));
+                items.add(new ItemStackAndInteger(new CustomItem(is, 1), is.getAmount()));
             }
         }
     }

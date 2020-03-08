@@ -16,64 +16,74 @@ import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 
+/**
+ * The {@link EnhancedFurnace} is an upgraded version of a {@link Furnace}.
+ * It has a custom speed, efficiency and also a level of fortune.
+ * All of these values are tweaked for every instance of this class.
+ * 
+ * It uses a {@link BlockTicker} to manipulate the {@link Furnace} into working faster.
+ * 
+ * @author TheBusyBiscuit
+ *
+ */
 public class EnhancedFurnace extends SimpleSlimefunItem<BlockTicker> {
-	
-	private final int speed;
-	private final int efficiency;
-	private final int fortune;
-	
-	public EnhancedFurnace(int speed, int efficiency, int fortune, SlimefunItemStack item, ItemStack[] recipe) {
-		super(Categories.MACHINES_1, item, RecipeType.ENHANCED_CRAFTING_TABLE, recipe);
-		
-		this.speed = speed - 1;
-		this.efficiency = efficiency - 1;
-		this.fortune = fortune - 1;
-	}
-	
-	public int getSpeed() {
-		return speed;
-	}
-	
-	public int getFuelEfficiency() {
-		return efficiency;
-	}
-	
-	public int getOutput() {
-		int bonus = this.fortune;
-		bonus = ThreadLocalRandom.current().nextInt(bonus + 2) - 1;
-		if (bonus <= 0) bonus = 0;
-		bonus++;
-		return bonus;
-	}
 
-	@Override
-	public BlockTicker getItemHandler() {
-		return new BlockTicker() {
-			
-			@Override
-			public void tick(Block b, SlimefunItem item, Config data) {
-				if (b.getType() != Material.FURNACE) {
-					// The Furnace has been destroyed, we can clear the block data
-					BlockStorage.clearBlockInfo(b);
-				}
-				else {
-					Furnace furnace = (Furnace) b.getState();
-					
-					if (furnace.getCookTime() > 0) {
-						int newCookTime = furnace.getCookTime() + getSpeed() * 10;
+    private final int speed;
+    private final int efficiency;
+    private final int fortune;
 
-						if (newCookTime > 200) furnace.setCookTime((short) 188);
-						else furnace.setCookTime((short) newCookTime);
+    public EnhancedFurnace(int speed, int efficiency, int fortune, SlimefunItemStack item, ItemStack[] recipe) {
+        super(Categories.MACHINES_1, item, RecipeType.ENHANCED_CRAFTING_TABLE, recipe);
 
-						furnace.update(true, false);
-					}
-				}
-			}
+        this.speed = speed - 1;
+        this.efficiency = efficiency - 1;
+        this.fortune = fortune - 1;
+    }
 
-			@Override
-			public boolean isSynchronized() {
-				return true;
-			}
-		};
-	}
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getFuelEfficiency() {
+        return efficiency;
+    }
+
+    public int getOutput() {
+        int bonus = this.fortune;
+        bonus = ThreadLocalRandom.current().nextInt(bonus + 2) - 1;
+        if (bonus <= 0) bonus = 0;
+        bonus++;
+        return bonus;
+    }
+
+    @Override
+    public BlockTicker getItemHandler() {
+        return new BlockTicker() {
+
+            @Override
+            public void tick(Block b, SlimefunItem item, Config data) {
+                if (b.getType() != Material.FURNACE) {
+                    // The Furnace has been destroyed, we can clear the block data
+                    BlockStorage.clearBlockInfo(b);
+                }
+                else {
+                    Furnace furnace = (Furnace) b.getState();
+
+                    if (furnace.getCookTime() > 0) {
+                        int newCookTime = furnace.getCookTime() + getSpeed() * 10;
+
+                        if (newCookTime > 200) furnace.setCookTime((short) 188);
+                        else furnace.setCookTime((short) newCookTime);
+
+                        furnace.update(true, false);
+                    }
+                }
+            }
+
+            @Override
+            public boolean isSynchronized() {
+                return true;
+            }
+        };
+    }
 }
