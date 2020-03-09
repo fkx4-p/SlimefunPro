@@ -1,13 +1,14 @@
 package me.mrCookieSlime.Slimefun.api.item_transport.cache;
 
-import com.destroystokyo.paper.event.server.ServerTickEndEvent;
+import com.destroystokyo.paper.event.block.BlockDestroyEvent;
+import com.destroystokyo.paper.event.block.TNTPrimeEvent;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Container;
-import org.bukkit.block.DoubleChest;
+import org.bukkit.block.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
@@ -19,17 +20,25 @@ import java.util.concurrent.ExecutionException;
 
 public class InventoryCache implements Listener {
 
-    private static ConcurrentMap<Location, Inventory> cache = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Location, CachedInventory> cache = new ConcurrentHashMap<>();
     private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
-    public static final boolean isPaper;
+    public static final boolean available;
 
     static {
-        isPaper = isAvailable();
+        available = isAvailable();
     }
 
     private static boolean isAvailable() {
         try {
-            ServerTickEndEvent.class.getName();
+            BlockDestroyEvent.class.getName();
+            BlockExplodeEvent.class.getName();
+            BlockFadeEvent.class.getName();
+            BlockFertilizeEvent.class.getName();
+            BlockFromToEvent.class.getName();
+            BlockPhysicsEvent.class.getName();
+            BlockPlaceEvent.class.getName();
+            LeavesDecayEvent.class.getName();
+            TNTPrimeEvent.class.getName();
         } catch (NoClassDefFoundError e) {
             return false;
         }
@@ -37,15 +46,15 @@ public class InventoryCache implements Listener {
     }
 
     @Nonnull
-    public static Inventory query(Container container) throws ExecutionException, InterruptedException {
+    public static @NotNull CachedInventory query(Container container) throws ExecutionException, InterruptedException {
         final Location blockLocation = container.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
 
         // Faster query
-        Inventory cachedInventory = cache.get(blockLocation);
+        CachedInventory cachedInventory = cache.get(blockLocation);
         if (cachedInventory != null) return cachedInventory;
 
-        else if (isPaper)
+        else if (available)
             synchronized (locks.get(blockLocation)) {
                 cachedInventory = cache.get(blockLocation);
                 if (cachedInventory != null) return cachedInventory;
@@ -55,7 +64,7 @@ public class InventoryCache implements Listener {
     }
 
     @NotNull
-    private static Inventory getInventorySlow(Container container, Location blockLocation)
+    private static CachedInventory getInventorySlow(Container container, Location blockLocation)
             throws InterruptedException, ExecutionException {
         final Object[] objects = Slimefun.runSyncFuture(() -> {
             final Inventory inventory = container.getInventory();
@@ -67,18 +76,97 @@ public class InventoryCache implements Listener {
             DoubleChest doubleChest = (DoubleChest) holder;
             final Object[] objects1 = Slimefun.runSyncFuture(() -> new Object[]{
                     doubleChest.getLeftSide(), doubleChest.getRightSide(), doubleChest.getInventory()}).get();
-            cache.put(((Chest) objects1[0]).getLocation(), (Inventory) objects1[2]);
-            cache.put(((Chest) objects1[1]).getLocation(), (Inventory) objects1[2]);
-            return (Inventory) objects1[2];
+            final CachedInventory cachedInventory = new CachedInventory((Inventory) objects1[2],
+                    ((Chest) objects1[0]).getLocation(), ((Chest) objects1[1]).getLocation());
+            cache.put(((Chest) objects1[0]).getLocation(),
+                    cachedInventory);
+            cache.put(((Chest) objects1[0]).getLocation(),
+                    cachedInventory);
+            return cachedInventory;
         } else {
-            cache.put(blockLocation, initialInventory);
-            return initialInventory;
+            final CachedInventory cachedInventory = new CachedInventory(initialInventory, blockLocation);
+            cache.put(blockLocation, cachedInventory);
+            return cachedInventory;
         }
     }
 
-    @EventHandler
-    public void onServerTickEnd(ServerTickEndEvent event) {
-        cache.clear();
+    private void updateCache(Location location) {
+        CachedInventory cachedInventory = cache.get(location);
+        if (cachedInventory == null) return;
+        cache.remove(location);
+        for (Location loc : cachedInventory.locations)
+            updateCache(loc);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockDestroy(BlockDestroyEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+        for (Block block : event.blockList())
+            updateCache(block.getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockFade(BlockFadeEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockFertilize(BlockFertilizeEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+        for (BlockState state : event.getBlocks())
+            cache.remove(state.getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockFromTo(BlockFromToEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+        updateCache(event.getToBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLeavesDecay(LeavesDecayEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTNTPrime(TNTPrimeEvent event) {
+        if (event.isCancelled()) return;
+        updateCache(event.getBlock().getLocation());
+    }
+
+    public static class CachedInventory {
+        @Nonnull
+        public Inventory inventory;
+        @Nonnull
+        public Location[] locations;
+
+        public CachedInventory(@NotNull Inventory inventory, @NotNull Location... locations) {
+            this.inventory = inventory;
+            this.locations = locations;
+        }
     }
 
 }

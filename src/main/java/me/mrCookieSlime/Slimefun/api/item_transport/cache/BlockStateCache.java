@@ -1,12 +1,15 @@
 package me.mrCookieSlime.Slimefun.api.item_transport.cache;
 
-import com.destroystokyo.paper.event.server.ServerTickEndEvent;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -19,19 +22,31 @@ public class BlockStateCache implements Listener {
 
     private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
     private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
-    public static final boolean isPaper;
+    public static final boolean available;
 
     static {
-        isPaper = isAvailable();
+        available = isAvailable();
     }
 
     private static boolean isAvailable() {
         try {
-            ServerTickEndEvent.class.getName();
+            BlockEvent.class.getName();
         } catch (NoClassDefFoundError e) {
             return false;
         }
         return true;
+    }
+
+    public static void registerEvents() {
+        BlockStateCache instance = new BlockStateCache();
+        RegisteredListener registeredListener = new RegisteredListener(instance,
+                (listener, event) -> {
+                    if (event instanceof BlockEvent)
+                        instance.onBlockEvents((BlockEvent) event);
+                }, EventPriority.MONITOR, SlimefunPlugin.instance,
+                false);
+        for (HandlerList handler : HandlerList.getHandlerLists())
+            handler.register(registeredListener);
     }
 
     @Nonnull
@@ -43,7 +58,7 @@ public class BlockStateCache implements Listener {
         BlockState cachedState = cache.get(blockLocation);
         if (cachedState != null) return cachedState;
 
-        else if (isPaper)
+        else if (available)
             synchronized (locks.get(blockLocation)) {
                 cachedState = cache.get(blockLocation);
                 if (cachedState != null) return cachedState;
@@ -60,9 +75,8 @@ public class BlockStateCache implements Listener {
         return queriedState;
     }
 
-    @EventHandler
-    public void onServerTickEnd(ServerTickEndEvent event) {
-        cache.clear();
+    public void onBlockEvents(BlockEvent event) {
+        cache.remove(event.getBlock().getLocation());
     }
 
 }

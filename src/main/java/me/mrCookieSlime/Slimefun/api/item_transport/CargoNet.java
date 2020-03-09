@@ -23,14 +23,14 @@ import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -446,7 +446,7 @@ public class CargoNet extends Network {
                                             if (item17 != null) {
                                                 menu.replaceExistingItem(
                                                         17,
-                                                        CargoUtils.insert(bus.getBlock(), target, menu.getItemInSlot(17), -1));
+                                                        CargoUtils.insert(bus.getBlock(), target, item17, -1));
                                             }
 
                                             if (item17 == null) {
@@ -503,7 +503,7 @@ public class CargoNet extends Network {
                     }
 
 
-                    // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal// Buses)
+                    // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
                     {
                         for (Location input : inputNodes) {
                             futures.add(tickingPool.submit(() -> {
@@ -571,7 +571,8 @@ public class CargoNet extends Network {
                                                             }
                                                         });
                                                     } catch (Exception e) {
-                                                        if (e.getMessage().equals("break")) break;
+                                                        if (e.getMessage() != null && e.getMessage().equals("break"))
+                                                            break;
                                                         else throw new RuntimeException(e);
                                                     }
                                                 }
@@ -595,7 +596,7 @@ public class CargoNet extends Network {
                                                             throw new RuntimeException(e);
                                                         }
                                                         if (state instanceof Container) {
-                                                            Inventory inv = InventoryCache.query((Container) state);
+                                                            Inventory inv = InventoryCache.query((Container) state).inventory;
                                                             int finalPreviousSlot1 = previousSlot.get();
                                                             ItemStack finalStack1 = stack.get();
                                                             Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
@@ -675,7 +676,7 @@ public class CargoNet extends Network {
                                                     }
 
                                                     if (state instanceof Container) {
-                                                        Inventory inv = InventoryCache.query((Container) state);
+                                                        Inventory inv = InventoryCache.query((Container) state).inventory;
 
                                                         for (ItemStack is : inv.getContents()) {
                                                             filter(is, items, l);
@@ -781,40 +782,31 @@ public class CargoNet extends Network {
         SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
         BlockState state = BlockStateCache.query(block);
         if (state instanceof Container) {
-            Inventory inventory;
+            InventoryCache.CachedInventory inventory;
             try {
                 inventory = InventoryCache.query((Container) state);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            InventoryHolder holder = Slimefun.runSyncFuture(inventory::getHolder).get();
-            if (holder instanceof DoubleChest) {
-                DoubleChest doubleChest = (DoubleChest) holder;
-                Location leftLocation = Slimefun.runSyncFuture(() ->
-                        ((Chest) Objects.requireNonNull(doubleChest.getLeftSide())).getLocation()).get();
-                Location rightLocation = Slimefun.runSyncFuture(() ->
-                        ((Chest) Objects.requireNonNull(doubleChest.getRightSide())).getLocation()).get();
-                SynchronizedLock<Block> leftOriginalLock = CargoNet.locks.get(leftLocation);
-                SynchronizedLock<Block> rightOriginalLock = CargoNet.locks.get(rightLocation);
-                if (leftOriginalLock == null || !Objects.equals(leftOriginalLock, rightOriginalLock)) {
-                    // Slimefun.getLogger().info("created double chest");
-                    CargoNet.locks.put(leftLocation, currentLock);
-                    CargoNet.locks.put(rightLocation, currentLock);
-                } else {
-                    // Slimefun.getLogger().info("reused double chest");
-                    currentLock = leftOriginalLock;
-                }
-            } else {
-                Location blockLocation = block.getLocation();
-                SynchronizedLock<Block> originalLock = CargoNet.locks.get(blockLocation);
-                if (originalLock == null) {
-                    // Slimefun.getLogger().info("created non double chest");
-                    CargoNet.locks.put(blockLocation, currentLock);
-                } else {
-                    // Slimefun.getLogger().info("reused non double chest");
-                    currentLock = originalLock;
+            boolean lockExists = true;
+            SynchronizedLock<Block> originalLock = null;
+            {
+                for (Location location : inventory.locations) {
+                    if (originalLock == null) originalLock = locks.get(location);
+                    if (originalLock == null) {
+                        lockExists = false;
+                        break;
+                    }
+                    if (!locks.get(location).equals(originalLock)) {
+                        lockExists = false;
+                        break;
+                    }
                 }
             }
+            if (!lockExists)
+                for (Location location : inventory.locations)
+                    locks.put(location, currentLock);
+            else currentLock = originalLock;
         } else {
             Location blockLocation = block.getLocation();
             SynchronizedLock<Block> originalLock = CargoNet.locks.get(blockLocation);

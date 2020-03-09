@@ -285,10 +285,11 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 }
             }, 5, 1);
             config.save();
-            if (BlockStateCache.isPaper) {
-                Bukkit.getPluginManager().registerEvents(new BlockStateCache(), this);
+            if (BlockStateCache.available)
+                BlockStateCache.registerEvents();
+            if (InventoryCache.available)
                 Bukkit.getPluginManager().registerEvents(new InventoryCache(), this);
-            }
+
             if (AttachedBlockCache.available)
                 Bukkit.getPluginManager().registerEvents(new AttachedBlockCache(), this);
 

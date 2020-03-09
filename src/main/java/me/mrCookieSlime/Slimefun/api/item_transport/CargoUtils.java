@@ -1,17 +1,5 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.inventory.BrewerInventory;
-import org.bukkit.inventory.FurnaceInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
@@ -84,7 +72,7 @@ public final class CargoUtils {
                 Inventory inv;
                 ItemStack[] invContents;
                 try {
-                    inv = InventoryCache.query((Container) state);
+                    inv = InventoryCache.query((Container) state).inventory;
                     invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException();
@@ -186,7 +174,7 @@ public final class CargoUtils {
             if (state instanceof Container) {
                 Inventory inv;
                 try {
-                    inv = InventoryCache.query((Container) state);
+                    inv = InventoryCache.query((Container) state).inventory;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -293,7 +281,7 @@ public final class CargoUtils {
                 Inventory inv;
                 ItemStack[] invContents;
                 try {
-                    inv = InventoryCache.query((Container) state);
+                    inv = InventoryCache.query((Container) state).inventory;
                     invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
