@@ -5,6 +5,7 @@ import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,7 +36,7 @@ public class ItemPostTransport {
 
                             for (Location l : request.getDestinations()) {
                                 try {
-                                    CargoNet.runBlockWithLock(CargoNet.getAttachedBlock(l.getBlock()), target -> {
+                                    CargoNet.runBlockWithLock(AttachedBlockCache.query(l.getBlock()), target -> {
                                         requestedItem.set(CargoUtils.insert(
                                                 l.getBlock(), target, requestedItem.get(), -1));
 
@@ -81,7 +82,7 @@ public class ItemPostTransport {
                             for (Location l : request.getProviders()) {
 
                                 try {
-                                    CargoNet.runBlockWithLock(CargoNet.getAttachedBlock(l.getBlock()), target -> {
+                                    CargoNet.runBlockWithLock(AttachedBlockCache.query(l.getBlock()), target -> {
                                         ItemStack is = CargoUtils.withdraw(l.getBlock(), target, requested[0]);
 
                                         if (is != null) {

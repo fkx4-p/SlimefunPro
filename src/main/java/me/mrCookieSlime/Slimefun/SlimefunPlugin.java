@@ -31,6 +31,7 @@ import me.mrCookieSlime.Slimefun.api.PlayerProfile;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import me.mrCookieSlime.Slimefun.utils.ConfigCache;
@@ -240,7 +241,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 }
             }, 0);
 
-            // Setting up the command /sf and all subcommands command = new SlimefunCommand(this);
+            // Setting up the command /sf and all subcommands
+            command = new SlimefunCommand(this);
 
 
             // Armor Update Task
@@ -287,6 +289,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 Bukkit.getPluginManager().registerEvents(new BlockStateCache(), this);
                 Bukkit.getPluginManager().registerEvents(new InventoryCache(), this);
             }
+            if (AttachedBlockCache.available)
+                Bukkit.getPluginManager().registerEvents(new AttachedBlockCache(), this);
 
             // Hooray!
             getLogger().log(Level.INFO, "Finished!");

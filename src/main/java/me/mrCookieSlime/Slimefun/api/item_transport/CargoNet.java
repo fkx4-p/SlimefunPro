@@ -18,12 +18,12 @@ import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.*;
-import org.bukkit.block.data.Directional;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -406,7 +406,7 @@ public class CargoNet extends Network {
                                     if (!consume(this, energyConsumptionNode)) return;
 
                                     runBlockWithLock(
-                                            getAttachedBlock(bus.getBlock()),
+                                            AttachedBlockCache.query(bus.getBlock()),
                                             target -> {
                                                 try {
                                                     ItemStack item17 = menu.getItemInSlot(17);
@@ -440,7 +440,7 @@ public class CargoNet extends Network {
 
                                     if (!consume(this, energyConsumptionNode)) return;
 
-                                    runBlockWithLock(getAttachedBlock(bus.getBlock()), target -> {
+                                    runBlockWithLock(AttachedBlockCache.query(bus.getBlock()), target -> {
                                         try {
                                             ItemStack item17 = menu.getItemInSlot(17);
                                             if (item17 != null) {
@@ -514,7 +514,7 @@ public class CargoNet extends Network {
                                         return;
                                     }
 
-                                    Block inputTargetA = getAttachedBlock(input.getBlock());
+                                    Block inputTargetA = AttachedBlockCache.query(input.getBlock());
                                     if (inputTargetA == null) return;
 
                                     if (!consume(this, energyConsumptionNode)) return;
@@ -562,7 +562,7 @@ public class CargoNet extends Network {
 
                                                 for (Location out : outputsList) {
                                                     try {
-                                                        runBlockWithLock(getAttachedBlock(out.getBlock()), target -> {
+                                                        runBlockWithLock(AttachedBlockCache.query(out.getBlock()), target -> {
                                                             if (target != null) {
                                                                 stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
                                                                 if (stack.get() == null) {
@@ -628,7 +628,7 @@ public class CargoNet extends Network {
                                 futures.add(tickingPool.submit(() -> {
                                     try {
                                         if (!consume(this, energyConsumptionNode)) return;
-                                        runBlockWithLock(getAttachedBlock(l.getBlock()), target -> {
+                                        runBlockWithLock(AttachedBlockCache.query(l.getBlock()), target -> {
                                             try {
                                                 UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
 
@@ -827,15 +827,6 @@ public class CargoNet extends Network {
             }
         }
         return currentLock;
-    }
-
-    static Block getAttachedBlock(Block block) throws ExecutionException, InterruptedException {
-        if (Slimefun.runSyncFuture(block::getBlockData).get() instanceof Directional) {
-            return Slimefun.runSyncFuture(() -> block.getRelative(((Directional) block.getBlockData())
-                    .getFacing().getOppositeFace())).get();
-        }
-
-        return null;
     }
 
     private static int getFrequency(Location l) {
