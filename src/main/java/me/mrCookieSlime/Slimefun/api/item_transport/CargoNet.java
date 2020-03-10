@@ -797,7 +797,7 @@ public class CargoNet extends Network {
                         lockExists = false;
                         break;
                     }
-                    if (!locks.get(location).equals(originalLock)) {
+                    if (!Objects.equals(locks.get(location), originalLock)) {
                         lockExists = false;
                         break;
                     }
