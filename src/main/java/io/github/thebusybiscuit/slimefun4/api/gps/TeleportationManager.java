@@ -85,11 +85,7 @@ public final class TeleportationManager {
     public static int getSpeed(int complexity, Location source, Location destination) {
 		int speed = complexity / 200;
 		if (speed > 500) speed = 500;//max speed changed from 50%/sec -> 500%/s(now that 10w complexity is "full speed")
-		int dist_tmp = distance(source, destination);
-		if (dist_tmp == -1)
-			return (int) (speed * 0.8) < 1 ? 1 :speed * 0.8;
-		else
-			speed = speed - (distance(source, destination) / 200);
+		speed = speed - (distance(source, destination) / 200);
 		
 		return speed < 1 ? 1: speed;
 	}
@@ -97,9 +93,9 @@ public final class TeleportationManager {
 	private static int distance(Location source, Location destination) {
 		if (source.getWorld().getName().equals(destination.getWorld().getName())) {
 			int distance = (int) source.distance(destination);
-			return distance > 98000 ? 98000: distance;//changed
+			return distance > 95000 ? 95000: distance;//modified
 		}
-		else return -1;//changed
+		else return 95000;//modified
 	}
 
     private boolean isValid(Player p, Location source) {
