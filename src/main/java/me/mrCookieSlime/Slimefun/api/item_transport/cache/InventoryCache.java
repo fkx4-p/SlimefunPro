@@ -91,11 +91,13 @@ public class InventoryCache implements Listener {
     }
 
     private void updateCache(Location location) {
-        CachedInventory cachedInventory = cache.get(location);
-        if (cachedInventory == null) return;
-        cache.remove(location);
-        for (Location loc : cachedInventory.locations)
-            updateCache(loc);
+        CacheGC.cleanThread.execute(() -> {
+            CachedInventory cachedInventory = cache.get(location);
+            if (cachedInventory == null) return;
+            cache.remove(location);
+            for (Location loc : cachedInventory.locations)
+                CacheGC.cleanThread.execute(() -> updateCache(loc));
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

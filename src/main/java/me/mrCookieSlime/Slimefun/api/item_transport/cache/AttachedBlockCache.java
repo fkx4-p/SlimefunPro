@@ -75,54 +75,60 @@ public class AttachedBlockCache implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockDestroy(BlockDestroyEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockExplode(BlockExplodeEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
-        for (Block block : event.blockList())
-            cache.remove(block.getLocation());
+        CacheGC.cleanThread.execute(() -> {
+            cache.remove(event.getBlock().getLocation());
+            for (Block block : event.blockList())
+                cache.remove(block.getLocation());
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockFade(BlockFadeEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockFertilize(BlockFertilizeEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
-        for (BlockState state : event.getBlocks())
-            cache.remove(state.getLocation());
+        CacheGC.cleanThread.execute(() -> {
+            cache.remove(event.getBlock().getLocation());
+            for (BlockState state : event.getBlocks())
+                cache.remove(state.getLocation());
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockFromTo(BlockFromToEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
-        cache.remove(event.getToBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> {
+            cache.remove(event.getBlock().getLocation());
+            cache.remove(event.getToBlock().getLocation());
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLeavesDecay(LeavesDecayEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

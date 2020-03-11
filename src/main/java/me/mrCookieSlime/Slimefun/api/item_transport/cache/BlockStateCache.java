@@ -42,7 +42,7 @@ public class BlockStateCache implements Listener {
         RegisteredListener registeredListener = new RegisteredListener(instance,
                 (listener, event) -> {
                     if (event instanceof BlockEvent)
-                        instance.onBlockEvents((BlockEvent) event);
+                        CacheGC.cleanThread.execute(() -> instance.onBlockEvents((BlockEvent) event));
                 }, EventPriority.MONITOR, SlimefunPlugin.instance,
                 false);
         for (HandlerList handler : HandlerList.getHandlerLists())

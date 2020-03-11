@@ -201,7 +201,7 @@ public class CargoNet extends Network {
 
             @Override
             public Thread newThread(@NotNull Runnable runnable) {
-                Thread thread = new Thread(runnable, "Slimefun Async CargoNet Executor-" + threadCount++);
+                Thread thread = new Thread(runnable, "Slimefun Async CargoNet Executor #" + threadCount++);
                 executePoolThreads.add(thread);
                 return thread;
             }
@@ -216,7 +216,7 @@ public class CargoNet extends Network {
 
             @Override
             public synchronized Thread newThread(@NotNull Runnable runnable) {
-                Thread thread = new Thread(runnable, "Slimefun Async CargoNet Ticking-" + threadCount++);
+                Thread thread = new Thread(runnable, "Slimefun Async CargoNet Ticking #" + threadCount++);
                 tickingPoolThreads.add(thread);
                 return thread;
             }
@@ -233,7 +233,7 @@ public class CargoNet extends Network {
 
                 @Override
                 public synchronized Thread newThread(@NotNull Runnable runnable) {
-                    Thread thread = new Thread(runnable, "Slimefun Async CargoNet Post Actions-" + threadCount++);
+                    Thread thread = new Thread(runnable, "Slimefun Async CargoNet Post Actions #" + threadCount++);
                     requestQueuePoolThreads.add(thread);
                     return thread;
                 }

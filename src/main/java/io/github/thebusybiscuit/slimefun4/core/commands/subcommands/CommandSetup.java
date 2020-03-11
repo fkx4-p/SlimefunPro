@@ -1,14 +1,15 @@
 package io.github.thebusybiscuit.slimefun4.core.commands.subcommands;
 
-import java.util.Collection;
-
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SubCommand;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 
+import java.util.Collection;
+
 public final class CommandSetup {
 
-    private CommandSetup() {}
+    private CommandSetup() {
+    }
 
     public static void addCommands(SlimefunCommand cmd, Collection<SubCommand> commands) {
         SlimefunPlugin plugin = cmd.getPlugin();
@@ -21,6 +22,7 @@ public final class CommandSetup {
         commands.add(new ResearchCommand(plugin, cmd));
         commands.add(new StatsCommand(plugin, cmd));
         commands.add(new TimingsCommand(plugin, cmd));
+        commands.add(new CargoNetCommand(plugin, cmd));
         commands.add(new TeleporterCommand(plugin, cmd));
         commands.add(new OpenGuideCommand(plugin, cmd));
         commands.add(new SearchCommand(plugin, cmd));

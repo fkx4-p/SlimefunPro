@@ -289,11 +289,6 @@ public class TickerTask implements Runnable {
 
 			sender.sendMessage(ChatColors.color("&c+ &4" + hidden + " Hidden"));
 		}
-
-		// Async CargoNet - start
-		sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&2== &aSlimefun Async CargoNet timings &2=="));
-
-		// Async CargoNet - end
 	}
 	
 	private String formatChunk(String chunk) {

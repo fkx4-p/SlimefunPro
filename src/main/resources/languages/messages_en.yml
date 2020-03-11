@@ -4,6 +4,7 @@ commands:
   give: Give somebody some Slimefun Items
   guide: Gives yourself a Slimefun Guide
   timings: Lag-Info about your Server
+  cargonet: Information about CargoNet
   teleporter: See other Player's Waypoints
   versions: Lists all installed Addons
   search: Searches your Guide for the given term
