@@ -562,6 +562,8 @@ public class CargoNet extends Network {
 
                                                 for (Location out : outputsList) {
                                                     try {
+                                                        //noinspection ConstantConditions
+                                                        if (out.getBlock() == null) continue;
                                                         runBlockWithLock(AttachedBlockCache.query(out.getBlock()), target -> {
                                                             if (target != null) {
                                                                 stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
