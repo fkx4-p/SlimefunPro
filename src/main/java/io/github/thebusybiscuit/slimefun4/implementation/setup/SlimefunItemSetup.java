@@ -2115,7 +2115,7 @@ public final class SlimefunItemSetup {
 
             @Override
             public int getMultiplier(int y) {
-                return y * 64 + 600;
+                return y * 64 + 3500;
             }
 
             @Override

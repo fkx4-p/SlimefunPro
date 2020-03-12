@@ -53,7 +53,8 @@ public final class TeleportationManager {
         menu.addItem(4, new CustomItem(SkullItem.fromBase64("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzljODg4MWU0MjkxNWE5ZDI5YmI2MWExNmZiMjZkMDU5OTEzMjA0ZDI2NWRmNWI0MzliM2Q3OTJhY2Q1NiJ9fX0="), "&7Waypoint Overview &e(Select a Destination)"));
         menu.addMenuClickHandler(4, ChestMenuUtils.getEmptyClickHandler());
 
-        Location source = new Location(b.getWorld(), b.getX() + 0.5D, b.getY() + 2D, b.getZ() + 0.5D);
+        Location source = new Location(b.getWorld(), b.getX(), b.getY(), b.getZ());
+        //Location source = new Location(b.getWorld(), b.getX() + 0.5D, b.getY() + 2D, b.getZ() + 0.5D);
         int index = 0;
 
         for (Map.Entry<String, Location> entry : network.getWaypoints(uuid).entrySet()) {
@@ -63,7 +64,13 @@ public final class TeleportationManager {
             Location l = entry.getValue();
             ItemStack globe = network.getIcon(entry);
 
-            menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select"));
+            if(getSpeed(complexity, source, l) == -1)
+                menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: +∞", "&8\u21E8 &cClick to select" /*, "&8\u21E8 &7speed: &r" + getSpeed(complexity, source, l), "&8\u21E8 &7distance: &r" + Math.abs((int) (source.getX() - l.getX())) + Math.abs((int) (source.getY() - l.getY())) + Math.abs((int) (source.getZ() - l.getZ()))*/ ));
+            else if(source.getWorld().getName().equals(l.getWorld().getName()))
+                menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select" /*, "&8\u21E8 &7speed: &r" + getSpeed(complexity, source, l), "&8\u21E8 &7distance: &r" + Math.abs((int) (source.getX() - l.getX())) + Math.abs((int) (source.getY() - l.getY())) + Math.abs((int) (source.getZ() - l.getZ()))*/ ));
+            else
+                menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select" /*, "&8\u21E8 &7speed: &r" + getSpeed(complexity, source, l), "&8\u21E8 &7distance: &r" + Math.abs((int) (source.getX() - l.getX() * 8.0)) + Math.abs((int) (source.getY() - l.getY())) + Math.abs((int) (source.getZ() - l.getZ() * 8.0))*/ ));
+
             menu.addMenuClickHandler(slot, (pl, slotn, item, action) -> {
                 pl.closeInventory();
                 start(pl.getUniqueId(), complexity, source, l, false);
@@ -83,23 +90,57 @@ public final class TeleportationManager {
     }
 
     public int getSpeed(int complexity, Location source, Location destination) {
-        int speed = complexity / 200;
-        if (speed > 50) speed = 50;
-        speed = speed - (distance(source, destination) / 200);
+        int speed = complexity;
+        if(!(source.getWorld().getName().equals(destination.getWorld().getName()))) speed *= 0.1;
 
-        return speed < 1 ? 1 : speed;
-    }
+        speed = ((complexity < distance(source, destination)) ? ((complexity - 5 * (distance(source, destination) - complexity)) / 200) : speed / 200);
 
-    private int distance(Location source, Location destination) {
-        if (source.getWorld().getName().equals(destination.getWorld().getName())) {
-            int distance = (int) source.distance(destination);
-            return distance > 8000 ? 8000 : distance;
+        if(complexity == 0) return -1;
+        /*else if(complexity <= 20000) return speed < 1 ? 1 : speed;
+        else if(complexity <= 50000) return speed < 5 ? 5 : speed;
+        else if(complexity <= 80000) return speed < 10 ? 10 : speed;
+        else if(complexity <= 100000) return speed < 25 ? 25 : speed;
+        else if(complexity > 100000) return speed < 35 ? 35 : speed;*/
+        /********** If you want to get fucked, enable the above code. **********/
+
+        // if (speed > 1500000000) speed = 1500000000;//max speed changed from 50%/sec -> 500%/s(now that 10w complexity is "full speed")
+        // if (!(source.getWorld().getName().equals(destination.getWorld().getName())))
+        //     return (int) (speed / 10);
+        // else if(complexity > source.distance(destination))
+        //     speed = speed - (int) (distance(source, destination) / ((long) 200));
+        // else 
+		//     speed = speed - (int) (distance(source, destination) / ((long) 200));
+		
+		return speed < 1 ? 1 : speed;
+	}
+	
+	private int distance(Location source, Location destination) {
+		if (source.getWorld().getName().equals(destination.getWorld().getName())) {
+            int distance = 0;
+            // distance = (int) source.distance(destination);
+            distance = Math.abs((int) (source.getX() - destination.getX())) + Math.abs((int) (source.getY() - destination.getY())) + Math.abs((int) (source.getZ() - destination.getZ()));
+        //return distance;
+		    return distance > 1500000000 ? 1500000000 : distance;//modified
         }
-        else return 8000;
-    }
+        else{
+            int distance = 0;
+            distance = Math.abs((int) (source.getX() - destination.getX() * 8.0)) + Math.abs((int) (source.getY() - destination.getY())) + Math.abs((int) (source.getZ() - destination.getZ() * 8.0));
+            return distance;
+        } 
+        // return 1500000000;
+		//else return ;//modified
+	}
 
     private boolean isValid(Player p, Location source) {
         return p != null && p.getLocation().distanceSquared(source) < 2.0;
+    }
+
+    private void no_transmitter(UUID uuid, Player p){
+        teleporterUsers.remove(uuid);
+
+        if (p != null) {
+            p.sendTitle(ChatColors.color(SlimefunPlugin.getLocal().getMessage(p, "machines.TELEPORTER.cancelled")), ChatColors.color("You don't have any GPS Transmitters!"), 20, 60, 20);
+        }
     }
 
     private void cancel(UUID uuid, Player p) {
@@ -113,7 +154,11 @@ public final class TeleportationManager {
     private void updateProgress(UUID uuid, int speed, int progress, Location source, Location destination, boolean resistance) {
         Player p = Bukkit.getPlayer(uuid);
 
-        if (isValid(p, source)) {
+        if(speed == -1){
+            no_transmitter(uuid, p);
+        }
+
+        else if (isValid(p, source)) {
             if (progress > 99) {
                 p.sendTitle(ChatColors.color(SlimefunPlugin.getLocal().getMessage(p, "machines.TELEPORTER.teleported")), ChatColors.color("&b100%"), 20, 60, 20);
 
