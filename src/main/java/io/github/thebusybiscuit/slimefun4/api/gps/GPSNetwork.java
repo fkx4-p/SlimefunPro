@@ -1,19 +1,5 @@
 package io.github.thebusybiscuit.slimefun4.api.gps;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.World.Environment;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.chat.ChatInput;
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
@@ -23,17 +9,26 @@ import io.github.thebusybiscuit.slimefun4.api.geo.ResourceManager;
 import io.github.thebusybiscuit.slimefun4.implementation.items.gps.GPSTransmitter;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.World.Environment;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.*;
 
 public class GPSNetwork {
 
     private static final String WAYPOINTS_DIRECTORY = "data-storage/Slimefun/waypoints/";
 
-    private final int[] border = { 0, 1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53 };
-    private final int[] inventory = { 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43 };
+    private final int[] border = {0, 1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
+    private final int[] inventory = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
 
     private final Map<UUID, Set<Location>> transmitters = new HashMap<>();
     private final TeleportationManager teleportation = new TeleportationManager(this);
@@ -49,8 +44,7 @@ public class GPSNetwork {
 
         if (online) {
             set.add(l);
-        }
-        else {
+        } else {
             set.remove(l);
         }
     }
@@ -102,19 +96,35 @@ public class GPSNetwork {
         });
 
         int index = 0;
-        for (Location l : getTransmitters(p.getUniqueId())) {
+        final Set<Location> transmitters = new HashSet<>(getTransmitters(p.getUniqueId()));
+        for (Iterator<Location> iterator = transmitters.iterator(); iterator.hasNext(); ) {
+            Location l = iterator.next();
             if (index >= inventory.length) break;
+            if (index >= inventory.length - 1 && transmitters.size() > 1) break;
 
             SlimefunItem sfi = BlockStorage.check(l);
             if (sfi instanceof GPSTransmitter) {
                 int slot = inventory[index];
 
-                menu.addItem(slot, new CustomItem(SlimefunItems.GPS_TRANSMITTER, "&bGPS Transmitter", "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "", "&8\u21E8 &7Signal Strength: &r" + ((GPSTransmitter) sfi).getMultiplier(l.getBlockY()), "&8\u21E8 &7Ping: &r" + DoubleHandler.fixDouble(1000D / l.getY()) + "ms"));
+                menu.addItem(slot, new CustomItem(SlimefunItems.GPS_TRANSMITTER, "&bGPS Transmitter",
+                        "&8\u21E8 &7World: &r" + l.getWorld().getName(),
+                        "&8\u21E8 &7X: &r" + l.getX(),
+                        "&8\u21E8 &7Y: &r" + l.getY(),
+                        "&8\u21E8 &7Z: &r" + l.getZ(),
+                        "",
+                        "&8\u21E8 &7Signal Strength: &r" + ((GPSTransmitter) sfi).getMultiplier(l.getBlockY()),
+                        "&8\u21E8 &7Ping: &r" + DoubleHandler.fixDouble(1000D / l.getY()) + "ms"));
                 menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
 
                 index++;
+                iterator.remove();
             }
         }
+
+        if (!transmitters.isEmpty())
+            menu.addItem(inventory[inventory.length - 1], new CustomItem(SlimefunItems.GPS_TRANSMITTER,
+                    "... " + transmitters.size() + " more GPS Transmitters"));
+
 
         menu.open(p);
     }
@@ -124,14 +134,11 @@ public class GPSNetwork {
 
         if (entry.getKey().startsWith("&4Deathpoint")) {
             return deathpointIcon;
-        }
-        else if (l.getWorld().getEnvironment() == Environment.NETHER) {
+        } else if (l.getWorld().getEnvironment() == Environment.NETHER) {
             return netherIcon;
-        }
-        else if (l.getWorld().getEnvironment() == Environment.THE_END) {
+        } else if (l.getWorld().getEnvironment() == Environment.THE_END) {
             return endIcon;
-        }
-        else {
+        } else {
             return worldIcon;
         }
     }
