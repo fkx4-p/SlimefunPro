@@ -63,7 +63,11 @@ public final class TeleportationManager {
             Location l = entry.getValue();
             ItemStack globe = network.getIcon(entry);
 
-            menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select"));
+            if(source.getWorld().getName().equals(l.getWorld().getName()))
+                menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select" , "&8\u21E8 &7speed: &r" + getSpeed(complexity, source, l), "&8\u21E8 &7distance: &r" + Math.abs((int) (source.getX() - l.getX())) + Math.abs((int) (source.getY() - l.getY())) + Math.abs((int) (source.getZ() - l.getZ())) ));
+            else
+                menu.addItem(slot, new CustomItem(globe, entry.getKey(), "&8\u21E8 &7World: &r" + l.getWorld().getName(), "&8\u21E8 &7X: &r" + l.getX(), "&8\u21E8 &7Y: &r" + l.getY(), "&8\u21E8 &7Z: &r" + l.getZ(), "&8\u21E8 &7Estimated Teleportation Time: &r" + (50 / getSpeed(network.getNetworkComplexity(uuid), source, l)) + "s", "", "&8\u21E8 &cClick to select" , "&8\u21E8 &7speed: &r" + getSpeed(complexity, source, l), "&8\u21E8 &7distance: &r" + Math.abs((int) (source.getX() - l.getX() * 8.0)) + Math.abs((int) (source.getY() - l.getY())) + Math.abs((int) (source.getZ() - l.getZ() * 8.0)) ));
+
             menu.addMenuClickHandler(slot, (pl, slotn, item, action) -> {
                 pl.closeInventory();
                 start(pl.getUniqueId(), complexity, source, l, false);
@@ -82,20 +86,41 @@ public final class TeleportationManager {
         updateProgress(uuid, getSpeed(complexity, source, destination), 1, source, destination, resistance);
     }
 
-    public static int getSpeed(int complexity, Location source, Location destination) {
-		int speed = complexity / 200;
-		if (speed > 500) speed = 500;//max speed changed from 50%/sec -> 500%/s(now that 10w complexity is "full speed")
-		speed = speed - (distance(source, destination) / 200);
+    public int getSpeed(int complexity, Location source, Location destination) {
+        int speed = complexity;
+        if(!(source.getWorld().getName().equals(destination.getWorld().getName()))) speed *= 0.1;
+        speed = ((complexity < distance(source, destination)) ? ((complexity - 5 * (distance(source, destination) - complexity)) / 200) : speed / 200);
+        if(complexity <= 20000) return speed < 1 ? 1 : speed;
+        else if(complexity <= 50000) return speed < 5 ? 5 : speed;
+        else if(complexity <= 80000) return speed < 10 ? 10 : speed;
+        else if(complexity <= 100000) return speed < 25 ? 25 : speed;
+        /********** If you want to get fucked, enable the above code. **********/
+        // if (speed > 1500000000) speed = 1500000000;//max speed changed from 50%/sec -> 500%/s(now that 10w complexity is "full speed")
+        // if (!(source.getWorld().getName().equals(destination.getWorld().getName())))
+        //     return (int) (speed / 10);
+        // else if(complexity > source.distance(destination))
+        //     speed = speed - (int) (distance(source, destination) / ((long) 200));
+        // else 
+		//     speed = speed - (int) (distance(source, destination) / ((long) 200));
 		
-		return speed < 1 ? 1: speed;
+		return speed < 1 ? 1 : speed;
 	}
 	
-	private static int distance(Location source, Location destination) {
+	private int distance(Location source, Location destination) {
 		if (source.getWorld().getName().equals(destination.getWorld().getName())) {
-			int distance = (int) source.distance(destination);
-			return distance > 95000 ? 95000: distance;//modified
-		}
-		else return 95000;//modified
+            int distance = 0;
+            // distance = (int) source.distance(destination);
+            distance = Math.abs((int) (source.getX() - destination.getX())) + Math.abs((int) (source.getY() - destination.getY())) + Math.abs((int) (source.getZ() - destination.getZ()));
+        //return distance;
+		    return distance > 1500000000 ? 1500000000 : distance;//modified
+        }
+        else{
+            int distance = 0;
+            distance = Math.abs((int) (source.getX() - destination.getX() * 8.0)) + Math.abs((int) (source.getY() - destination.getY())) + Math.abs((int) (source.getZ() - destination.getZ() * 8.0));
+            return distance;
+        } 
+        // return 1500000000;
+		//else return ;//modified
 	}
 
     private boolean isValid(Player p, Location source) {
