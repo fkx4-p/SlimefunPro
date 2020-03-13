@@ -65,7 +65,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     // Services - Systems that fulfill certain tasks, treat them as a black box
     private final CustomItemDataService itemDataService = new CustomItemDataService(this, "slimefun_item");
     private final CustomTextureService textureService = new CustomTextureService(this);
-    private final BlockDataService blockDataService = new BlockDataService(this, "slimefun_block");
+    private final BlockDataService blockNameDataService = new BlockDataService(this, "slimefun_block");
+    private final BlockDataService blockRawDataService = new BlockDataService(this, "slimefun_block_raw");
     private final GitHubService gitHubService = new GitHubService("TheBusyBiscuit/Slimefun4");
     private final UpdaterService updaterService = new UpdaterService(this, getFile());
     private final AutoSavingService autoSavingService = new AutoSavingService();
@@ -533,8 +534,12 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         return instance.permissionsService;
     }
 
-    public static BlockDataService getBlockDataService() {
-        return instance.blockDataService;
+    public static BlockDataService getBlockNameDataService() {
+        return instance.blockNameDataService;
+    }
+
+    public static BlockDataService getBlockRawDataService() {
+        return instance.blockRawDataService;
     }
 
     public static ThirdPartyPluginService getThirdPartySupportService() {

@@ -1,18 +1,17 @@
 package io.github.thebusybiscuit.slimefun4.core;
 
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-
+import io.github.thebusybiscuit.cscorelib2.collections.OptionalMap;
+import io.github.thebusybiscuit.slimefun4.api.blocks.BlockLocation;
+import io.github.thebusybiscuit.slimefun4.api.blocks.SlimefunBlock;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.TileState;
 
-import io.github.thebusybiscuit.cscorelib2.collections.OptionalMap;
-import io.github.thebusybiscuit.slimefun4.api.blocks.BlockLocation;
-import io.github.thebusybiscuit.slimefun4.api.blocks.SlimefunBlock;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This class is currently not used anywhere.
@@ -55,7 +54,7 @@ public class SlimefunWorld {
             BlockState state = b.getState();
 
             if (state instanceof TileState) {
-                Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) state);
+                Optional<String> blockData = SlimefunPlugin.getBlockNameDataService().getBlockData((TileState) state);
 
                 if (blockData.isPresent()) {
                     return Optional.of(new SlimefunBlock(blockData.get()));

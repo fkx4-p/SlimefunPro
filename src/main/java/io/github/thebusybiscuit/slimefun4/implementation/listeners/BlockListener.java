@@ -1,13 +1,21 @@
 package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-
+import io.github.thebusybiscuit.cscorelib2.inventory.ItemUtils;
+import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
+import io.github.thebusybiscuit.slimefun4.utils.FireworkUtils;
+import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunBlockHandler;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.HandledBlock;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.UnregisterReason;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.NotPlaceable;
+import me.mrCookieSlime.Slimefun.Objects.handlers.BlockBreakHandler;
+import me.mrCookieSlime.Slimefun.Objects.handlers.BlockPlaceHandler;
+import me.mrCookieSlime.Slimefun.Objects.handlers.ItemHandler;
+import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -23,22 +31,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.thebusybiscuit.cscorelib2.inventory.ItemUtils;
-import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
-import io.github.thebusybiscuit.slimefun4.utils.FireworkUtils;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunBlockHandler;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.HandledBlock;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.UnregisterReason;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.NotPlaceable;
-import me.mrCookieSlime.Slimefun.Objects.handlers.BlockBreakHandler;
-import me.mrCookieSlime.Slimefun.Objects.handlers.BlockPlaceHandler;
-import me.mrCookieSlime.Slimefun.Objects.handlers.ItemHandler;
-import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
-import me.mrCookieSlime.Slimefun.api.BlockStorage;
-import me.mrCookieSlime.Slimefun.api.Slimefun;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockListener implements Listener {
 
@@ -73,17 +67,18 @@ public class BlockListener implements Listener {
                 BlockState state = e.getBlock().getState();
                 boolean supportsPersistentData = state instanceof TileState;
 
-                if (supportsPersistentData) {
-                    SlimefunPlugin.getBlockDataService().setBlockData((TileState) state, sfItem.getID());
-                }
-
                 BlockStorage.addBlockInfo(e.getBlock(), "id", sfItem.getID(), true);
+
+                if (supportsPersistentData) {
+                    SlimefunPlugin.getBlockNameDataService().setBlockData((TileState) state, sfItem.getID());
+                    SlimefunPlugin.getBlockRawDataService().setBlockData((TileState) state,
+                            BlockStorage.getBlockInfoAsJson(e.getBlock()));
+                }
 
                 SlimefunBlockHandler blockHandler = SlimefunPlugin.getRegistry().getBlockHandlers().get(sfItem.getID());
                 if (blockHandler != null) {
                     blockHandler.onPlace(e.getPlayer(), e.getBlock(), sfItem);
-                }
-                else {
+                } else {
                     sfItem.callItemHandler(BlockPlaceHandler.class, handler -> handler.onBlockPlace(e, item));
                 }
             }
@@ -160,7 +155,7 @@ public class BlockListener implements Listener {
                 BlockState state = block2.getState();
 
                 if (state instanceof TileState) {
-                    Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) state);
+                    Optional<String> blockData = SlimefunPlugin.getBlockNameDataService().getBlockData((TileState) state);
 
                     if (blockData.isPresent()) {
                         sfItem = SlimefunItem.getByID(blockData.get());
@@ -192,7 +187,7 @@ public class BlockListener implements Listener {
             BlockState state = e.getBlock().getState();
 
             if (state instanceof TileState) {
-                Optional<String> blockData = SlimefunPlugin.getBlockDataService().getBlockData((TileState) state);
+                Optional<String> blockData = SlimefunPlugin.getBlockNameDataService().getBlockData((TileState) state);
 
                 if (blockData.isPresent()) {
                     sfItem = SlimefunItem.getByID(blockData.get());
