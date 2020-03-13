@@ -879,136 +879,136 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, new ItemStack(Material.WITHER_SKELETON_SKULL), null, null, new ItemStack(Material.WITHER_SKELETON_SKULL), null, null, new ItemStack(Material.BLAZE_ROD), null})
                 .register(plugin);
 
-        SlimefunMachine miner =new SlimefunMachine(Categories.MACHINES_1, SlimefunItems.DIGITAL_MINER, "DIGITAL_MINER",
-                new ItemStack[]{SlimefunItems.SOLAR_PANEL, new ItemStack(Material.CHEST), SlimefunItems.SOLAR_PANEL, new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.DISPENSER), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.HOPPER), new ItemStack(Material.IRON_BLOCK)},
-                new ItemStack[0], BlockFace.SELF);
-                miner.addItemHandler(new MultiBlockInteractionHandler() {
+        // SlimefunMachine miner =new SlimefunMachine(Categories.MACHINES_1, SlimefunItems.DIGITAL_MINER, "DIGITAL_MINER",
+        //         new ItemStack[]{SlimefunItems.SOLAR_PANEL, new ItemStack(Material.CHEST), SlimefunItems.SOLAR_PANEL, new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.DISPENSER), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.IRON_BLOCK), new ItemStack(Material.HOPPER), new ItemStack(Material.IRON_BLOCK)},
+        //         new ItemStack[0], BlockFace.SELF);
+        //         miner.addItemHandler(new MultiBlockInteractionHandler() {
 
-                    @Override
-                    public boolean onInteract(Player p, MultiBlock mb, Block b) {
-                        if (mb.equals(((SlimefunMachine) SlimefunItem.getByID("DIGITAL_MINER")).getMultiBlock())) {
-                            p.sendMessage(ChatColor.DARK_RED + "THIS MACHINE WILL SOON BE REMOVED!");
-                            if (CSCoreLib.getLib().getProtectionManager().canAccessChest(p.getUniqueId(), b, true) && Slimefun.hasUnlocked(p, SlimefunItems.DIGITAL_MINER, true)) {
-                                Block chestBlock = b.getRelative(BlockFace.UP);
+        //             @Override
+        //             public boolean onInteract(Player p, MultiBlock mb, Block b) {
+        //                 if (mb.equals(((SlimefunMachine) SlimefunItem.getByID("DIGITAL_MINER")).getMultiBlock())) {
+        //                     p.sendMessage(ChatColor.DARK_RED + "THIS MACHINE WILL SOON BE REMOVED!");
+        //                     if (CSCoreLib.getLib().getProtectionManager().canAccessChest(p.getUniqueId(), b, true) && Slimefun.hasUnlocked(p, SlimefunItems.DIGITAL_MINER, true)) {
+        //                         Block chestBlock = b.getRelative(BlockFace.UP);
 
-                                if (!(BlockStorage.check(chestBlock.getRelative(BlockFace.WEST), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.EAST), "SOLAR_PANEL")) &&
-                                        !(BlockStorage.check(chestBlock.getRelative(BlockFace.NORTH), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.SOUTH), "SOLAR_PANEL"))) {
-                                    return false;
-                                }
+        //                         if (!(BlockStorage.check(chestBlock.getRelative(BlockFace.WEST), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.EAST), "SOLAR_PANEL")) &&
+        //                                 !(BlockStorage.check(chestBlock.getRelative(BlockFace.NORTH), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.SOUTH), "SOLAR_PANEL"))) {
+        //                             return false;
+        //                         }
 
-                                Chest chest = (Chest) chestBlock.getState();
-                                Inventory inv = chest.getInventory();
-                                List<Location> ores = new ArrayList<>();
+        //                         Chest chest = (Chest) chestBlock.getState();
+        //                         Inventory inv = chest.getInventory();
+        //                         List<Location> ores = new ArrayList<>();
 
-                                for (int x = b.getX() - 4; x <= b.getX() + 4; x++) {
-                                    for (int z = b.getZ() - 4; z <= b.getZ() + 4; z++) {
-                                        for (int y = b.getY(); y > 0; y--) {
-                                            if (b.getWorld().getBlockAt(x, y, z).getType().toString().endsWith("_ORE")) {
-                                                ores.add(b.getWorld().getBlockAt(x, y, z).getLocation());
-                                            }
-                                        }
-                                    }
-                                }
-                                if (!ores.isEmpty()) {
-                                    Material ore = ores.get(0).getBlock().getType();
-                                    ItemStack adding = new ItemStack(ore);
-                                    ores.get(0).getBlock().setType(Material.AIR);
-                                    ores.clear();
-                                    if (InvUtils.fits(inv, adding)) {
-                                        for (int i = 0; i < 4; i++) {
-                                            int j = i;
-                                            Bukkit.getScheduler().runTaskLater(SlimefunPlugin.instance, () -> {
-                                                if (j < 3) {
-                                                    b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, ore);
-                                                } else {
-                                                    p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 1F);
-                                                    inv.addItem(adding);
-                                                }
-                                            }, i * 20L);
-                                        }
-                                    } else SlimefunPlugin.getLocal().sendMessage(p, "machines.full-inventory", true);
-                                } else SlimefunPlugin.getLocal().sendMessage(p, "miner.no-ores", true);
-                            }
-                            return true;
-                        } else return false;
-                    }
-                });
-		miner.register(plugin);
+        //                         for (int x = b.getX() - 4; x <= b.getX() + 4; x++) {
+        //                             for (int z = b.getZ() - 4; z <= b.getZ() + 4; z++) {
+        //                                 for (int y = b.getY(); y > 0; y--) {
+        //                                     if (b.getWorld().getBlockAt(x, y, z).getType().toString().endsWith("_ORE")) {
+        //                                         ores.add(b.getWorld().getBlockAt(x, y, z).getLocation());
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                         if (!ores.isEmpty()) {
+        //                             Material ore = ores.get(0).getBlock().getType();
+        //                             ItemStack adding = new ItemStack(ore);
+        //                             ores.get(0).getBlock().setType(Material.AIR);
+        //                             ores.clear();
+        //                             if (InvUtils.fits(inv, adding)) {
+        //                                 for (int i = 0; i < 4; i++) {
+        //                                     int j = i;
+        //                                     Bukkit.getScheduler().runTaskLater(SlimefunPlugin.instance, () -> {
+        //                                         if (j < 3) {
+        //                                             b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, ore);
+        //                                         } else {
+        //                                             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 1F);
+        //                                             inv.addItem(adding);
+        //                                         }
+        //                                     }, i * 20L);
+        //                                 }
+        //                             } else SlimefunPlugin.getLocal().sendMessage(p, "machines.full-inventory", true);
+        //                         } else SlimefunPlugin.getLocal().sendMessage(p, "miner.no-ores", true);
+        //                     }
+        //                     return true;
+        //                 } else return false;
+        //             }
+        //         });
+	// 	miner.register(plugin);
 
-        SlimefunMachine advancedMiner =new SlimefunMachine(Categories.MACHINES_1, SlimefunItems.ADVANCED_DIGITAL_MINER, "ADVANCED_DIGITAL_MINER",
-                new ItemStack[]{SlimefunItems.SOLAR_PANEL, new ItemStack(Material.CHEST), SlimefunItems.SOLAR_PANEL, SlimefunItems.GOLD_24K_BLOCK, new ItemStack(Material.DISPENSER), SlimefunItems.GOLD_24K_BLOCK, SlimefunItems.GOLD_24K_BLOCK, new ItemStack(Material.HOPPER), SlimefunItems.GOLD_24K_BLOCK},
-                new ItemStack[0], BlockFace.SELF);
-                advancedMiner.addItemHandler( new MultiBlockInteractionHandler() {
-                    // Determines the drops an Advanced Digital Miner will get
-                    private final ItemStack effectivePickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
+        // SlimefunMachine advancedMiner =new SlimefunMachine(Categories.MACHINES_1, SlimefunItems.ADVANCED_DIGITAL_MINER, "ADVANCED_DIGITAL_MINER",
+        //         new ItemStack[]{SlimefunItems.SOLAR_PANEL, new ItemStack(Material.CHEST), SlimefunItems.SOLAR_PANEL, SlimefunItems.GOLD_24K_BLOCK, new ItemStack(Material.DISPENSER), SlimefunItems.GOLD_24K_BLOCK, SlimefunItems.GOLD_24K_BLOCK, new ItemStack(Material.HOPPER), SlimefunItems.GOLD_24K_BLOCK},
+        //         new ItemStack[0], BlockFace.SELF);
+        //         advancedMiner.addItemHandler( new MultiBlockInteractionHandler() {
+        //             // Determines the drops an Advanced Digital Miner will get
+        //             private final ItemStack effectivePickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
 
-                    @Override
-                    public boolean onInteract(Player p, MultiBlock mb, Block b) {
-                        if (mb.equals(((SlimefunMachine) SlimefunItem.getByID("ADVANCED_DIGITAL_MINER")).getMultiBlock())) {
-                            p.sendMessage(ChatColor.DARK_RED + "THIS MACHINE WILL SOON BE REMOVED!");
-                            if (CSCoreLib.getLib().getProtectionManager().canAccessChest(p.getUniqueId(), b, true) && Slimefun.hasUnlocked(p, SlimefunItems.ADVANCED_DIGITAL_MINER, true)) {
-                                Block chestBlock = b.getRelative(BlockFace.UP);
+        //             @Override
+        //             public boolean onInteract(Player p, MultiBlock mb, Block b) {
+        //                 if (mb.equals(((SlimefunMachine) SlimefunItem.getByID("ADVANCED_DIGITAL_MINER")).getMultiBlock())) {
+        //                     p.sendMessage(ChatColor.DARK_RED + "THIS MACHINE WILL SOON BE REMOVED!");
+        //                     if (CSCoreLib.getLib().getProtectionManager().canAccessChest(p.getUniqueId(), b, true) && Slimefun.hasUnlocked(p, SlimefunItems.ADVANCED_DIGITAL_MINER, true)) {
+        //                         Block chestBlock = b.getRelative(BlockFace.UP);
 
-                                if (!(BlockStorage.check(chestBlock.getRelative(BlockFace.WEST), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.EAST), "SOLAR_PANEL")) &&
-                                        !(BlockStorage.check(chestBlock.getRelative(BlockFace.NORTH), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.SOUTH), "SOLAR_PANEL"))) {
-                                    return false;
-                                }
+        //                         if (!(BlockStorage.check(chestBlock.getRelative(BlockFace.WEST), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.EAST), "SOLAR_PANEL")) &&
+        //                                 !(BlockStorage.check(chestBlock.getRelative(BlockFace.NORTH), "SOLAR_PANEL") && BlockStorage.check(chestBlock.getRelative(BlockFace.SOUTH), "SOLAR_PANEL"))) {
+        //                             return false;
+        //                         }
 
-                                Chest chest = (Chest) chestBlock.getState();
-                                Inventory inv = chest.getInventory();
-                                List<Location> ores = new ArrayList<>();
+        //                         Chest chest = (Chest) chestBlock.getState();
+        //                         Inventory inv = chest.getInventory();
+        //                         List<Location> ores = new ArrayList<>();
 
-                                for (int x = b.getX() - 6; x <= b.getX() + 6; x++) {
-                                    for (int z = b.getZ() - 6; z <= b.getZ() + 6; z++) {
-                                        for (int y = b.getY(); y > 0; y--) {
-                                            if (b.getWorld().getBlockAt(x, y, z).getType().toString().endsWith("_ORE")) {
-                                                ores.add(b.getWorld().getBlockAt(x, y, z).getLocation());
-                                            }
-                                        }
-                                    }
-                                }
-                                if (!ores.isEmpty()) {
-                                    Material ore = ores.get(0).getBlock().getType();
-                                    ItemStack drop = new ItemStack(ore);
+        //                         for (int x = b.getX() - 6; x <= b.getX() + 6; x++) {
+        //                             for (int z = b.getZ() - 6; z <= b.getZ() + 6; z++) {
+        //                                 for (int y = b.getY(); y > 0; y--) {
+        //                                     if (b.getWorld().getBlockAt(x, y, z).getType().toString().endsWith("_ORE")) {
+        //                                         ores.add(b.getWorld().getBlockAt(x, y, z).getLocation());
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                         if (!ores.isEmpty()) {
+        //                             Material ore = ores.get(0).getBlock().getType();
+        //                             ItemStack drop = new ItemStack(ore);
 
-                                    if (ore == Material.COAL_ORE) drop = new ItemStack(Material.COAL, 4);
-                                    else if (ore == Material.IRON_ORE)
-                                        drop = new CustomItem(SlimefunItems.IRON_DUST, 2);
-                                    else if (ore == Material.GOLD_ORE)
-                                        drop = new CustomItem(SlimefunItems.GOLD_DUST, 2);
-                                    else if (ore == Material.REDSTONE_ORE) drop = new ItemStack(Material.REDSTONE, 8);
-                                    else if (ore == Material.NETHER_QUARTZ_ORE)
-                                        drop = new ItemStack(Material.QUARTZ, 4);
-                                    else if (ore == Material.LAPIS_ORE) drop = new ItemStack(Material.LAPIS_LAZULI, 12);
-                                    else {
-                                        for (ItemStack drops : ores.get(0).getBlock().getDrops(effectivePickaxe)) {
-                                            if (!drops.getType().isBlock()) drop = new CustomItem(drops, 2);
-                                        }
-                                    }
+        //                             if (ore == Material.COAL_ORE) drop = new ItemStack(Material.COAL, 4);
+        //                             else if (ore == Material.IRON_ORE)
+        //                                 drop = new CustomItem(SlimefunItems.IRON_DUST, 2);
+        //                             else if (ore == Material.GOLD_ORE)
+        //                                 drop = new CustomItem(SlimefunItems.GOLD_DUST, 2);
+        //                             else if (ore == Material.REDSTONE_ORE) drop = new ItemStack(Material.REDSTONE, 8);
+        //                             else if (ore == Material.NETHER_QUARTZ_ORE)
+        //                                 drop = new ItemStack(Material.QUARTZ, 4);
+        //                             else if (ore == Material.LAPIS_ORE) drop = new ItemStack(Material.LAPIS_LAZULI, 12);
+        //                             else {
+        //                                 for (ItemStack drops : ores.get(0).getBlock().getDrops(effectivePickaxe)) {
+        //                                     if (!drops.getType().isBlock()) drop = new CustomItem(drops, 2);
+        //                                 }
+        //                             }
 
-                                    final ItemStack adding = drop;
-                                    ores.get(0).getBlock().setType(Material.AIR);
-                                    ores.clear();
-                                    if (InvUtils.fits(inv, adding)) {
-                                        for (int i = 0; i < 4; i++) {
-                                            int j = i;
-                                            Bukkit.getScheduler().runTaskLater(SlimefunPlugin.instance, () -> {
-                                                if (j < 3) {
-                                                    b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, ore);
-                                                } else {
-                                                    p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 1F);
-                                                    inv.addItem(adding);
-                                                }
-                                            }, i * 20L);
-                                        }
-                                    } else SlimefunPlugin.getLocal().sendMessage(p, "machines.full-inventory", true);
-                                } else SlimefunPlugin.getLocal().sendMessage(p, "miner.no-ores", true);
-                            }
-                            return true;
-                        } else return false;
-                    }
-                });
-		advancedMiner.register(plugin);
+        //                             final ItemStack adding = drop;
+        //                             ores.get(0).getBlock().setType(Material.AIR);
+        //                             ores.clear();
+        //                             if (InvUtils.fits(inv, adding)) {
+        //                                 for (int i = 0; i < 4; i++) {
+        //                                     int j = i;
+        //                                     Bukkit.getScheduler().runTaskLater(SlimefunPlugin.instance, () -> {
+        //                                         if (j < 3) {
+        //                                             b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, ore);
+        //                                         } else {
+        //                                             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1F, 1F);
+        //                                             inv.addItem(adding);
+        //                                         }
+        //                                     }, i * 20L);
+        //                                 }
+        //                             } else SlimefunPlugin.getLocal().sendMessage(p, "machines.full-inventory", true);
+        //                         } else SlimefunPlugin.getLocal().sendMessage(p, "miner.no-ores", true);
+        //                     }
+        //                     return true;
+        //                 } else return false;
+        //             }
+        //         });
+	// 	advancedMiner.register(plugin);
 
         new SlimefunItem(Categories.MISC, (SlimefunItemStack) SlimefunItems.GOLD_24K_BLOCK, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K, SlimefunItems.GOLD_24K})
