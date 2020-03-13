@@ -103,6 +103,15 @@ public class BlockStateCache implements Listener {
         return queriedState;
     }
 
+    /**
+     * Flush cache of specific position
+     *
+     * @param location location of block to refresh
+     */
+    public static void remove(Location location) {
+        CacheGC.cleanThread.execute(() -> cache.remove(location));
+    }
+
     public void onBlockEvents(BlockEvent event) {
         CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }

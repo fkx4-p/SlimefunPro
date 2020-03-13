@@ -70,6 +70,14 @@ public class CargoNet extends Network {
 
     private final ItemStack terminalPlaceholderItem = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 
+    public Set<Location> getInputNodes() {
+        return Collections.unmodifiableSet(inputNodes);
+    }
+
+    public Set<Location> getOutputNodes() {
+        return Collections.unmodifiableSet(outputNodes);
+    }
+
     private Set<Location> inputNodes = Sets.newConcurrentHashSet();
     private Set<Location> outputNodes = Sets.newConcurrentHashSet();
 

@@ -116,11 +116,20 @@ public class InventoryCache implements Listener {
     }
 
     /**
+     * Flush cache of specific position
+     *
+     * @param location location of block to refresh
+     */
+    public static void remove(Location location) {
+        updateCache(location);
+    }
+
+    /**
      * Update cache using recursion
      *
      * @param location location of inventory to be updated
      */
-    private void updateCache(Location location) {
+    private static void updateCache(Location location) {
         CacheGC.cleanThread.execute(() -> {
             CachedInventory cachedInventory = cache.get(location);
             if (cachedInventory == null) return;

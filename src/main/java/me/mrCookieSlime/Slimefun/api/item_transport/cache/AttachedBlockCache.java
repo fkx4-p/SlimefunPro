@@ -97,6 +97,15 @@ public class AttachedBlockCache implements Listener {
         return (queriedAttachedBlock instanceof Block) ? (Block) queriedAttachedBlock : null;
     }
 
+    /**
+     * Flush cache of specific position
+     *
+     * @param location location of block to refresh
+     */
+    public static void remove(Location location) {
+        CacheGC.cleanThread.execute(() -> cache.remove(location));
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockDestroy(BlockDestroyEvent event) {
         if (event.isCancelled()) return;

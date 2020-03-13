@@ -14,12 +14,18 @@ import me.mrCookieSlime.Slimefun.Objects.handlers.BlockUseHandler;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.CacheGC;
+import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CargoManager extends SlimefunItem implements EnergyNetComponent {
 
@@ -49,6 +55,7 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
         }, new BlockUseHandler() {
 
             private static final String visualizerKey = "visualizer";
+            private Map<Location, Boolean> purges = new ConcurrentHashMap<>();
 
             @Override
             public void onRightClick(PlayerRightClickEvent e) {
@@ -67,7 +74,34 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                             p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCargo Net Visualizer: " + "&2\u2714"));
                         }
                     } else {
-
+                        Boolean isPurging = purges.get(b.getLocation());
+                        if (isPurging != null && isPurging) return;
+                        purges.put(b.getLocation(), true);
+                        p.sendTitle("CargoNet fix queued", "", 10, 80, 10);
+                        CacheGC.cleanThread.execute(() -> {
+                            p.sendTitle("CargoNet fix started", "Progress: ...", 10, 80, 10);
+                            CargoNet instance = CargoNet.getNetworkFromLocationOrCreate(b.getLocation());
+                            Set<Location> inputs = instance.getInputNodes();
+                            Set<Location> outputs = instance.getOutputNodes();
+                            int nodeCount = inputs.size() + outputs.size();
+                            List<Location> nodes = new ArrayList<>(nodeCount);
+                            nodes.addAll(inputs);
+                            nodes.addAll(outputs);
+                            long lastReport = System.currentTimeMillis() + 500;
+                            for (int i = 0; i < nodeCount; i++) {
+                                Location location = nodes.get(i);
+                                BlockStateCache.remove(location);
+                                AttachedBlockCache.remove(location);
+                                InventoryCache.remove(location);
+                                if (System.currentTimeMillis() - lastReport > 500) {
+                                    lastReport = System.currentTimeMillis();
+                                    p.sendTitle("CargoNet fix running", "Progress: " + i / nodeCount + "%",
+                                            0, 80, 10);
+                                }
+                            }
+                            p.sendTitle("CargoNet fix completed", "", 0, 80, 20);
+                            purges.put(b.getLocation(), false);
+                        });
                     }
                 }
             }
