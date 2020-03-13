@@ -7,6 +7,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 public class CacheGC {
+    /**
+     * GC Thread Pool
+     */
     static ExecutorService cleanThread = Executors.newFixedThreadPool(4, new ThreadFactory() {
         private int serial = 0;
 

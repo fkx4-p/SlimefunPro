@@ -18,6 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Retrieve {@link Inventory} with caching support for async use.
+ */
 public class InventoryCache implements Listener {
 
     private static ConcurrentMap<Location, CachedInventory> cache = new ConcurrentHashMap<>();
@@ -28,6 +31,11 @@ public class InventoryCache implements Listener {
         available = isAvailable();
     }
 
+    /**
+     * Check if required events is available
+     *
+     * @return the availability
+     */
     private static boolean isAvailable() {
         try {
             BlockDestroyEvent.class.getName();
@@ -45,6 +53,14 @@ public class InventoryCache implements Listener {
         return true;
     }
 
+    /**
+     * Retrieve {@link CachedInventory} of a {@link Container}
+     *
+     * @param container container to be queried
+     * @return queried inventory
+     * @throws ExecutionException   when an error occurred while getting from server
+     * @throws InterruptedException when interrupted
+     */
     @Nonnull
     public static @NotNull CachedInventory query(Container container) throws ExecutionException, InterruptedException {
         final Location blockLocation = container.getLocation();
@@ -63,6 +79,15 @@ public class InventoryCache implements Listener {
         return getInventorySlow(container, blockLocation);
     }
 
+    /**
+     * Retrieve {@link CachedInventory} of a {@link Container}
+     *
+     * @param container     container to be queried
+     * @param blockLocation the location of the container to be queried
+     * @return the cached inventory
+     * @throws InterruptedException when an error occurred while getting from server
+     * @throws ExecutionException   when interrupted
+     */
     @NotNull
     private static CachedInventory getInventorySlow(Container container, Location blockLocation)
             throws InterruptedException, ExecutionException {
@@ -90,13 +115,18 @@ public class InventoryCache implements Listener {
         }
     }
 
+    /**
+     * Update cache using recursion
+     *
+     * @param location location of inventory to be updated
+     */
     private void updateCache(Location location) {
         CacheGC.cleanThread.execute(() -> {
             CachedInventory cachedInventory = cache.get(location);
             if (cachedInventory == null) return;
             cache.remove(location);
             for (Location loc : cachedInventory.locations)
-                CacheGC.cleanThread.execute(() -> updateCache(loc));
+                updateCache(loc);
         });
     }
 
@@ -125,7 +155,7 @@ public class InventoryCache implements Listener {
         if (event.isCancelled()) return;
         updateCache(event.getBlock().getLocation());
         for (BlockState state : event.getBlocks())
-            cache.remove(state.getLocation());
+            updateCache(state.getLocation());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -159,6 +189,9 @@ public class InventoryCache implements Listener {
         updateCache(event.getBlock().getLocation());
     }
 
+    /**
+     * Represents a cached inventory
+     */
     public static class CachedInventory {
         @Nonnull
         public Inventory inventory;

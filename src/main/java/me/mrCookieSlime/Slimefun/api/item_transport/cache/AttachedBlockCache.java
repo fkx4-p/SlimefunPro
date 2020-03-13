@@ -16,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Retrieve attached {@link Block} with caching support for async use.
+ */
 public class AttachedBlockCache implements Listener {
 
     private static ConcurrentMap<Location, Object> cache = new ConcurrentHashMap<>();
@@ -26,6 +29,11 @@ public class AttachedBlockCache implements Listener {
         available = isAvailable();
     }
 
+    /**
+     * Check if required events is available
+     *
+     * @return the availability
+     */
     private static boolean isAvailable() {
         try {
             BlockDestroyEvent.class.getName();
@@ -43,6 +51,14 @@ public class AttachedBlockCache implements Listener {
         return true;
     }
 
+    /**
+     * Retrieve {@link Block} which is attached to another with caching support
+     *
+     * @param block block to be queried
+     * @return queried block
+     * @throws ExecutionException   when an error occurred while getting block from server
+     * @throws InterruptedException when interrupted
+     */
     public static Block query(Block block) throws ExecutionException, InterruptedException {
         final Location blockLocation = block.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
@@ -61,6 +77,15 @@ public class AttachedBlockCache implements Listener {
         return getAttachedBlockSlow(block, blockLocation);
     }
 
+    /**
+     * Retrieve {@link Block} which is attached to another from the server and store it into cache
+     *
+     * @param block         block to be queried
+     * @param blockLocation the location of the block to be queried
+     * @return the queried block
+     * @throws InterruptedException when an error occurred while getting block from server
+     * @throws ExecutionException   when interrupted
+     */
     private static Block getAttachedBlockSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
         Object queriedAttachedBlock = new Null();
@@ -134,7 +159,7 @@ public class AttachedBlockCache implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTNTPrime(TNTPrimeEvent event) {
         if (event.isCancelled()) return;
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
     private static class Null {

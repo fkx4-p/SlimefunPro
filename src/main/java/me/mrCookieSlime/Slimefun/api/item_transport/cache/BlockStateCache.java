@@ -18,6 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Retrieve {@link BlockState} with caching support for async use.
+ */
 public class BlockStateCache implements Listener {
 
     private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
@@ -28,6 +31,11 @@ public class BlockStateCache implements Listener {
         available = isAvailable();
     }
 
+    /**
+     * Check if required events is available
+     *
+     * @return the availability
+     */
     private static boolean isAvailable() {
         try {
             BlockEvent.class.getName();
@@ -37,6 +45,9 @@ public class BlockStateCache implements Listener {
         return true;
     }
 
+    /**
+     * Register event listener
+     */
     public static void registerEvents() {
         BlockStateCache instance = new BlockStateCache();
         RegisteredListener registeredListener = new RegisteredListener(instance,
@@ -49,6 +60,14 @@ public class BlockStateCache implements Listener {
             handler.register(registeredListener);
     }
 
+    /**
+     * Retrieve {@link BlockState} from a block with caching support
+     *
+     * @param block block to be queried
+     * @return the queried {@link BlockState}
+     * @throws ExecutionException   when an error occurred while getting block from server
+     * @throws InterruptedException when interrupted
+     */
     @Nonnull
     public static BlockState query(Block block) throws ExecutionException, InterruptedException {
         final Location blockLocation = block.getLocation();
@@ -67,6 +86,15 @@ public class BlockStateCache implements Listener {
         return getBlockStateSlow(block, blockLocation);
     }
 
+    /**
+     * Retrieve {@link BlockState} from the block from the server and store it into cache
+     *
+     * @param block         block to be queried
+     * @param blockLocation the location of block to be queried
+     * @return queried {@link BlockState}
+     * @throws InterruptedException when interrupted
+     * @throws ExecutionException   when an error occurred while getting block from server
+     */
     @NotNull
     private static BlockState getBlockStateSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
@@ -76,7 +104,7 @@ public class BlockStateCache implements Listener {
     }
 
     public void onBlockEvents(BlockEvent event) {
-        cache.remove(event.getBlock().getLocation());
+        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
     }
 
 }

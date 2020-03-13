@@ -3,7 +3,12 @@ package me.mrCookieSlime.Slimefun.api.item_transport;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class SynchronizedLock<T> {
+/**
+ * Synchronized lock for internal use of Async CargoNet
+ *
+ * @param <T> type
+ */
+class SynchronizedLock<T> {
 
     private static int number = Integer.MIN_VALUE;
 
