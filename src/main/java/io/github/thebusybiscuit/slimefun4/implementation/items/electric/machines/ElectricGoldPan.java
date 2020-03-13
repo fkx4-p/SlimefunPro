@@ -32,7 +32,8 @@ public abstract class ElectricGoldPan extends AContainer implements RecipeDispla
 			new ItemStack(Material.GRAVEL), new ItemStack(Material.FLINT), 
 			new ItemStack(Material.GRAVEL), SlimefunItems.SIFTED_ORE, 
 			new ItemStack(Material.GRAVEL), new ItemStack(Material.CLAY_BALL), 
-			new ItemStack(Material.GRAVEL), new ItemStack(Material.IRON_NUGGET), 
+			new ItemStack(Material.GRAVEL), new ItemStack(Material.IRON_NUGGET),
+			new ItemStack(Material.GRAVEL), new ItemStack(Material.COAL), 
 			
 			new ItemStack(Material.SOUL_SAND), new ItemStack(Material.QUARTZ), 
 			new ItemStack(Material.SOUL_SAND), new ItemStack(Material.GOLD_NUGGET), 
@@ -57,6 +58,7 @@ public abstract class ElectricGoldPan extends AContainer implements RecipeDispla
 		add(false, new ItemStack(Material.CLAY_BALL), (int) Slimefun.getItemValue(goldPan, "chance.CLAY"));
 		add(false, new ItemStack(Material.FLINT), (int) Slimefun.getItemValue(goldPan, "chance.FLINT"));
 		add(false, new ItemStack(Material.IRON_NUGGET), (int) Slimefun.getItemValue(goldPan, "chance.IRON_NUGGET"));
+		add(false, new ItemStack(Material.COAL), (int) Slimefun.getItemValue(goldPan, "chance.COAL"));
 		
 		add(true, new ItemStack(Material.QUARTZ), (int) Slimefun.getItemValue(netherGoldPan, "chance.QUARTZ"));
 		add(true, new ItemStack(Material.GOLD_NUGGET), (int) Slimefun.getItemValue(netherGoldPan, "chance.GOLD_NUGGET"));

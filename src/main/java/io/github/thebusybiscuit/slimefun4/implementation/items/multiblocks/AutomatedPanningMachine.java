@@ -39,6 +39,7 @@ public class AutomatedPanningMachine extends MultiBlockMachine {
 					new ItemStack(Material.GRAVEL), SlimefunItems.SIFTED_ORE, 
 					new ItemStack(Material.GRAVEL), new ItemStack(Material.CLAY_BALL), 
 					new ItemStack(Material.GRAVEL), new ItemStack(Material.IRON_NUGGET), 
+					new ItemStack(Material.GRAVEL), new ItemStack(Material.COAL),
 					new ItemStack(Material.SOUL_SAND), new ItemStack(Material.QUARTZ), 
 					new ItemStack(Material.SOUL_SAND), new ItemStack(Material.GOLD_NUGGET), 
 					new ItemStack(Material.SOUL_SAND), new ItemStack(Material.NETHER_WART), 
@@ -61,6 +62,7 @@ public class AutomatedPanningMachine extends MultiBlockMachine {
 		add(false, new ItemStack(Material.CLAY_BALL), (int) Slimefun.getItemValue(goldPan, "chance.CLAY"));
 		add(false, new ItemStack(Material.FLINT), (int) Slimefun.getItemValue(goldPan, "chance.FLINT"));
 		add(false, new ItemStack(Material.IRON_NUGGET), (int) Slimefun.getItemValue(goldPan, "chance.IRON_NUGGET"));
+		add(false, new ItemStack(Material.COAL), (int) Slimefun.getItemValue(goldPan, "chance.COAL"));
 
 		if (weights < 100) {
 			add(false, new ItemStack(Material.AIR), 100 - weights);

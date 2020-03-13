@@ -28,13 +28,14 @@ public class GoldPan extends SimpleSlimefunItem<ItemUseHandler> implements Recip
     private int weights;
 
     public GoldPan(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
-        super(category, item, recipeType, recipe, new String[] { "chance.FLINT", "chance.CLAY", "chance.SIFTED_ORE", "chance.IRON_NUGGET" }, new Integer[] { 40, 20, 35, 5 });
+        super(category, item, recipeType, recipe, new String[] { "chance.FLINT", "chance.CLAY", "chance.SIFTED_ORE", "chance.IRON_NUGGET", "chance.COAL" }, new Integer[] { 40, 5, 30, 5, 20 });
 
         recipes = Arrays.asList(
             new ItemStack(Material.GRAVEL), new ItemStack(Material.FLINT), 
             new ItemStack(Material.GRAVEL), new ItemStack(Material.CLAY_BALL), 
             new ItemStack(Material.GRAVEL), SlimefunItems.SIFTED_ORE, 
-            new ItemStack(Material.GRAVEL), new ItemStack(Material.IRON_NUGGET)
+            new ItemStack(Material.GRAVEL), new ItemStack(Material.IRON_NUGGET),
+            new ItemStack(Material.GRAVEL), new ItemStack(Material.COAL)
         );
     }
 
@@ -44,6 +45,7 @@ public class GoldPan extends SimpleSlimefunItem<ItemUseHandler> implements Recip
         add(new ItemStack(Material.CLAY_BALL), (int) Slimefun.getItemValue(getID(), "chance.CLAY"));
         add(new ItemStack(Material.FLINT), (int) Slimefun.getItemValue(getID(), "chance.FLINT"));
         add(new ItemStack(Material.IRON_NUGGET), (int) Slimefun.getItemValue(getID(), "chance.IRON_NUGGET"));
+        add(new ItemStack(Material.COAL), (int) Slimefun.getItemValue(getID(), "chance.COAL"));
 
         if (weights < 100) {
             add(new ItemStack(Material.AIR), 100 - weights);
