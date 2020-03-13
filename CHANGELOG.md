@@ -46,9 +46,14 @@
 
 ### Changes
 * Removed some deprecated parts of the API
+* Internal clean up and further documentation
 * Changed Automatic Ignition Chamber to be a Dropper
+* Teleporters are now significantly faster
+* Item permissions have been moved to a seperate permissions.yml file
 
 ### Fixes
+* Fixed some languages showing numbers larger than 100%
+* Fixed #1570
 
 ## Release Candidate 9 (07 Mar 2020)
 

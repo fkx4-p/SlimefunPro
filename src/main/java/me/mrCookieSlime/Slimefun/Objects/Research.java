@@ -3,7 +3,6 @@ package me.mrCookieSlime.Slimefun.Objects;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -40,10 +39,10 @@ public class Research implements Keyed {
     private final NamespacedKey key;
     private final int id;
     private String name;
+    private boolean enabled = true;
     private int cost;
 
     private final List<SlimefunItem> items = new LinkedList<>();
-    private boolean enabled = true;
 
     /**
      * The constructor for a {@link Research}.
@@ -174,7 +173,7 @@ public class Research implements Keyed {
      * @param instant
      *            Whether to unlock the research instantly
      */
-    public void unlock(final Player p, boolean instant) {
+    public void unlock(Player p, boolean instant) {
         if (!instant) {
             Slimefun.runSync(() -> {
                 p.playSound(p.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 0.7F, 1F);
@@ -251,10 +250,6 @@ public class Research implements Keyed {
 
         SlimefunPlugin.getRegistry().getResearches().add(this);
         SlimefunPlugin.getRegistry().getResearchIds().add(this);
-
-        if (SlimefunPlugin.getSettings().printOutLoading) {
-            Slimefun.getLogger().log(Level.INFO, "Loaded Research \"{0}\"", name);
-        }
     }
 
     // Temporary migration method from ids to Namespaced Keys.
@@ -281,7 +276,9 @@ public class Research implements Keyed {
      */
     public static Research getByID(int id) {
         for (Research research : SlimefunPlugin.getRegistry().getResearches()) {
-            if (research.getID() == id) return research;
+            if (research.getID() == id) {
+                return research;
+            }
         }
         return null;
     }

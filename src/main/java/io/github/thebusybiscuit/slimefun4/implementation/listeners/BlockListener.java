@@ -89,7 +89,7 @@ public class BlockListener implements Listener {
             }
         }
         else {
-            for (ItemHandler handler : SlimefunItem.getHandlers(BlockPlaceHandler.class)) {
+            for (ItemHandler handler : SlimefunItem.getPublicItemHandlers(BlockPlaceHandler.class)) {
                 if (((BlockPlaceHandler) handler).onBlockPlace(e, item)) break;
             }
         }
@@ -220,8 +220,10 @@ public class BlockListener implements Listener {
             }
         }
         if (item.getType() != Material.AIR) {
-            for (ItemHandler handler : SlimefunItem.getHandlers(BlockBreakHandler.class)) {
-                if (((BlockBreakHandler) handler).onBlockBreak(e, item, fortune, drops)) break;
+            for (ItemHandler handler : SlimefunItem.getPublicItemHandlers(BlockBreakHandler.class)) {
+                if (((BlockBreakHandler) handler).onBlockBreak(e, item, fortune, drops)) {
+                    break;
+                }
             }
         }
 

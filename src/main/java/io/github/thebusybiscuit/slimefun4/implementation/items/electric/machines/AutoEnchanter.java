@@ -28,8 +28,12 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 
 public class AutoEnchanter extends AContainer {
 
+    private final int emeraldEnchantsLimit;
+
     public AutoEnchanter(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(category, item, recipeType, recipe);
+
+        emeraldEnchantsLimit = SlimefunPlugin.getCfg().getInt("options.emerald-enchantment-limit");
     }
 
     @Override
@@ -102,7 +106,7 @@ public class AutoEnchanter extends AContainer {
                         }
                     }
 
-                    if (SlimefunPlugin.getHooks().isEmeraldEnchantsInstalled()) {
+                    if (SlimefunPlugin.getThirdPartySupportService().isEmeraldEnchantsInstalled()) {
                         for (ItemEnchantment enchantment : EmeraldEnchants.getInstance().getRegistry().getEnchantments(item)) {
                             if (EmeraldEnchants.getInstance().getRegistry().isApplicable(target, enchantment.getEnchantment()) && EmeraldEnchants.getInstance().getRegistry().getEnchantmentLevel(target, enchantment.getEnchantment().getName()) < enchantment.getLevel()) {
                                 amount++;
@@ -113,7 +117,7 @@ public class AutoEnchanter extends AContainer {
                         specialAmount += EmeraldEnchants.getInstance().getRegistry().getEnchantments(target).size();
                     }
 
-                    if (amount > 0 && specialAmount <= SlimefunPlugin.getSettings().emeraldEnchantsLimit) {
+                    if (amount > 0 && specialAmount <= emeraldEnchantsLimit) {
                         ItemStack newItem = target.clone();
                         newItem.setAmount(1);
 
