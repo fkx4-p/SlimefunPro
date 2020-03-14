@@ -1,83 +1,87 @@
+<details>
+  <summary>Table of contents</summary>
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**List of Releases**
+
 
 - [Release Candidate 10 (TBD)](#release-candidate-10-tbd)
-  - [Additions](#additions)
-  - [Changes](#changes)
-  - [Fixes](#fixes)
+    - [Additions](#additions)
+    - [Changes](#changes)
+    - [Fixes](#fixes)
 - [Release Candidate 9 (07 Mar 2020)](#release-candidate-9-07-mar-2020)
-  - [Fixes](#fixes-1)
+    - [Fixes](#fixes-1)
 - [Release Candidate 8 (06 Mar 2020)](#release-candidate-8-06-mar-2020)
-- [Fixes](#fixes-2)
+    - [Fixes](#fixes-2)
 - [Release Candidate 7 (06 Mar 2020)](#release-candidate-7-06-mar-2020)
-  - [Additions](#additions-1)
-  - [Changes](#changes-1)
-  - [Fixes](#fixes-3)
+    - [Additions](#additions-1)
+    - [Changes](#changes-1)
+    - [Fixes](#fixes-3)
 - [Release Candidate 6 (16 Feb 2020)](#release-candidate-6-16-feb-2020)
-  - [Additions](#additions-2)
-  - [Changes](#changes-2)
-  - [Fixes](#fixes-4)
+    - [Additions](#additions-2)
+    - [Changes](#changes-2)
+    - [Fixes](#fixes-4)
 - [Release Candidate 5 (09 Feb 2020)](#release-candidate-5-09-feb-2020)
-  - [Additions](#additions-3)
-  - [Changes](#changes-3)
-  - [Fixes](#fixes-5)
+    - [Additions](#additions-3)
+    - [Changes](#changes-3)
+    - [Fixes](#fixes-5)
 - [Release Candidate 4 (06 Jan 2020)](#release-candidate-4-06-jan-2020)
-  - [Additions](#additions-4)
-  - [Changes](#changes-4)
-  - [Fixes](#fixes-6)
+    - [Additions](#additions-4)
+    - [Changes](#changes-4)
+    - [Fixes](#fixes-6)
 - [Release Candidate 3 (21 Nov 2019)](#release-candidate-3-21-nov-2019)
-  - [Additions](#additions-5)
-  - [Changes](#changes-5)
-  - [Fixes](#fixes-7)
+    - [Additions](#additions-5)
+    - [Changes](#changes-5)
+    - [Fixes](#fixes-7)
 - [Release Candidate 2 (29 Sep 2019)](#release-candidate-2-29-sep-2019)
-  - [Additions](#additions-6)
-  - [Changes](#changes-6)
+    - [Additions](#additions-6)
+    - [Changes](#changes-6)
   - [Fixes](#fixes-8)
 - [Release Candidate 1 (26 Sep 2019)](#release-candidate-1-26-sep-2019)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+</details>
 
 ## Release Candidate 10 (TBD)
 
-### Additions
+#### Additions
 * Added some new charts to bStats
-* Added Turkish
+* Added a new language: Turkish
 
-### Changes
+#### Changes
 * Removed some deprecated parts of the API
 * Internal clean up and further documentation
 * Changed Automatic Ignition Chamber to be a Dropper
 * Teleporters are now significantly faster
 * Item permissions have been moved to a seperate permissions.yml file
 
-### Fixes
+#### Fixes
 * Fixed some languages showing numbers larger than 100%
 * Fixed #1570
+* Fixed #1686
 
 ## Release Candidate 9 (07 Mar 2020)
 
-### Fixes
+#### Fixes
 * Fixed Solar Generators not working
 
 ## Release Candidate 8 (06 Mar 2020)
 
-## Fixes
-Fixed bStats Metrics not sending properly
+#### Fixes
+* Fixed bStats Metrics not sending properly
 
 ## Release Candidate 7 (06 Mar 2020)
 
-### Additions
+#### Additions
 * Added translations for Recipe Types
 * Added Rainbow Concrete
 * Added Rainbow Glazed Terracotta
 * Added more internal documentation
 
-### Changes
+#### Changes
 * Researches now use their namespaced keys in the Researches.yml
 * A lot of API changes
 
-### Fixes
+#### Fixes
 * Fixed #1553
 * Fixed #1513
 * Fixed #1557
@@ -90,17 +94,17 @@ Fixed bStats Metrics not sending properly
 
 ## Release Candidate 6 (16 Feb 2020)
 
-### Additions
+#### Additions
 * Added a new language: Japanese
 * Added a new language: Swedish
 * Added a new language: Czech
 * Added a new language: Portuguese (Brazil)
 * Added a new language: Arabic
 
-### Changes
+#### Changes
 * /sf research now uses namespaced keys instead of ids
 
-### Fixes
+#### Fixes
 * Fixed #1515
 * Fixed back-button in guide-settings not working via commands
 * Fixed #1516
@@ -108,7 +112,7 @@ Fixed bStats Metrics not sending properly
 
 ## Release Candidate 5 (09 Feb 2020)
 
-### Additions
+#### Additions
 * Aded preset messages.yml files
 * Added user-configurable localization
 * Added many more options to the messages.yml
@@ -125,7 +129,7 @@ Fixed bStats Metrics not sending properly
 * Added translatibility to categories
 * Added translatibility to geo-resources
 
-### Changes
+#### Changes
 * Removed Solar Array
 * A lot of internal cleanup
 * Performance improvements for GEO Miner and Oil Pump
@@ -133,7 +137,7 @@ Fixed bStats Metrics not sending properly
 * Changed Startup console message
 * Changed GEO-Resources API
 
-### Fixes
+#### Fixes
 * Fixed #1355
 * Fixed Localization mistakes
 * Fixed #1366
@@ -162,7 +166,7 @@ Fixed bStats Metrics not sending properly
 ## Release Candidate 4 (06 Jan 2020)
 https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#4
 
-### Additions
+#### Additions
 * Added 1.15 support (1.14 and 1.15 are both supported)
 * Added custom model support to Slimefun Guide and some Recipe Types
 * Added Nether Gold Pan
@@ -185,7 +189,7 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#4
 * Added more ore-doubling Recipes to the Ore Crusher
 * Added Addons to the guide settings
 
-### Changes
+#### Changes
 * Revamped Guide Settings menu
 * Changed some Category icons
 * Changed Grappling Hook recipe
@@ -200,7 +204,7 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#4
 * Changed tooltips for Radiation
 * Oil Pump now shows its "Bucket -> Oil" recipe
 
-### Fixes
+#### Fixes
 * Fixed Research Titles
 * Fixed #1264
 * Fixed #1261
@@ -238,7 +242,7 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#4
 ## Release Candidate 3 (21 Nov 2019)
 https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#3
 
-### Additions
+#### Additions
 * Smeltery now shows some recipes in the guide
 * Added Sweet Berry Juice
 * MultiBlocks that require fences will now accept all types of wooden fences
@@ -253,7 +257,7 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#3
 * Added "Flint to Cobblestone" Recipe to the Compressor
 
 
-### Changes
+#### Changes
 * Changed Ignition Chamber Recipe
 * /sf cheat no longer allows you to spawn in MultiBlocks
 * Removed Heavy Armor
@@ -265,7 +269,7 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#3
 * Performance improvements for armor
 * Performance improvements for the Slimefun Guide
 
-### Fixes
+#### Fixes
 * Fixed Stone Chunk -> Cobblestone Recipe not working
 * Fixed #1145
 * Fixed #1157
@@ -289,11 +293,11 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#3
 ## Release Candidate 2 (29 Sep 2019)
 https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#2
 
-### Additions
+#### Additions
 * Added GEO - Miner
 * Added more bStats Charts
 
-### Changes
+#### Changes
 * Reworked MultiBlocks
 * Removed the Saw Mill
 
@@ -306,4 +310,4 @@ https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#2
 ## Release Candidate 1 (26 Sep 2019)
 https://thebusybiscuit.github.io/builds/TheBusyBiscuit/Slimefun4/stable/#1
 
-* First "stable" release since over a year. Stable builds will NOT receive support for bug reports since they are technically outdated. This change log will only be updated every so often and may be incomplete.
+* First "stable" release since over a year. Stable builds will NOT receive support for bug reports since they are technically outdated. 
