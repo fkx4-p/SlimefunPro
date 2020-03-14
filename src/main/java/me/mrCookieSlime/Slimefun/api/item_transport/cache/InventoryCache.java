@@ -121,7 +121,11 @@ public class InventoryCache implements Listener {
      * @param location location of block to refresh
      */
     public static void remove(Location location) {
-        updateCache(location);
+        CachedInventory cachedInventory = cache.get(location);
+        if (cachedInventory == null) return;
+        cache.remove(location);
+        for (Location loc : cachedInventory.locations)
+            remove(loc);
     }
 
     /**

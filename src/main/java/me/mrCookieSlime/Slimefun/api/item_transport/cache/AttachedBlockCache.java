@@ -105,7 +105,7 @@ public class AttachedBlockCache implements Listener {
      * @param location location of block to refresh
      */
     public static void remove(Location location) {
-        CacheGC.cleanThread.execute(() -> cache.remove(location));
+        cache.remove(location);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

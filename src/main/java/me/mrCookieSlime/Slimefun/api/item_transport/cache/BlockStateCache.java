@@ -69,7 +69,7 @@ public class BlockStateCache implements Listener {
      * @throws InterruptedException when interrupted
      */
     @Nonnull
-    public static BlockState query(Block block) throws ExecutionException, InterruptedException {
+    public static BlockState query(@Nonnull Block block) throws ExecutionException, InterruptedException {
         final Location blockLocation = block.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
 
@@ -109,7 +109,7 @@ public class BlockStateCache implements Listener {
      * @param location location of block to refresh
      */
     public static void remove(Location location) {
-        CacheGC.cleanThread.execute(() -> cache.remove(location));
+        cache.remove(location);
     }
 
     public void onBlockEvents(BlockEvent event) {
