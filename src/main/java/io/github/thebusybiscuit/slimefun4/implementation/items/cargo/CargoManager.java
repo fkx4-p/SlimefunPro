@@ -12,6 +12,7 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockUseHandler;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
@@ -21,11 +22,14 @@ import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class CargoManager extends SlimefunItem implements EnergyNetComponent {
 
@@ -79,7 +83,7 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                         purges.put(b.getLocation(), true);
                         p.sendTitle("CargoNet fix queued", "", 10, 80, 10);
                         CacheGC.cleanThread.execute(() -> {
-                            p.sendTitle("CargoNet fix started", "Progress: ...", 10, 80, 10);
+                            p.sendTitle("CargoNet fix started", "Progress: ...", 0, 80, 10);
                             CargoNet instance = CargoNet.getNetworkFromLocationOrCreate(b.getLocation());
                             Set<Location> inputs = instance.getInputNodes();
                             Set<Location> outputs = instance.getOutputNodes();
@@ -87,19 +91,39 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                             List<Location> nodes = new ArrayList<>(nodeCount);
                             nodes.addAll(inputs);
                             nodes.addAll(outputs);
-                            long lastReport = System.currentTimeMillis() + 500;
+                            long lastReport = System.currentTimeMillis();
+                            int fixed = 0;
+                            int skipped = 0;
+                            int errored = 0;
                             for (int i = 0; i < nodeCount; i++) {
                                 Location location = nodes.get(i);
-                                BlockStateCache.remove(location);
-                                AttachedBlockCache.remove(location);
-                                InventoryCache.remove(location);
+                                try {
+                                    if (location == null) {
+                                        skipped++;
+                                        continue;
+                                    }
+                                    AttachedBlockCache.remove(location);
+                                    final Location location1 = AttachedBlockCache.query(location.getBlock()).getLocation();
+                                    BlockStateCache.remove(location1);
+                                    InventoryCache.remove(location1);
+                                    BlockState blockState = BlockStateCache.query(location1.getBlock());
+                                    if (blockState instanceof Container)
+                                        InventoryCache.query((Container) blockState);
+                                    fixed++;
+                                } catch (Throwable ex) {
+                                    p.sendMessage("CargoNet fix failed for " + location + ": " + ex.toString()
+                                            + " [See console] ");
+                                    Slimefun.getLogger().log(Level.WARNING, "CargoNet fix failed " + location, ex);
+                                    errored++;
+                                }
                                 if (System.currentTimeMillis() - lastReport > 500) {
                                     lastReport = System.currentTimeMillis();
                                     p.sendTitle("CargoNet fix running", "Progress: " + i / nodeCount + "%",
                                             0, 80, 10);
                                 }
                             }
-                            p.sendTitle("CargoNet fix completed", "", 0, 80, 20);
+                            p.sendTitle("CargoNet fix completed", fixed + " fixed, "
+                                    + skipped + " skipped, " + errored + " errored", 0, 80, 20);
                             purges.put(b.getLocation(), false);
                         });
                     }

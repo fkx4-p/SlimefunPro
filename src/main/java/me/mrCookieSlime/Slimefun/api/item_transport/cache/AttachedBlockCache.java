@@ -6,6 +6,7 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -89,8 +90,9 @@ public class AttachedBlockCache implements Listener {
     private static Block getAttachedBlockSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
         Object queriedAttachedBlock = new Null();
-        if (Slimefun.runSyncFuture(block::getBlockData).get() instanceof Directional) {
-            queriedAttachedBlock = Slimefun.runSyncFuture(() -> block.getRelative(((Directional) block.getBlockData())
+        final BlockData blockData = Slimefun.runSyncFuture(block::getBlockData).get();
+        if (blockData instanceof Directional) {
+            queriedAttachedBlock = Slimefun.runSyncFuture(() -> block.getRelative(((Directional) blockData)
                     .getFacing().getOppositeFace())).get();
         }
         cache.put(blockLocation, queriedAttachedBlock);
