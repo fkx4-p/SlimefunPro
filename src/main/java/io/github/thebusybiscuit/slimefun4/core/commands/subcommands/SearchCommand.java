@@ -13,13 +13,18 @@ import me.mrCookieSlime.Slimefun.api.PlayerProfile;
 
 class SearchCommand extends SubCommand {
 
-    public SearchCommand(SlimefunPlugin plugin, SlimefunCommand cmd) {
+    SearchCommand(SlimefunPlugin plugin, SlimefunCommand cmd) {
         super(plugin, cmd);
     }
 
     @Override
     public String getName() {
         return "search";
+    }
+
+    @Override
+    public boolean isHidden() {
+        return false;
     }
 
     @Override

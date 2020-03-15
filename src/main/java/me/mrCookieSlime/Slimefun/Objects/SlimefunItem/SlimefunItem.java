@@ -309,7 +309,7 @@ public class SlimefunItem implements Placeable {
             }
 
             if (this instanceof WitherProof) {
-                SlimefunPlugin.getRegistry().getWitherProofBlocks().add(id);
+                SlimefunPlugin.getRegistry().getWitherProofBlocks().put(id, (WitherProof) this);
             }
 
             if (this instanceof EnergyNetComponent && !SlimefunPlugin.getRegistry().getEnergyCapacities().containsKey(getID())) {

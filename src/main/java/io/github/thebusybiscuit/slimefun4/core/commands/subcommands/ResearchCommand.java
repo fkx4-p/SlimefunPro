@@ -17,7 +17,7 @@ class ResearchCommand extends SubCommand {
     private static final String PLACEHOLDER_PLAYER = "%player%";
     private static final String PLACEHOLDER_RESEARCH = "%research%";
 
-    public ResearchCommand(SlimefunPlugin plugin, SlimefunCommand cmd) {
+    ResearchCommand(SlimefunPlugin plugin, SlimefunCommand cmd) {
         super(plugin, cmd);
     }
 
@@ -27,7 +27,12 @@ class ResearchCommand extends SubCommand {
     }
 
     @Override
-    protected String getDescriptionPath() {
+    public boolean isHidden() {
+        return false;
+    }
+
+    @Override
+    protected String getDescription() {
         return "commands.research.description";
     }
 
