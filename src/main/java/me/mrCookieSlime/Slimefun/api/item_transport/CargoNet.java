@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -413,8 +414,10 @@ public class CargoNet extends Network {
 
                                     if (!consume(this, energyConsumptionNode)) return;
 
+                                    final Block attachedBlock = AttachedBlockCache.query(bus.getBlock());
+                                    if (attachedBlock == null) return; // In case there is no block attached to it
                                     runBlockWithLock(
-                                            AttachedBlockCache.query(bus.getBlock()),
+                                            attachedBlock,
                                             target -> {
                                                 try {
                                                     ItemStack item17 = menu.getItemInSlot(17);
@@ -448,7 +451,9 @@ public class CargoNet extends Network {
 
                                     if (!consume(this, energyConsumptionNode)) return;
 
-                                    runBlockWithLock(AttachedBlockCache.query(bus.getBlock()), target -> {
+                                    final Block attachedBlock = AttachedBlockCache.query(bus.getBlock());
+                                    if (attachedBlock == null) return; // In case there is no block attached to it
+                                    runBlockWithLock(attachedBlock, target -> {
                                         try {
                                             ItemStack item17 = menu.getItemInSlot(17);
                                             if (item17 != null) {
@@ -572,7 +577,10 @@ public class CargoNet extends Network {
                                                     try {
                                                         //noinspection ConstantConditions
                                                         if (out.getBlock() == null) continue;
-                                                        runBlockWithLock(AttachedBlockCache.query(out.getBlock()), target -> {
+                                                        final Block attachedBlock = AttachedBlockCache.query(out.getBlock());
+                                                        if (attachedBlock == null)
+                                                            continue; // In case there is no block attached to it
+                                                        runBlockWithLock(attachedBlock, target -> {
                                                             if (target != null) {
                                                                 stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
                                                                 if (stack.get() == null) {
@@ -639,7 +647,9 @@ public class CargoNet extends Network {
                                 futures.add(tickingPool.submit(() -> {
                                     try {
                                         if (!consume(this, energyConsumptionNode)) return;
-                                        runBlockWithLock(AttachedBlockCache.query(l.getBlock()), target -> {
+                                        final Block attachedBlock = AttachedBlockCache.query(l.getBlock());
+                                        if (attachedBlock == null) return; // In case there is no block attached to it
+                                        runBlockWithLock(attachedBlock, target -> {
                                             try {
                                                 UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
 
@@ -779,16 +789,16 @@ public class CargoNet extends Network {
         }
     }
 
-    static void runBlockWithLock(Block block, Consumer<Block> consumer)
+    static void runBlockWithLock(@Nonnull Block block, @Nonnull Consumer<Block> consumer)
             throws ExecutionException, InterruptedException {
         getLock(block).run(consumer, block);
     }
 
-    static void runBlockWithLock(SynchronizedLock<Block> lock, Block block, Consumer<Block> consumer) {
+    static void runBlockWithLock(@Nonnull SynchronizedLock<Block> lock, @Nonnull Block block, @Nonnull Consumer<Block> consumer) {
         lock.run(consumer, block);
     }
 
-    static SynchronizedLock<Block> getLock(Block block) throws ExecutionException, InterruptedException {
+    static SynchronizedLock<Block> getLock(@Nonnull Block block) throws ExecutionException, InterruptedException {
         SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
         BlockState state = BlockStateCache.query(block);
         if (state instanceof Container) {

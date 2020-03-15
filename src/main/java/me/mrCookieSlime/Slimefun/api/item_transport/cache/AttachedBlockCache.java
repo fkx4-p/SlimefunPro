@@ -13,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +61,7 @@ public class AttachedBlockCache implements Listener {
      * @throws ExecutionException   when an error occurred while getting block from server
      * @throws InterruptedException when interrupted
      */
+    @Nullable
     public static Block query(Block block) throws ExecutionException, InterruptedException {
         final Location blockLocation = block.getLocation();
         locks.putIfAbsent(blockLocation, new Object());
@@ -87,6 +89,7 @@ public class AttachedBlockCache implements Listener {
      * @throws InterruptedException when an error occurred while getting block from server
      * @throws ExecutionException   when interrupted
      */
+    @Nullable
     private static Block getAttachedBlockSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
         Object queriedAttachedBlock = new Null();

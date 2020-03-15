@@ -47,6 +47,7 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
         addItemHandler(new BlockTicker() {
 
             @Override
+            @SuppressWarnings("deprecation")
             public void tick(Block b, SlimefunItem item, Config data) {
                 CargoNet.getNetworkFromLocationOrCreate(b.getLocation()).tick(b);
             }
@@ -103,7 +104,9 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                                         continue;
                                     }
                                     AttachedBlockCache.remove(location);
-                                    final Location location1 = AttachedBlockCache.query(location.getBlock()).getLocation();
+                                    final Block attachedBlock = AttachedBlockCache.query(location.getBlock());
+                                    if (attachedBlock == null) continue; // In case there is no block attached to it
+                                    final Location location1 = attachedBlock.getLocation();
                                     BlockStateCache.remove(location1);
                                     InventoryCache.remove(location1);
                                     BlockState blockState = BlockStateCache.query(location1.getBlock());
