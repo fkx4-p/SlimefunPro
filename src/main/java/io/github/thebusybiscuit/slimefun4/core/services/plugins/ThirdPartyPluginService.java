@@ -1,12 +1,11 @@
 package io.github.thebusybiscuit.slimefun4.core.services.plugins;
 
-import java.util.logging.Level;
-
-import org.bukkit.plugin.Plugin;
-
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
+import org.bukkit.plugin.Plugin;
+
+import java.util.logging.Level;
 
 /**
  * This Service holds all interactions and hooks with third-party {@link Plugin Plugins}
@@ -38,32 +37,35 @@ public class ThirdPartyPluginService {
             new PlaceholderAPIHook().register();
         }
 
+        if (isPluginInstalled("ClearLag")) {
+            new ClearLagHook(plugin);
+        }
+
+        // WorldEdit Hook to clear Slimefun Data upon //set 0 //cut or any other equivalent
+        if (isPluginInstalled("WorldEdit")) {
+            try {
+                Class.forName("com.sk89q.worldedit.extent.Extent");
+                new WorldEditHook();
+            } catch (Exception x) {
+                Slimefun.getLogger().log(Level.WARNING, "Failed to hook into WorldEdit!");
+                Slimefun.getLogger().log(Level.WARNING, "Maybe consider updating WorldEdit or Slimefun?");
+            }
+        }
+
+        if (isPluginInstalled("CoreProtect")) {
+
+        }
+
         /*
          * These Items are not marked as soft-dependencies and
          * therefore need to be loaded after the Server has finished
          * loading all plugins
          */
         plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            if (isPluginInstalled("ClearLag")) {
-                new ClearLagHook(plugin);
-            }
-
             isExoticGardenInstalled = isPluginInstalled("ExoticGarden");
             isEmeraldEnchantsInstalled = isPluginInstalled("EmeraldEnchants");
 
             SlimefunPlugin.getNetworkManager().setChestTerminalInstalled(isPluginInstalled("ChestTerminal"));
-
-            // WorldEdit Hook to clear Slimefun Data upon //set 0 //cut or any other equivalent
-            if (isPluginInstalled("WorldEdit")) {
-                try {
-                    Class.forName("com.sk89q.worldedit.extent.Extent");
-                    new WorldEditHook();
-                }
-                catch (Exception x) {
-                    Slimefun.getLogger().log(Level.WARNING, "Failed to hook into WorldEdit!");
-                    Slimefun.getLogger().log(Level.WARNING, "Maybe consider updating WorldEdit or Slimefun?");
-                }
-            }
         });
     }
 

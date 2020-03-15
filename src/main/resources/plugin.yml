@@ -5,9 +5,15 @@ description: Slimefun basically turns your entire Server into a FTB modpack with
 website: https://github.com/TheBusyBiscuit/Slimefun4
 
 main: me.mrCookieSlime.Slimefun.SlimefunPlugin
-softdepend: [CS-CoreLib, PlaceholderAPI]
+depend:
+  - CS-CoreLib
+softdepend:
+  - PlaceHolderAPI
+  - WorldEdit
+  - ClearLag
+  - CoreProtect
 
-api-version: 1.14
+api-version: "1.15"
 
 commands:
   slimefun:

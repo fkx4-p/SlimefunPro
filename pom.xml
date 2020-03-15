@@ -38,6 +38,10 @@
             <id>placeholderapi-repo</id>
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+        <repository>
+            <id>coreprotect-repo</id>
+            <url>http://maven.playpro.com/</url>
+        </repository>
     </repositories>
 
     <build>
@@ -131,6 +135,12 @@
             <artifactId>worldedit-bukkit</artifactId>
             <version>7.1.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bukkit</groupId>
+                    <artifactId>bukkit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>me.clip</groupId>
@@ -164,6 +174,22 @@
             <artifactId>annotations</artifactId>
             <version>18.0.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.coreprotect</groupId>
+            <artifactId>coreprotect</artifactId>
+            <version>2.18.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bukkit</groupId>
+                    <artifactId>bukkit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sk89q.worldedit</groupId>
+                    <artifactId>worldedit-bukkit</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
