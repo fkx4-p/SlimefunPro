@@ -406,6 +406,10 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{SlimefunItems.SIFTED_ORE, null, null, null, null, null, null, null, null})
                 .register(plugin);
 
+        new SlimefunItem(Categories.RESOURCES, (SlimefunItemStack) SlimefunItems.LAPIS_LAZULI_DUST, RecipeType.ORE_WASHER,
+                new ItemStack[]{SlimefunItems.SIFTED_ORE, null, null, null, null, null, null, null, null})
+                .register(plugin);
+
         new SlimefunItem(Categories.RESOURCES, (SlimefunItemStack) SlimefunItems.COPPER_INGOT, RecipeType.SMELTERY,
                 new ItemStack[]{SlimefunItems.COPPER_DUST, null, null, null, null, null, null, null, null})
                 .register(plugin);
