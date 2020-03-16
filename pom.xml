@@ -134,7 +134,14 @@
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <options>
                         <option>-keep public class me.mrCookieSlime.Slimefun.SlimefunPlugin</option>
-                        <option>-optimizationpasses 12</option>
+                        <option>-keepattributes *</option>
+                        <option>-keepclasseswithmembers class * { @org.bukkit.event.EventHandler* &lt;methods&gt;; }
+                        </option>
+                        <option>-keepclasseswithmembers class * extends org.bukkit.event.Event { public static
+                            org.bukkit.event.HandlerList getHandlerList(); public org.bukkit.event.HandlerList
+                            getHandlers(); }
+                        </option>
+                        <option>-optimizationpasses 8</option>
                         <option>-ignorewarnings</option>
                         <option>-allowaccessmodification</option>
                         <option>-verbose</option>
