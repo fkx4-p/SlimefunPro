@@ -133,8 +133,8 @@
                     <outjar>${project.build.finalName}-optimized.jar</outjar>
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <options>
-                        <option>-dontshrink</option>
-                        <option>-optimizationpasses 12</option>
+                        <option>-keep public class me.mrCookieSlime.Slimefun.SlimefunPlugin</option>
+                        <option>-optimizationpasses 32</option>
                         <option>-ignorewarnings</option>
                         <option>-allowaccessmodification</option>
                         <option>-verbose</option>
@@ -142,26 +142,29 @@
                         <option>-libraryjars ${java.home}/jmods/java.base.jmod</option>
                         <option>-libraryjars ${java.home}/jmods/java.logging.jmod</option>
                         <option>-libraryjars ${java.home}/jmods/java.sql.jmod</option>
-                        <options>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics { int B_STATS_VERSION; }
-                        </options>
-                        <options>-keep class org.bukkit.Server { java.util.Collection getOnlinePlayers(); }</options>
-                        <options>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics {
+                        <option>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics { int B_STATS_VERSION; }
+                        </option>
+                        <option>-keep class org.bukkit.Server { java.util.Collection getOnlinePlayers(); }</option>
+                        <option>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics {
                             com.google.gson.JsonObject getPluginData(); }
-                        </options>
-                        <options>-keep class org.json.simple.JSONObject { java.lang.String toJSONString(); }</options>
-                        <options>-keep class org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer {
+                        </option>
+                        <option>-keep class org.json.simple.JSONObject { java.lang.String toJSONString(); }</option>
+                        <option>-keep class org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer {
                             net.minecraft.server.v1_15_R1.EntityPlayer getHandle(); }
-                        </options>
-                        <options>-keep class org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack {
+                        </option>
+                        <option>-keep class org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack {
                             net.minecraft.server.v1_15_R1.ItemStack asNMSCopy(org.bukkit.inventory.ItemStack); }
-                        </options>
-                        <options>-keep class net.minecraft.server.v1_15_R1.NBTTagCompound { NBTTagCompound(); }
-                        </options>
-                        <options>-keep class me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer {
+                        </option>
+                        <option>-keep class net.minecraft.server.v1_15_R1.NBTTagCompound { NBTTagCompound(); }
+                        </option>
+                        <option>-keep class me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer {
                             void
                             registerRecipe(me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe);
                             }
-                        </options>
+                        </option>
+                        <option>-keep class net.minecraft.server.v1_15_R1.EntityPlayer {
+                            net.minecraft.server.v1_15_R1.PlayerConnection playerConnection; }
+                        </option>
                     </options>
                 </configuration>
             </plugin>
@@ -352,15 +355,25 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>nl.rutgerkok</groupId>
-            <artifactId>blocklocker</artifactId>
-            <version>1.7</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.Angeschossen</groupId>
             <artifactId>LandsAPI</artifactId>
             <version>4.5.2.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.coreprotect</groupId>
+            <artifactId>coreprotect</artifactId>
+            <version>2.18.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bukkit</groupId>
+                    <artifactId>bukkit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sk89q.worldedit</groupId>
+                    <artifactId>worldedit-bukkit</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>provided</scope>
         </dependency>
     </dependencies>
