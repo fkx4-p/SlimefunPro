@@ -1,22 +1,9 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectableAction;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.Category;
@@ -25,6 +12,7 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
@@ -32,6 +20,12 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.*;
 
 public abstract class HeatedPressureChamber extends AContainer {
 
@@ -69,8 +63,7 @@ public abstract class HeatedPressureChamber extends AContainer {
 
                 if (slots.isEmpty()) {
                     return getInputSlots();
-                }
-                else {
+                } else {
                     Collections.sort(slots, compareSlots(menu));
                     int[] array = new int[slots.size()];
 
@@ -92,14 +85,15 @@ public abstract class HeatedPressureChamber extends AContainer {
 
     @Override
     protected void registerDefaultRecipes() {
-        registerRecipe(45, new ItemStack[] { SlimefunItems.BUCKET_OF_OIL }, new ItemStack[] { new CustomItem(SlimefunItems.PLASTIC_SHEET, 8) });
-        registerRecipe(30, new ItemStack[] { SlimefunItems.GOLD_24K, SlimefunItems.URANIUM }, new ItemStack[] { SlimefunItems.BLISTERING_INGOT });
-        registerRecipe(30, new ItemStack[] { SlimefunItems.BLISTERING_INGOT, SlimefunItems.CARBONADO }, new ItemStack[] { SlimefunItems.BLISTERING_INGOT_2 });
-        registerRecipe(60, new ItemStack[] { SlimefunItems.BLISTERING_INGOT_2, new ItemStack(Material.NETHER_STAR) }, new ItemStack[] { SlimefunItems.BLISTERING_INGOT_3 });
-        registerRecipe(90, new ItemStack[] { SlimefunItems.PLUTONIUM, SlimefunItems.URANIUM }, new ItemStack[] { SlimefunItems.BOOSTED_URANIUM });
-        registerRecipe(60, new ItemStack[] { SlimefunItems.NETHER_ICE, SlimefunItems.PLUTONIUM }, new ItemStack[] { new CustomItem(SlimefunItems.ENRICHED_NETHER_ICE, 4) });
-        registerRecipe(45, new ItemStack[] { SlimefunItems.ENRICHED_NETHER_ICE }, new ItemStack[] { new CustomItem(SlimefunItems.NETHER_ICE_COOLANT_CELL, 8) });
-        registerRecipe(8, new ItemStack[] { SlimefunItems.MAGNESIUM_DUST, SlimefunItems.SALT }, new ItemStack[] { SlimefunItems.MAGNESIUM_SALT });
+        registerRecipe(45, new ItemStack[]{SlimefunItems.BUCKET_OF_OIL}, new ItemStack[]{new CustomItem(SlimefunItems.PLASTIC_SHEET, 8)});
+        registerRecipe(30, new ItemStack[]{SlimefunItems.GOLD_24K, SlimefunItems.URANIUM}, new ItemStack[]{SlimefunItems.BLISTERING_INGOT});
+        registerRecipe(30, new ItemStack[]{SlimefunItems.BLISTERING_INGOT, SlimefunItems.CARBONADO}, new ItemStack[]{SlimefunItems.BLISTERING_INGOT_2});
+        registerRecipe(60, new ItemStack[]{SlimefunItems.BLISTERING_INGOT_2, new ItemStack(Material.NETHER_STAR)}, new ItemStack[]{SlimefunItems.BLISTERING_INGOT_3});
+        registerRecipe(90, new ItemStack[]{SlimefunItems.PLUTONIUM, SlimefunItems.URANIUM}, new ItemStack[]{SlimefunItems.BOOSTED_URANIUM});
+        registerRecipe(60, new ItemStack[]{SlimefunItems.NETHER_ICE, SlimefunItems.PLUTONIUM}, new ItemStack[]{new CustomItem(SlimefunItems.ENRICHED_NETHER_ICE, 4)});
+        registerRecipe(45, new ItemStack[]{SlimefunItems.ENRICHED_NETHER_ICE}, new ItemStack[]{new CustomItem(SlimefunItems.NETHER_ICE_COOLANT_CELL, 8)});
+        registerRecipe(8, new ItemStack[]{SlimefunItems.MAGNESIUM_DUST, SlimefunItems.SALT}, new ItemStack[]{SlimefunItems.MAGNESIUM_SALT});
+        registerRecipe(16, new ItemStack[]{new CustomItem(SlimefunItems.COPPER_WIRE, 16)}, new ItemStack[]{SlimefunItems.BASIC_CIRCUIT_BOARD});
     }
 
     @Override
@@ -114,12 +108,12 @@ public abstract class HeatedPressureChamber extends AContainer {
 
     @Override
     public int[] getInputSlots() {
-        return new int[] { 19, 20 };
+        return new int[]{19, 20};
     }
 
     @Override
     public int[] getOutputSlots() {
-        return new int[] { 24, 25 };
+        return new int[]{24, 25};
     }
 
     @Override
@@ -152,18 +146,15 @@ public abstract class HeatedPressureChamber extends AContainer {
                     if (ChargableBlock.getCharge(b) < getEnergyConsumption()) return;
                     ChargableBlock.addCharge(b, -getEnergyConsumption());
                     progress.put(b, timeleft - 1);
-                }
-                else progress.put(b, timeleft - 1);
-            }
-            else {
+                } else progress.put(b, timeleft - 1);
+            } else {
                 menu.replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
                 menu.pushItem(processing.get(b).getOutput()[0], getOutputSlots());
 
                 progress.remove(b);
                 processing.remove(b);
             }
-        }
-        else {
+        } else {
             Map<Integer, Integer> found = new HashMap<>();
             MachineRecipe recipe = findRecipe(menu, found);
 
@@ -192,11 +183,10 @@ public abstract class HeatedPressureChamber extends AContainer {
                     }
                 }
             }
-            
+
             if (found.size() == recipe.getInput().length) {
                 return recipe;
-            }
-            else found.clear();
+            } else found.clear();
         }
 
         return null;
