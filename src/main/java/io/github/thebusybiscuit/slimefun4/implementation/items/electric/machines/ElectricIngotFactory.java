@@ -23,6 +23,7 @@ public abstract class ElectricIngotFactory extends AContainer implements RecipeD
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.COPPER_DUST }, new ItemStack[] { SlimefunItems.COPPER_INGOT }));
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.GOLD_DUST }, new ItemStack[] { SlimefunItems.GOLD_4K }));
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.IRON_DUST }, new ItemStack[] { new ItemStack(Material.IRON_INGOT) }));
+        registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.LAPIS_LAZULI_DUST }, new ItemStack[] { new ItemStack(Material.LAPIS_LAZULI) }));
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.LEAD_DUST }, new ItemStack[] { SlimefunItems.LEAD_INGOT }));
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.MAGNESIUM_DUST }, new ItemStack[] { SlimefunItems.MAGNESIUM_INGOT }));
         registerRecipe(new MachineRecipe(8, new ItemStack[] { SlimefunItems.SILVER_DUST }, new ItemStack[] { SlimefunItems.SILVER_INGOT }));
