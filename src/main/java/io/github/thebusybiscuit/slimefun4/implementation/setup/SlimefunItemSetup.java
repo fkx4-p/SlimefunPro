@@ -1853,6 +1853,29 @@ public final class SlimefunItemSetup {
 
         }.register(plugin);
 
+        new ElectricOreGrinder(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ELECTRIC_ORE_GRINDER_3, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{null, new ItemStack(Material.DIAMOND_PICKAXE), null, SlimefunItems.HEATING_COIL,
+                        SlimefunItems.ELECTRIC_ORE_GRINDER_2, SlimefunItems.HEATING_COIL,
+                        SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.HEATING_COIL,
+                        SlimefunItems.BLISTERING_INGOT_3}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 80;
+            }
+
+            @Override
+            public int getSpeed() {
+                return 10;
+            }
+
+            @Override
+            public int getCapacity() {
+                return 1024;
+            }
+
+        }.register(plugin);
+
         new HeatedPressureChamber(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.HEATED_PRESSURE_CHAMBER, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.GLASS), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
 
@@ -1982,6 +2005,30 @@ public final class SlimefunItemSetup {
 			@Override
             public int getSpeed() {
                 return 3;
+            }
+
+        }.register(plugin);
+
+        new ElectricPress(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ELECTRIC_PRESS_3, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{new ItemStack(Material.STICKY_PISTON), SlimefunItems.ELECTRIC_PRESS_2,
+                        new ItemStack(Material.STICKY_PISTON), SlimefunItems.DAMASCUS_STEEL_INGOT,
+                        SlimefunItems.BIG_CAPACITOR, SlimefunItems.DAMASCUS_STEEL_INGOT,
+                        SlimefunItems.DAMASCUS_STEEL_INGOT, SlimefunItems.DAMASCUS_STEEL_INGOT,
+                        SlimefunItems.DAMASCUS_STEEL_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 70;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 2048;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 10;
             }
 
         }.register(plugin);
