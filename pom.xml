@@ -38,6 +38,35 @@
             <id>placeholderapi-repo</id>
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+        <repository>
+            <id>codemc-nms-repo</id>
+            <url>https://repo.codemc.io/repository/nms/</url>
+        </repository>
+        <repository>
+            <id>bintray-tastybento-maven-repo</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/tastybento/maven-repo</url>
+        </repository>
+        <repository>
+            <id>coreprotect-repo</id>
+            <url>https://maven.playpro.com/</url>
+        </repository>
+        <repository>
+            <id>redprotect-repo</id>
+            <url>https://raw.github.com/FabioZumbi12/RedProtect/mvn-repo/</url>
+        </repository>
+        <repository>
+            <id>plotsquared-ci</id>
+            <url>http://ci.athion.net/job/PlotSquared-Releases/ws/mvn/</url>
+        </repository>
+        <repository>
+            <id>FactionsUUID-repo</id>
+            <url>https://ci.ender.zone/job/FactionsUUID/122/maven-repository/repository</url>
+        </repository>
+        <repository>
+            <id>rutger-repo</id>
+            <url>http://www.rutgerkok.nl/repo</url>
+        </repository>
     </repositories>
 
     <build>
@@ -86,6 +115,56 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>proguard</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <obfuscate>false</obfuscate>
+                    <injar>${project.build.finalName}.jar</injar>
+                    <outjar>${project.build.finalName}-optimized.jar</outjar>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <options>
+                        <option>-dontshrink</option>
+                        <option>-optimizationpasses 12</option>
+                        <option>-ignorewarnings</option>
+                        <option>-allowaccessmodification</option>
+                        <option>-verbose</option>
+                        <option>-optimizations !*marking/private</option>
+                        <option>-libraryjars ${java.home}/jmods/java.base.jmod</option>
+                        <option>-libraryjars ${java.home}/jmods/java.logging.jmod</option>
+                        <option>-libraryjars ${java.home}/jmods/java.sql.jmod</option>
+                        <options>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics { int B_STATS_VERSION; }
+                        </options>
+                        <options>-keep class org.bukkit.Server { java.util.Collection getOnlinePlayers(); }</options>
+                        <options>-keep class me.mrCookieSlime.Slimefun.bstats.bukkit.Metrics {
+                            com.google.gson.JsonObject getPluginData(); }
+                        </options>
+                        <options>-keep class org.json.simple.JSONObject { java.lang.String toJSONString(); }</options>
+                        <options>-keep class org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer {
+                            net.minecraft.server.v1_15_R1.EntityPlayer getHandle(); }
+                        </options>
+                        <options>-keep class org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack {
+                            net.minecraft.server.v1_15_R1.ItemStack asNMSCopy(org.bukkit.inventory.ItemStack); }
+                        </options>
+                        <options>-keep class net.minecraft.server.v1_15_R1.NBTTagCompound { NBTTagCompound(); }
+                        </options>
+                        <options>-keep class me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer {
+                            void
+                            registerRecipe(me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe);
+                            }
+                        </options>
+                    </options>
+                </configuration>
+            </plugin>
         </plugins>
 
         <resources>
@@ -104,7 +183,7 @@
     <dependencies>
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
-            <artifactId>paper-api</artifactId>
+            <artifactId>paper</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -119,6 +198,12 @@
             <artifactId>CS-CoreLib2</artifactId>
             <version>0.9.2</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.bstats</groupId>
@@ -164,6 +249,119 @@
             <artifactId>annotations</artifactId>
             <version>18.0.0</version>
             <scope>compile</scope>
+        </dependency>
+
+
+        <!-- Dependencies for Optimizations -->
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>7.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.marcelo-mason</groupId>
+            <artifactId>PreciousStones</artifactId>
+            <version>24e3d4bf67</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.LogBlock</groupId>
+            <artifactId>LogBlock</artifactId>
+            <version>d98d46d0c9</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.marcelo-mason</groupId>
+            <artifactId>SimpleClans</artifactId>
+            <version>7c3db52796</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.TechFortress</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>16.13.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.wasteofplastic</groupId>
+            <artifactId>askyblock</artifactId>
+            <version>3.0.9.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.dmulloy2.LWC</groupId>
+            <artifactId>lwc</artifactId>
+            <version>master-4.5.1-g2100b5e-18</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.massivecraft.massivecore</groupId>
+            <artifactId>MassiveCore</artifactId>
+            <version>2.14.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/MassiveCore.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.massivecraft.factions</groupId>
+            <artifactId>Factions</artifactId>
+            <version>2.14.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/Factions.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.massivecraft</groupId>
+            <artifactId>Factions</artifactId>
+            <version>1.6.9.5-U0.2.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.LlmDl</groupId>
+            <artifactId>Towny</artifactId>
+            <version>1b86d017c5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fubira</groupId>
+            <artifactId>Lockette</artifactId>
+            <version>9dac96e8f8</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.intellectualsites.plotsquared</groupId>
+            <artifactId>PlotSquared-API</artifactId>
+            <version>4.453</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>br.net.fabiozumbi12.RedProtect</groupId>
+            <artifactId>RedProtect-Core</artifactId>
+            <version>7.6.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>br.net.fabiozumbi12.RedProtect</groupId>
+            <artifactId>RedProtect-Spigot</artifactId>
+            <version>7.6.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>world.bentobox</groupId>
+            <artifactId>bentobox</artifactId>
+            <version>1.11.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>nl.rutgerkok</groupId>
+            <artifactId>blocklocker</artifactId>
+            <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Angeschossen</groupId>
+            <artifactId>LandsAPI</artifactId>
+            <version>4.5.2.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

@@ -1,17 +1,5 @@
 package me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType;
@@ -30,6 +18,17 @@ import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AContainer extends SlimefunItem implements InventoryBlock, EnergyNetComponent {
 
@@ -112,9 +111,9 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
     /**
      * This method returns the title that is used for the {@link Inventory} of an
      * {@link AContainer} that has been opened by a Player.
-     * 
+     *
      * Override this method to set the title.
-     * 
+     *
      * @return The title of the {@link Inventory} of this {@link AContainer}
      */
     public abstract String getInventoryTitle();
@@ -122,16 +121,16 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
     /**
      * This method returns the {@link ItemStack} that this {@link AContainer} will
      * use as a progress bar.
-     * 
+     *
      * Override this method to set the progress bar.
-     * 
+     *
      * @return The {@link ItemStack} to use as the progress bar
      */
     public abstract ItemStack getProgressBar();
 
     /**
      * This method returns the amount of energy that is consumed per operation.
-     * 
+     *
      * @return The rate of energy consumption
      */
     public abstract int getEnergyConsumption();
@@ -140,7 +139,7 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
      * This method returns the speed at which this machine will operate.
      * This can be implemented on an instantiation-level to create different tiers
      * of machines.
-     * 
+     *
      * @return The speed of this machine
      */
     public abstract int getSpeed();
@@ -148,11 +147,11 @@ public abstract class AContainer extends SlimefunItem implements InventoryBlock,
     /**
      * This method returns an internal identifier that is used to identify this {@link AContainer}
      * and its recipes.
-     * 
+     *
      * When adding recipes to an {@link AContainer} we will use this identifier to
      * identify all instances of the same {@link AContainer}.
      * This way we can add the recipes to all instances of the same machine.
-     * 
+     *
      * @return The identifier of this machine
      */
     public abstract String getMachineIdentifier();

@@ -18,6 +18,11 @@ public class CargoNetCommand extends SubCommand {
     }
 
     @Override
+    public boolean isHidden() {
+        return false;
+    }
+
+    @Override
     public void onExecute(CommandSender sender, String[] args) {
         CargoNetTimings.info(sender, args);
     }
