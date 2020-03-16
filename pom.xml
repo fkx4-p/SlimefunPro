@@ -134,7 +134,7 @@
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <options>
                         <option>-keep public class me.mrCookieSlime.Slimefun.SlimefunPlugin</option>
-                        <option>-optimizationpasses 32</option>
+                        <option>-optimizationpasses 12</option>
                         <option>-ignorewarnings</option>
                         <option>-allowaccessmodification</option>
                         <option>-verbose</option>
