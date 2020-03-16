@@ -33,7 +33,6 @@ import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
-import me.mrCookieSlime.Slimefun.utils.ConfigCache;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -366,7 +365,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             return true;
         }
 
-        getLogger().log(Level.WARNING, "We could not determine the version of Minecraft you were using ({0})", currentVersion);;
+        getLogger().log(Level.WARNING, "We could not determine the version of Minecraft you were using ({0})", currentVersion);
         return false;
     }
 
