@@ -1,5 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.setup;
 
+import com.ishland.slimefun.cobblestonegenerator.CobblestoneGenerator;
+import com.ishland.slimefun.cobblestonegenerator.Generator;
 import io.github.thebusybiscuit.cscorelib2.inventory.InvUtils;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.cscorelib2.materials.MaterialCollections;
@@ -3254,6 +3256,8 @@ public final class SlimefunItemSetup {
         new WitherAssembler(Categories.ELECTRICITY, SlimefunItems.WITHER_ASSEMBLER, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{SlimefunItems.BLISTERING_INGOT_3, new ItemStack(Material.NETHER_STAR), SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.WITHER_PROOF_OBSIDIAN, SlimefunItems.ANDROID_MEMORY_CORE, SlimefunItems.WITHER_PROOF_OBSIDIAN, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.CARBONADO_EDGED_CAPACITOR})
                 .register(plugin);
+
+        CobblestoneGenerator.init(plugin);
     }
 
 }
