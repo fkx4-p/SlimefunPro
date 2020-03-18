@@ -1,6 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.generators;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent;
@@ -8,6 +9,7 @@ import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
+import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SimpleSlimefunItem;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
@@ -60,6 +62,22 @@ public abstract class SolarGenerator extends SimpleSlimefunItem<GeneratorTicker>
 
             @Override
             public double generateEnergy(Location l, SlimefunItem item, Config data) {
+
+                if(item==(SlimefunItem.getByItem(SlimefunItems.SOLAR_GENERATOR_5)))
+                {
+                    World wrld = l.getWorld();
+                    World.Environment environment = wrld.getEnvironment();
+                    if(environment != World.Environment.NETHER)
+                        return 0;
+
+                    if (l.getWorld().getTime() < 12300 || l.getWorld().getTime() > 23850) {
+                        return getDayEnergy();
+                    }
+
+                    else
+                        return getNightEnergy();
+                }
+
                 if (!l.getWorld().isChunkLoaded(l.getBlockX() >> 4, l.getBlockZ() >> 4) || l.getBlock().getLightFromSky() != 15) {
                     return 0D;
                 }
