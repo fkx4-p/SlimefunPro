@@ -1515,6 +1515,21 @@ public final class SlimefunItemSetup {
 
         }.register(plugin);
 
+        new SolarGenerator(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.SOLAR_GENERATOR_5, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.ENRICHED_NETHER_ICE, SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.ENRICHED_NETHER_ICE, SlimefunItems.SOLAR_GENERATOR_4, SlimefunItems.ENRICHED_NETHER_ICE, SlimefunItems.BLISTERING_INGOT_3, SlimefunItems.ENRICHED_NETHER_ICE, SlimefunItems.BLISTERING_INGOT_3}) {
+
+            @Override
+            public double getDayEnergy() {
+                return 512;
+            }
+
+            @Override
+            public double getNightEnergy() {
+                return 256;
+            }
+
+        }.register(plugin);
+
         new ChargingBench(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.CHARGING_BENCH, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{null, SlimefunItems.ELECTRO_MAGNET, null, SlimefunItems.BATTERY, new ItemStack(Material.CRAFTING_TABLE), SlimefunItems.BATTERY, null, SlimefunItems.SMALL_CAPACITOR, null})
                 .register(plugin);

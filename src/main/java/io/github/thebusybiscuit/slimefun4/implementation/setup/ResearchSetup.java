@@ -190,7 +190,7 @@ public final class ResearchSetup {
         register("better_solar_generators", 185, "Upgraded Solar Generators", 28, SlimefunItems.SOLAR_GENERATOR_2, SlimefunItems.SOLAR_GENERATOR_3);
         register("better_gps_transmitters", 186, "Upgraded Transmitters", 36, SlimefunItems.GPS_TRANSMITTER_2, SlimefunItems.GPS_TRANSMITTER_3);
         register("elevator", 187, "Elevators", 28, SlimefunItems.ELEVATOR);
-        register("energized_solar_generator", 188, "Full-Time Solar Power", 44, SlimefunItems.SOLAR_GENERATOR_4);
+        register("energized_solar_generator", 188, "Full-Time Solar Power", 44, SlimefunItems.SOLAR_GENERATOR_4, SlimefunItems.SOLAR_GENERATOR_5);
         register("energized_gps_transmitter", 189, "Top Tier Transmitter", 44, SlimefunItems.GPS_TRANSMITTER_4);
         register("energy_regulator", 190, "Energy Networks 101", 6, SlimefunItems.ENERGY_REGULATOR);
         register("butcher_androids", 191, "Butcher Androids", 32, SlimefunItems.PROGRAMMABLE_ANDROID_BUTCHER);
