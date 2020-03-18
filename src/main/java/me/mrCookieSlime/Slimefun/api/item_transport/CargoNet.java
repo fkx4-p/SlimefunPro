@@ -46,8 +46,6 @@ public class CargoNet extends Network {
     public static final int energyConsumptionNode = 2;
     public static final int energyConsumptionSlot = 1;
 
-    public static boolean extraChannels = false;
-
     private static final int RANGE = 5;
 
     private static final int[] slots = {19, 20, 21, 28, 29, 30, 37, 38, 39};
@@ -107,11 +105,13 @@ public class CargoNet extends Network {
     public static Set<Thread> executePoolThreads = Sets.newConcurrentHashSet();
     public static ExecutorService executePool;
 
+    public static CargoNetTickerThread tickerThread;
+
     public static ConcurrentMap<Location, CargoNet> instances = new ConcurrentHashMap<>();
 
-    private Future<?> lastFuture = null;
-
     public Location location;
+    private Block managerBlock = null;
+    public long lastHeartbeat = 0;
 
     public static int maxServerThreadTime = 10;
 
@@ -261,9 +261,17 @@ public class CargoNet extends Network {
             }
         }
 
+        if (tickerThread != null)
+            tickerThread.stopTicker();
+        tickerThread = new CargoNetTickerThread();
+        tickerThread.start();
+
     }
 
     public static void shutdownPool() {
+        if (tickerThread != null)
+            tickerThread.stopTicker();
+
         if (executePool != null)
             executePool.shutdown();
 
@@ -303,16 +311,23 @@ public class CargoNet extends Network {
         }
     }
 
-    public void tick(Block b) {
-        if (!regulator.equals(b.getLocation())) {
-            SimpleHologram.update(b, "&4Multiple Cargo Regulators connected");
-            return;
+    public void alive(Block block) {
+        this.managerBlock = block;
+        this.lastHeartbeat = System.currentTimeMillis();
+        if (!instances.containsKey(location))
+            instances.put(location, this);
+    }
+
+    public Future<?> tick() {
+        if (!regulator.equals(managerBlock.getLocation())) {
+            SimpleHologram.update(managerBlock, "&4Multiple Cargo Regulators connected");
+            return null;
         }
 
         super.tick();
 
         if (connectorNodes.isEmpty() && terminusNodes.isEmpty()) {
-            SimpleHologram.update(b, "&cNo Cargo Nodes found");
+            SimpleHologram.update(managerBlock, "&cNo Cargo Nodes found");
         } else {
             {
                 final double elapsedTime = (System.currentTimeMillis() - lastUpdate) / 1000.0;
@@ -326,22 +341,11 @@ public class CargoNet extends Network {
                         triedConsume = successConsume = 0;
                         lastUpdate = System.currentTimeMillis();
                     }
-                    SimpleHologram.update(b, text);
+                    SimpleHologram.update(managerBlock, text);
                 }
             }
 
-            if (lastFuture != null)
-                try {
-                    try {
-                        lastFuture.get(1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
-                        return;
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-            lastFuture = executePool.submit(() -> {
+            return executePool.submit(() -> {
                 ConcurrentMap<Integer, List<Location>> output = new ConcurrentHashMap<>();
 
                 List<Location> list = new LinkedList<>();
@@ -398,7 +402,7 @@ public class CargoNet extends Network {
 
                 // Code exported from runSync() - start
                 try {
-                    if (BlockStorage.getLocationInfo(b.getLocation(), "visualizer") == null) {
+                    if (BlockStorage.getLocationInfo(managerBlock.getLocation(), "visualizer") == null) {
                         this.display();
                     }
 
@@ -787,6 +791,7 @@ public class CargoNet extends Network {
                 }
             });
         }
+        return null;
     }
 
     static void runBlockWithLock(@Nonnull Block block, @Nonnull Consumer<Block> consumer)

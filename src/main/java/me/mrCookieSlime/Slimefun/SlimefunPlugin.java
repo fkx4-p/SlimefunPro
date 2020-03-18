@@ -79,6 +79,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     private ProtectionManager protections;
 
     private TickerTask ticker;
+
     private SlimefunCommand command;
     private RecipeSnapshot recipeSnapshot;
 

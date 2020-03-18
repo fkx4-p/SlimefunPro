@@ -32,13 +32,18 @@ public class TickerTask implements Runnable {
 	private final ConcurrentMap<String, Integer> machineCount = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, Long> machineTimings = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, Long> chunkTimings = new ConcurrentHashMap<>();
+
+	public ConcurrentMap<Location, Integer> getBuggedBlocks() {
+		return buggedBlocks;
+	}
+
 	private final ConcurrentMap<Location, Integer> buggedBlocks = new ConcurrentHashMap<>();
 	private final Set<String> chunksSkipped = new HashSet<>();
-	
+
 	private final Set<BlockTicker> tickers = new HashSet<>();
-	
+
 	private boolean halted = false;
-	
+
 	private int skipped = 0;
 	private int chunks = 0;
 	private int machines = 0;
@@ -148,18 +153,18 @@ public class TickerTask implements Runnable {
 			BlockStorage._integrated_moveLocationInfo(entry.getKey(), entry.getValue());
 		}
 		move.clear();
-		
+
 		Iterator<BlockTicker> iterator = tickers.iterator();
 		while (iterator.hasNext()) {
 			iterator.next().startNewTick();
 			iterator.remove();
 		}
-		
+
 		time = System.nanoTime() - timestamp;
 		running = false;
 	}
 
-	private void reportErrors(Location l, SlimefunItem item, Exception x, int errors) {
+	public void reportErrors(Location l, SlimefunItem item, Exception x, int errors) {
 		errors++;
 
 		if (errors == 1) {
@@ -167,8 +172,7 @@ public class TickerTask implements Runnable {
 			new ErrorReport(x, l, item);
 
 			buggedBlocks.put(l, errors);
-		}
-		else if (errors == 4) {
+		} else if (errors == 4) {
 			Slimefun.getLogger().log(Level.SEVERE, "X: " + l.getBlockX() + " Y: " + l.getBlockY() + " Z: " + l.getBlockZ() + '(' + item.getID() + ")");
 			Slimefun.getLogger().log(Level.SEVERE, "has thrown 4 Exceptions in the last 4 Ticks, the Block has been terminated.");
 			Slimefun.getLogger().log(Level.SEVERE, "Check your /plugins/Slimefun/error-reports/ folder for details.");

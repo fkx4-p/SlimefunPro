@@ -1,6 +1,7 @@
 package io.github.thebusybiscuit.slimefun4.api.network;
 
 import com.google.common.collect.Sets;
+import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Color;
@@ -8,11 +9,11 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
 import java.util.ArrayDeque;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * An abstract Network class to manage networks in a stateful way
@@ -171,7 +172,8 @@ public abstract class Network {
         }
     }
 
-    public void tick() {
+    public Future<?> tick() {
         discoverStep();
+        return null;
     }
 }

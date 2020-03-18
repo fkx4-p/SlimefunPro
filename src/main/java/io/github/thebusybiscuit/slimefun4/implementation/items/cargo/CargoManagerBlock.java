@@ -35,7 +35,7 @@ public class CargoManagerBlock extends SlimefunItem {
 			@Override
 			@SuppressWarnings("deprecation")
 			public void tick(Block b, SlimefunItem item, Config data) {
-				CargoNet.getNetworkFromLocationOrCreate(b.getLocation()).tick(b);
+				CargoNet.getNetworkFromLocationOrCreate(b.getLocation()).alive(b);
 			}
 
 			@Override

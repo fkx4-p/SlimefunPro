@@ -5,6 +5,7 @@ import io.github.thebusybiscuit.slimefun4.core.commands.SubCommand;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNetTimings;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 
 public class CargoNetCommand extends SubCommand {
 
@@ -24,6 +25,9 @@ public class CargoNetCommand extends SubCommand {
 
     @Override
     public void onExecute(CommandSender sender, String[] args) {
-        CargoNetTimings.info(sender, args);
+        if (sender.hasPermission("slimefun.command.timings") || sender instanceof ConsoleCommandSender)
+            CargoNetTimings.info(sender, args);
+        else
+            SlimefunPlugin.getLocal().sendMessage(sender, "messages.no-permission", true);
     }
 }
