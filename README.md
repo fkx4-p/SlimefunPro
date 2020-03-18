@@ -1,5 +1,6 @@
 # New Features
 - Async CargoNet processing
+- New machines
 
 # Slimefun 4
 Slimefun is a plugin which aims to turn your Bukkit/Spigot Server into a modpack without ever installing a single mod. It offers everything you could possibly imagine. From Backpacks to Jetpacks! Slimefun lets every player decide on their own how much they want to dive into Magic or Tech.<br>
