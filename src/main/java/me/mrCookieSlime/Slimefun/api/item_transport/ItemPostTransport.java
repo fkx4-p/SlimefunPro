@@ -147,7 +147,6 @@ public class ItemPostTransport {
     public static void runNewTask(CargoNet instance) {
         if (instance == null) return;
         try {
-            if (!CargoNet.consume(instance, CargoNet.energyConsumptionSlot)) return;
             runTask(instance.itemRequests.poll(1, TimeUnit.SECONDS), instance);
         } catch (InterruptedException e) {
             runNewTask(instance);
