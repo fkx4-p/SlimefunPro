@@ -145,7 +145,6 @@
                         <option>-ignorewarnings</option>
                         <option>-allowaccessmodification</option>
                         <option>-verbose</option>
-                        <option>-optimizations !*marking/private</option>
                         <option>-libraryjars ${java.home}/jmods/java.base.jmod</option>
                         <option>-libraryjars ${java.home}/jmods/java.logging.jmod</option>
                         <option>-libraryjars ${java.home}/jmods/java.sql.jmod</option>

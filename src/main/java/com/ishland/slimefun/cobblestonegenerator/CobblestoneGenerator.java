@@ -4,7 +4,9 @@ import me.mrCookieSlime.Slimefun.Lists.Categories;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 @SuppressWarnings("unused")
@@ -184,5 +186,17 @@ public final class CobblestoneGenerator {
             }
 
         }.register(plugin);
+
+        Slimefun.registerResearch(new NamespacedKey(SlimefunPlugin.instance, "cobblestone_generator"),
+                512, "Automated cobblestone generator", 32,
+                Generator.COBBLESTONE_GENERATOR, Generator.COBBLESTONE_GENERATOR_2, Generator.COBBLESTONE_GENERATOR_3);
+        Slimefun.registerResearch(new NamespacedKey(SlimefunPlugin.instance, "cobblestone_generator_2"),
+                512, "More cobblestone", 64,
+                Generator.COBBLESTONE_GENERATOR_4);
+        //noinspection SpellCheckingInspection
+        Slimefun.registerResearch(new NamespacedKey(SlimefunPlugin.instance, "cobblestone_generator_3"),
+                512, "Morrrrrrrrrrrre cobblestone", 256,
+                Generator.COBBLESTONE_GENERATOR_5);
+
     }
 }

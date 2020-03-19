@@ -191,7 +191,7 @@ public abstract class Generator extends AContainer implements InventoryBlock, Re
 
     private ItemStack[] getCobblestone(int amount) {
         List<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < amount; i += 64)
+        for (int i = 64; i <= amount; i += 64)
             items.add(new ItemStack(Material.COBBLESTONE, 64));
         items.add(new ItemStack(Material.COBBLESTONE, amount % 64));
 
