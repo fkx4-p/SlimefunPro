@@ -23,6 +23,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class AttachedBlockCache implements Listener {
 
+    public static long getHit() {
+        return hit;
+    }
+
+    public static long getMiss() {
+        return miss;
+    }
+
+    private static long hit = 0L;
+    private static long miss = 0L;
+
+    public static int getSize() {
+        return cache.size();
+    }
+
     private static ConcurrentMap<Location, Object> cache = new ConcurrentHashMap<>();
     private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
     public static final boolean available;
@@ -69,12 +84,16 @@ public class AttachedBlockCache implements Listener {
         // Faster query
         Object cachedAttachedState = cache.get(blockLocation);
 
-        if (cachedAttachedState instanceof Block) return (Block) cachedAttachedState;
-
-        else if (available)
+        if (cachedAttachedState instanceof Block) {
+            hit++;
+            return (Block) cachedAttachedState;
+        } else if (available)
             synchronized (locks.get(blockLocation)) {
                 cachedAttachedState = cache.get(blockLocation);
-                if (cachedAttachedState instanceof Block) return (Block) cachedAttachedState;
+                if (cachedAttachedState instanceof Block) {
+                    hit++;
+                    return (Block) cachedAttachedState;
+                }
                 return getAttachedBlockSlow(block, blockLocation);
             }
         return getAttachedBlockSlow(block, blockLocation);
@@ -92,6 +111,7 @@ public class AttachedBlockCache implements Listener {
     @Nullable
     private static Block getAttachedBlockSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
+        miss++;
         Object queriedAttachedBlock = new Null();
         final BlockData blockData = Slimefun.runSyncFuture(block::getBlockData).get();
         if (blockData instanceof Directional) {

@@ -39,6 +39,8 @@ public class CargoNetTickerThread extends Thread {
     }
 
     private void mainLoop() {
+        long startTime = System.nanoTime();
+
         Map<Location, Future<?>> futures = new HashMap<>();
         for (Iterator<Map.Entry<Location, CargoNet>> iterator = CargoNet.instances.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Location, CargoNet> cargoNetEntry = iterator.next();
@@ -71,6 +73,10 @@ public class CargoNetTickerThread extends Thread {
                         BlockStorage.check(location), e, errors);
             }
         }
+
+        long endTime = System.nanoTime();
+        CargoNetTimings.timeNanos = endTime - startTime;
+        CargoNetTimings.tickedCargoManagers = futures.size();
     }
 
     public void stopTicker() {

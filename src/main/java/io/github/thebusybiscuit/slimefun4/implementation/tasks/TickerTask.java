@@ -24,17 +24,17 @@ import java.util.stream.Collectors;
 
 public class TickerTask implements Runnable {
 
-	private final DecimalFormat decimalFormat = new DecimalFormat("#.###");
-	private final ConcurrentMap<Location, Location> move = new ConcurrentHashMap<>();
-	private final ConcurrentMap<Location, Boolean> delete = new ConcurrentHashMap<>();
-	private final ConcurrentMap<Location, Long> blockTimings = new ConcurrentHashMap<>();
-	private final ConcurrentMap<String, Integer> chunkItemCount = new ConcurrentHashMap<>();
-	private final ConcurrentMap<String, Integer> machineCount = new ConcurrentHashMap<>();
-	private final ConcurrentMap<String, Long> machineTimings = new ConcurrentHashMap<>();
-	private final ConcurrentMap<String, Long> chunkTimings = new ConcurrentHashMap<>();
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
+    private final ConcurrentMap<Location, Location> move = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Location, Boolean> delete = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Location, Long> blockTimings = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Integer> chunkItemCount = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Integer> machineCount = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> machineTimings = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> chunkTimings = new ConcurrentHashMap<>();
 
-	public ConcurrentMap<Location, Integer> getBuggedBlocks() {
-		return buggedBlocks;
+    public ConcurrentMap<Location, Integer> getBuggedBlocks() {
+        return buggedBlocks;
 	}
 
 	private final ConcurrentMap<Location, Integer> buggedBlocks = new ConcurrentHashMap<>();
@@ -67,7 +67,6 @@ public class TickerTask implements Runnable {
 		machines = 0;
 		chunkItemCount.clear();
 		machineCount.clear();
-		time = 0;
 		chunkTimings.clear();
 		chunksSkipped.clear();
 		machineTimings.clear();
@@ -308,7 +307,7 @@ public class TickerTask implements Runnable {
         halted = true;
     }
 
-    private String toMillis(long time) {
+    public static String toMillis(long time) {
         return decimalFormat.format(time / 1000000F) + "ms";
     }
 

@@ -51,7 +51,7 @@ public class CargoNet extends Network {
     private static final int[] slots = {19, 20, 21, 28, 29, 30, 37, 38, 39};
 
     // Chest Terminal Stuff
-    private static final int[] TERMINAL_SLOTS = { 0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42 };
+    private static final int[] TERMINAL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
     private static final int TERMINAL_OUT_SLOT = 17;
 
     // Chest Terminal Stuff
@@ -438,9 +438,9 @@ public class CargoNet extends Network {
                                     Slimefun.getLogger().log(Level.WARNING, e.getMessage(), e);
                                 }
                             }));
-            }
+                    }
 
-            {
+                    {
                         for (Location bus : exports) {
                             futures.add(tickingPool.submit(() -> {
                                 try {
@@ -505,7 +505,7 @@ public class CargoNet extends Network {
                                     if (sendingItem != null) {
                                         itemRequests.add(
                                                 new ItemRequest(terminal, TERMINAL_OUT_SLOT, sendingItem, ItemTransportFlow.INSERT, providers, destinations));
-                            }
+                                    }
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }

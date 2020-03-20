@@ -1,17 +1,5 @@
 package me.mrCookieSlime.Slimefun;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectionManager;
 import io.github.thebusybiscuit.cscorelib2.reflection.ReflectionUtils;
@@ -76,8 +64,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     private final CustomItemDataService itemDataService = new CustomItemDataService(this, "slimefun_item");
     private final BlockDataService blockDataService = new BlockDataService(this, "slimefun_block");
     private final CustomTextureService textureService = new CustomTextureService(this);
-    private final GitHubService gitHubService = new GitHubService("TheBusyBiscuit/Slimefun4");
-    private final UpdaterService updaterService = new UpdaterService(this, getFile());
+    private final GitHubService gitHubService = new GitHubService("ishland/SlimefunPro");
+    // private final UpdaterService updaterService = new UpdaterService(this, getFile());
     private final MetricsService metricsService = new MetricsService(this);
     private final AutoSavingService autoSavingService = new AutoSavingService();
     private final BackupService backupService = new BackupService();
@@ -149,12 +137,12 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             metricsService.start();
 
             // Starting the Auto-Updater
-            if (config.getBoolean("options.auto-update")) {
-                getLogger().log(Level.INFO, "Starting Auto-Updater...");
-                updaterService.start();
-            } else {
-                updaterService.disable();
-            }
+            // if (config.getBoolean("options.auto-update")) {
+            //     getLogger().log(Level.INFO, "Starting Auto-Updater...");
+            //     updaterService.start();
+            // } else {
+            //     updaterService.disable();
+            // }
 
             // Registering all GEO Resources
             getLogger().log(Level.INFO, "Loading GEO-Resources...");
@@ -533,15 +521,15 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         return instance.thirdPartySupportService;
     }
 
-    /**
-     * This method returns the {@link UpdaterService} of Slimefun.
-     * It is used to handle automatic updates.
-     *
-     * @return The {@link UpdaterService} for Slimefun
-     */
-    public static UpdaterService getUpdater() {
-        return instance.updaterService;
-    }
+    // /**
+    //  * This method returns the {@link UpdaterService} of Slimefun.
+    //  * It is used to handle automatic updates.
+    //  *
+    //  * @return The {@link UpdaterService} for Slimefun
+    //  */
+    // public static UpdaterService getUpdater() {
+    //     return instance.updaterService;
+    // }
 
     /**
      * This method returns the {@link GitHubService} of Slimefun.
@@ -607,7 +595,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
     @Override
     public String getBugTrackerURL() {
-        return "https://github.com/TheBusyBiscuit/Slimefun4/issues";
+        return "https://github.com/ishlandbukkit/SlimefunPro/issues";
     }
 
 }

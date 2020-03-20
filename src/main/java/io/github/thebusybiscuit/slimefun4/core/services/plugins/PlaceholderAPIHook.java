@@ -1,15 +1,16 @@
 package io.github.thebusybiscuit.slimefun4.core.services.plugins;
 
-import java.util.Set;
-import java.util.stream.Stream;
-
+import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
+import io.github.thebusybiscuit.slimefun4.implementation.tasks.TickerTask;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import me.mrCookieSlime.Slimefun.Objects.Research;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
+import me.mrCookieSlime.Slimefun.api.item_transport.CargoNetTimings;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.Objects.Research;
+import java.util.Set;
+import java.util.stream.Stream;
 
 class PlaceholderAPIHook extends PlaceholderExpansion {
 
@@ -68,7 +69,7 @@ class PlaceholderAPIHook extends PlaceholderExpansion {
         }
 
         if (params.equals("timings_lag")) {
-            return SlimefunPlugin.getTicker().getTime() + "ms";
+            return SlimefunPlugin.getTicker().getTime();
         }
 
         if (params.equals("language")) {
@@ -77,6 +78,10 @@ class PlaceholderAPIHook extends PlaceholderExpansion {
             }
 
             return SlimefunPlugin.getLocal().getLanguage((Player) p).getName((Player) p);
+        }
+
+        if (params.equals("cargonet_mspt")) {
+            return TickerTask.toMillis(CargoNetTimings.timeNanos);
         }
 
         return null;

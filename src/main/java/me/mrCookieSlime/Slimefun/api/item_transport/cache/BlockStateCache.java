@@ -23,6 +23,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class BlockStateCache implements Listener {
 
+    public static long getHit() {
+        return hit;
+    }
+
+    public static long getMiss() {
+        return miss;
+    }
+
+    private static long hit = 0L;
+    private static long miss = 0L;
+
+    public static int getSize() {
+        return cache.size();
+    }
+
     private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
     private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
     public static final boolean available;
@@ -75,12 +90,16 @@ public class BlockStateCache implements Listener {
 
         // Faster query
         BlockState cachedState = cache.get(blockLocation);
-        if (cachedState != null) return cachedState;
-
-        else if (available)
+        if (cachedState != null) {
+            hit++;
+            return cachedState;
+        } else if (available)
             synchronized (locks.get(blockLocation)) {
                 cachedState = cache.get(blockLocation);
-                if (cachedState != null) return cachedState;
+                if (cachedState != null) {
+                    hit++;
+                    return cachedState;
+                }
                 return getBlockStateSlow(block, blockLocation);
             }
         return getBlockStateSlow(block, blockLocation);
@@ -98,6 +117,7 @@ public class BlockStateCache implements Listener {
     @NotNull
     private static BlockState getBlockStateSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
+        miss++;
         final BlockState queriedState = Slimefun.runSyncFuture((Callable<@NotNull BlockState>) block::getState).get();
         cache.put(blockLocation, queriedState);
         return queriedState;

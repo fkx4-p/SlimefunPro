@@ -23,6 +23,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class InventoryCache implements Listener {
 
+    public static long getHit() {
+        return hit;
+    }
+
+    public static long getMiss() {
+        return miss;
+    }
+
+    private static long hit = 0L;
+    private static long miss = 0L;
+
+    public static int getSize() {
+        return cache.size();
+    }
+
     private static ConcurrentMap<Location, CachedInventory> cache = new ConcurrentHashMap<>();
     private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
     public static final boolean available;
@@ -68,12 +83,16 @@ public class InventoryCache implements Listener {
 
         // Faster query
         CachedInventory cachedInventory = cache.get(blockLocation);
-        if (cachedInventory != null) return cachedInventory;
-
-        else if (available)
+        if (cachedInventory != null) {
+            hit++;
+            return cachedInventory;
+        } else if (available)
             synchronized (locks.get(blockLocation)) {
                 cachedInventory = cache.get(blockLocation);
-                if (cachedInventory != null) return cachedInventory;
+                if (cachedInventory != null) {
+                    hit++;
+                    return cachedInventory;
+                }
                 return getInventorySlow(container, blockLocation);
             }
         return getInventorySlow(container, blockLocation);
@@ -91,6 +110,7 @@ public class InventoryCache implements Listener {
     @NotNull
     private static CachedInventory getInventorySlow(Container container, Location blockLocation)
             throws InterruptedException, ExecutionException {
+        miss++;
         final Object[] objects = Slimefun.runSyncFuture(() -> {
             final Inventory inventory = container.getInventory();
             return new Object[]{inventory, inventory.getHolder()};

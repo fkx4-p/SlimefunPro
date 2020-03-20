@@ -1,9 +1,8 @@
 package io.github.thebusybiscuit.slimefun4.core.services.metrics;
 
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.Plugin;
-
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 
 /**
  * This Class represents a Metrics Service that sends data to https://bstats.org/
@@ -33,12 +32,12 @@ public class MetricsService {
      * This method intializes and starts the metrics collection.
      */
     public void start() {
-        Metrics metrics = new Metrics(plugin, 4574);
+        Metrics metrics = new Metrics(plugin, 6822);
 
-        if (SlimefunPlugin.getUpdater().getBranch().isOfficial()) {
-            // We really do not need this data if it is an unofficially modified build...
-            metrics.addCustomChart(new AutoUpdaterChart());
-        }
+        // if (SlimefunPlugin.getUpdater().getBranch().isOfficial()) {
+        //     // We really do not need this data if it is an unofficially modified build...
+        //     metrics.addCustomChart(new AutoUpdaterChart());
+        // }
 
         metrics.addCustomChart(new ResourcePackChart());
         metrics.addCustomChart(new SlimefunVersionChart());
