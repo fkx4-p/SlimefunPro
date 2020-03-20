@@ -65,8 +65,6 @@ public class CargoNet extends Network {
 
     private static final ItemStack terminal_noItem_item =
             new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
-    // Chest Terminal Stuff
-    public static final int[] TERMINAL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
 
     private final ItemStack terminalPlaceholderItem = new CustomItem(new ItemStack(Material.BARRIER), "&4No Item cached");
 
