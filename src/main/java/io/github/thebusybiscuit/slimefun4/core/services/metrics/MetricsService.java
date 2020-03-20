@@ -40,7 +40,7 @@ public class MetricsService {
         // }
 
         metrics.addCustomChart(new ResourcePackChart());
-        metrics.addCustomChart(new SlimefunVersionChart());
+        // metrics.addCustomChart(new SlimefunVersionChart());
         metrics.addCustomChart(new ServerLanguageChart());
         metrics.addCustomChart(new PlayerLanguageChart());
         metrics.addCustomChart(new ResearchesEnabledChart());
