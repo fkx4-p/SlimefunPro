@@ -3,6 +3,7 @@ package io.github.thebusybiscuit.slimefun4.implementation.listeners;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,12 +21,12 @@ public class DeathpointListener implements Listener {
     }
 
     @EventHandler
-    public void onDamage(EntityDeathEvent e) {
-        if (e.getEntity() instanceof Player) {
+    public void onDeath(EntityDeathEvent e) {
+        if (e.getEntity().getType() == EntityType.PLAYER) {
             Player p = (Player) e.getEntity();
 
             if (p.getInventory().containsAtLeast(SlimefunItems.GPS_EMERGENCY_TRANSMITTER, 1)) {
-                SlimefunPlugin.getGPSNetwork().addWaypoint(p, SlimefunPlugin.getLocal().getMessage(p, "gps.deathpoint").replace("%date%", format.format(new Date())), p.getLocation().getBlock().getLocation());
+                SlimefunPlugin.getGPSNetwork().addWaypoint(p, "player:death " + SlimefunPlugin.getLocal().getMessage(p, "gps.deathpoint").replace("%date%", format.format(new Date())), p.getLocation().getBlock().getLocation());
             }
         }
     }

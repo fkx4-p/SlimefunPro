@@ -11,13 +11,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.thebusybiscuit.cscorelib2.chat.ChatColors;
+import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
 import io.github.thebusybiscuit.slimefun4.implementation.guide.BookSlimefunGuide;
 import io.github.thebusybiscuit.slimefun4.implementation.guide.ChestSlimefunGuide;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
-import me.mrCookieSlime.Slimefun.api.PlayerProfile;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 
 /**
@@ -87,13 +87,12 @@ public final class SlimefunGuide {
         if (!SlimefunPlugin.getWhitelist().getBoolean(p.getWorld().getName() + ".enabled")) return;
         if (!SlimefunPlugin.getWhitelist().getBoolean(p.getWorld().getName() + ".enabled-items.SLIMEFUN_GUIDE")) return;
 
-        SlimefunGuideImplementation guide = SlimefunPlugin.getRegistry().getGuideLayout(layout);
-        Object last = null;
-
-        Optional<PlayerProfile> profile = PlayerProfile.find(p);
-        if (profile.isPresent()) {
-            last = guide.getLastEntry(profile.get(), false);
-            guide.openEntry(profile.get(), last, true);
+        Optional<PlayerProfile> optional = PlayerProfile.find(p);
+        
+        if (optional.isPresent()) {
+            PlayerProfile profile = optional.get();
+            SlimefunGuideImplementation guide = SlimefunPlugin.getRegistry().getGuideLayout(layout);
+            profile.getGuideHistory().openLastEntry(guide, true);
         }
         else {
             openMainMenuAsync(p, true, layout, 1);
@@ -120,7 +119,7 @@ public final class SlimefunGuide {
     }
 
     public static void displayItem(PlayerProfile profile, ItemStack item, boolean addToHistory) {
-        SlimefunPlugin.getRegistry().getGuideLayout(SlimefunGuideLayout.CHEST).displayItem(profile, item, addToHistory);
+        SlimefunPlugin.getRegistry().getGuideLayout(SlimefunGuideLayout.CHEST).displayItem(profile, item, 0, addToHistory);
     }
 
     public static void displayItem(PlayerProfile profile, SlimefunItem item, boolean addToHistory) {

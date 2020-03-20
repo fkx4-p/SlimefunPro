@@ -49,6 +49,12 @@
 * Multiblocks that use Fences or Trap doors now accept all wood types
 * Added Makeshift Smeltery
 * Added Tree Growth Accelerator
+* Added "Glass to Glass Panes" recipe to the Electric Press
+* Added "Snowballs to Snow blocks" recipe to the Electric Press
+* Added "Snow blocks to Ice" recipe to the Freezer
+* You can now use Cooked Salmon in an Auto Drier to craft Fish Jerky
+* The Lumber Axe can now strip logs too
+* The Slimefun Guide can now remember what page of a Category or Minecraft Item you were on
 
 #### Changes
 * Removed some deprecated parts of the API
@@ -57,6 +63,7 @@
 * Teleporters are now significantly faster
 * Item permissions have been moved to a seperate permissions.yml file
 * Salt now only requires 2 blocks of Sand
+* Firework from researcheing no longer damages entities
 
 #### Fixes
 * Fixed some languages showing numbers larger than 100%
@@ -64,6 +71,13 @@
 * Fixed #1686
 * Fixed #1648
 * Fixed #1397
+* Fixed #1706
+* Fixed #1710
+* Fixed #1711
+* Fixed Slimefun Guide showing shaped recipes incorrectly
+* Fixed #1719
+* Fixed death waypoints not having the correct texture
+* Fixed Androids having no texture when moving
 
 ## Release Candidate 9 (07 Mar 2020)
 

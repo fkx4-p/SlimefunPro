@@ -1,12 +1,24 @@
 package me.mrCookieSlime.Slimefun;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectionManager;
-import io.github.thebusybiscuit.cscorelib2.recipes.RecipeSnapshot;
 import io.github.thebusybiscuit.cscorelib2.reflection.ReflectionUtils;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun4.api.gps.GPSNetwork;
 import io.github.thebusybiscuit.slimefun4.api.network.NetworkManager;
+import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
 import io.github.thebusybiscuit.slimefun4.core.SlimefunRegistry;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.services.*;
@@ -26,7 +38,6 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AGenerator;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AReactor;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
-import me.mrCookieSlime.Slimefun.api.PlayerProfile;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
@@ -63,15 +74,16 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
     // Services - Systems that fulfill certain tasks, treat them as a black box
     private final CustomItemDataService itemDataService = new CustomItemDataService(this, "slimefun_item");
-    private final CustomTextureService textureService = new CustomTextureService(this);
     private final BlockDataService blockDataService = new BlockDataService(this, "slimefun_block");
+    private final CustomTextureService textureService = new CustomTextureService(this);
     private final GitHubService gitHubService = new GitHubService("TheBusyBiscuit/Slimefun4");
     private final UpdaterService updaterService = new UpdaterService(this, getFile());
+    private final MetricsService metricsService = new MetricsService(this);
     private final AutoSavingService autoSavingService = new AutoSavingService();
     private final BackupService backupService = new BackupService();
-    private final MetricsService metricsService = new MetricsService(this);
     private final PermissionsService permissionsService = new PermissionsService(this);
     private final ThirdPartyPluginService thirdPartySupportService = new ThirdPartyPluginService(this);
+    private final MinecraftRecipeService recipeService = new MinecraftRecipeService(this);
     private LocalizationService local;
 
     private GPSNetwork gpsNetwork;
@@ -81,7 +93,6 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     private TickerTask ticker;
 
     private SlimefunCommand command;
-    private RecipeSnapshot recipeSnapshot;
 
     private Config researches;
     private Config items;
@@ -156,14 +167,14 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             try {
                 SlimefunItemSetup.setup(this);
             } catch (Throwable x) {
-                getLogger().log(Level.SEVERE, "An Error occured while initializing SlimefunItems for Slimefun " + getVersion(), x);
+                getLogger().log(Level.SEVERE, x, () -> "An Error occured while initializing SlimefunItems for Slimefun " + getVersion());
             }
 
             getLogger().log(Level.INFO, "Loading Researches...");
             try {
                 ResearchSetup.setupResearches();
             } catch (Throwable x) {
-                getLogger().log(Level.SEVERE, "An Error occured while initializing Slimefun Researches for Slimefun " + getVersion(), x);
+                getLogger().log(Level.SEVERE, x, () -> "An Error occured while initializing Slimefun Researches for Slimefun " + getVersion());
             }
 
             registry.setResearchingEnabled(getResearchCfg().getBoolean("enable-researching"));
@@ -178,7 +189,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             new SlimefunItemConsumeListener(this);
             new BlockPhysicsListener(this);
             new MultiBlockListener(this);
-            new GearListener(this);
+            new GadgetsListener(this);
             new DispenserListener(this);
             new EntityKillListener(this);
             new BlockListener(this);
@@ -188,12 +199,15 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             new ExplosionsListener(this);
             new DebugFishListener(this);
             new VanillaMachinesListener(this);
+            new FireworksListener(this);
+            new WitherListener(this);
+            new IronGolemListener(this);
 
             bowListener = new SlimefunBowListener(this);
             ancientAltarListener = new AncientAltarListener();
             grapplingHookListener = new GrapplingHookListener();
 
-            // Toggleable Listeners for performance
+            // Toggleable Listeners for performance reasons
             if (config.getBoolean("items.talismans")) {
                 new TalismanListener(this);
             }
@@ -219,8 +233,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             Slimefun.runSync(() -> {
                 textureService.register(registry.getAllSlimefunItems());
                 permissionsService.register(registry.getAllSlimefunItems());
+                recipeService.load();
 
-                recipeSnapshot = new RecipeSnapshot(this);
                 protections = new ProtectionManager(getServer());
 
                 PostSetup.loadItems();
@@ -276,8 +290,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
                 try {
                     ticker.run();
-                } catch (Exception x) {
-                    getLogger().log(Level.SEVERE, "An Exception was caught while ticking the Block Tickers Task for Slimefun v" + getVersion(), x);
+                } catch (Throwable x) {
+                    getLogger().log(Level.SEVERE, x, () -> "An Exception was caught while ticking the Block Tickers Task for Slimefun v" + getVersion());
                     ticker.abortTick();
                 }
             }, 100L, config.getInt("URID.custom-ticker-delay"));
@@ -360,8 +374,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
             getLogger().log(Level.SEVERE, "### Slimefun was not installed correctly!");
             getLogger().log(Level.SEVERE, "### You are using the wrong version of Minecraft!");
             getLogger().log(Level.SEVERE, "###");
-            getLogger().log(Level.SEVERE, "### You are using Minecraft " + ReflectionUtils.getVersion());
-            getLogger().log(Level.SEVERE, "### but Slimefun v" + getDescription().getVersion() + " requires you to be using");
+            getLogger().log(Level.SEVERE, "### You are using Minecraft {0}", ReflectionUtils.getVersion());
+            getLogger().log(Level.SEVERE, "### but Slimefun v{0} requires you to be using", getDescription().getVersion());
             getLogger().log(Level.SEVERE, "### Minecraft {0}", String.join(" / ", MinecraftVersion.getSupportedVersions()));
             return true;
         }
@@ -372,8 +386,10 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
     @Override
     public void onDisable() {
-        // CS-CoreLib wasn't loaded, just disabling
-        if (instance == null) return;
+        // Slimefun never loaded successfully, so we don't even bother doing stuff here
+        if (instance == null) {
+            return;
+        }
 
         Bukkit.getScheduler().cancelTasks(this);
 
@@ -396,10 +412,10 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 if (storage != null) {
                     storage.save(true);
                 } else {
-                    getLogger().log(Level.SEVERE, "Could not save Slimefun Blocks for World \"" + world.getName() + "\"");
+                    getLogger().log(Level.SEVERE, "Could not save Slimefun Blocks for World \"{0}\"", world.getName());
                 }
             } catch (Exception x) {
-                getLogger().log(Level.SEVERE, "An Error occured while saving Slimefun-Blocks in World '" + world.getName() + "' for Slimefun " + getVersion(), x);
+                getLogger().log(Level.SEVERE, x, () -> "An Error occured while saving Slimefun-Blocks in World '" + world.getName() + "' for Slimefun " + getVersion());
             }
         }
 
@@ -451,7 +467,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         return instance.config;
     }
 
-    public static io.github.thebusybiscuit.cscorelib2.config.Config getResearchCfg() {
+    public static Config getResearchCfg() {
         return instance.researches;
     }
 
@@ -459,7 +475,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         return instance.items;
     }
 
-    public static io.github.thebusybiscuit.cscorelib2.config.Config getWhitelist() {
+    public static Config getWhitelist() {
         return instance.whitelist;
     }
 
@@ -493,8 +509,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         return instance.local;
     }
 
-    public static RecipeSnapshot getMinecraftRecipes() {
-        return instance.recipeSnapshot;
+    public static MinecraftRecipeService getMinecraftRecipes() {
+        return instance.recipeService;
     }
 
     public static CustomItemDataService getItemDataService() {
