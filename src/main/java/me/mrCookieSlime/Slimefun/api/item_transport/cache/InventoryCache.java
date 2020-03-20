@@ -34,6 +34,12 @@ public class InventoryCache implements Listener {
     private static long hit = 0L;
     private static long miss = 0L;
 
+    public static long getClean() {
+        return clean;
+    }
+
+    private static long clean = 0L;
+
     public static int getSize() {
         return cache.size();
     }
@@ -143,6 +149,7 @@ public class InventoryCache implements Listener {
     public static void remove(Location location) {
         CachedInventory cachedInventory = cache.get(location);
         if (cachedInventory == null) return;
+        clean++;
         cache.remove(location);
         for (Location loc : cachedInventory.locations)
             remove(loc);
@@ -157,6 +164,7 @@ public class InventoryCache implements Listener {
         CacheGC.cleanThread.execute(() -> {
             CachedInventory cachedInventory = cache.get(location);
             if (cachedInventory == null) return;
+            clean++;
             cache.remove(location);
             for (Location loc : cachedInventory.locations)
                 updateCache(loc);

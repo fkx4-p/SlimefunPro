@@ -288,7 +288,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
             // Slimefun Async CargoNet Scheduler
             Slimefun.isStopping = false;
-            config.getConfiguration().addDefault("cargonet.max-server-thread-time", 10);
+            config.getConfiguration().addDefault("cargonet.max-server-thread-time", 40);
             CargoNet.maxServerThreadTime = config.getInt("cargonet.max-server-thread-time");
             CargoNet.restartPool();
             Bukkit.getScheduler().runTaskTimer(this, () -> {

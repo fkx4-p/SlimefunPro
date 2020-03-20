@@ -25,6 +25,8 @@ public class CargoNetTimings {
                 '&', "&6AttachedBlockCache hits: &e" + AttachedBlockCache.getHit()));
         sender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&', "&6AttachedBlockCache misses: &e" + AttachedBlockCache.getMiss()));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes(
+                '&', "&6AttachedBlockCache updates: &e" + AttachedBlockCache.getClean()));
 
         sender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&', "&6BlockStateCache size: &e" + BlockStateCache.getSize()));
@@ -32,6 +34,8 @@ public class CargoNetTimings {
                 '&', "&6BlockStateCache hits: &e" + BlockStateCache.getHit()));
         sender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&', "&6BlockStateCache misses: &e" + BlockStateCache.getMiss()));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes(
+                '&', "&6BlockStateCache updates: &e" + BlockStateCache.getClean()));
 
         sender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&', "&6InventoryCache size: &e" + InventoryCache.getSize()));
@@ -39,6 +43,8 @@ public class CargoNetTimings {
                 '&', "&6InventoryCache hits: &e" + InventoryCache.getHit()));
         sender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&', "&6InventoryCache misses: &e" + InventoryCache.getMiss()));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes(
+                '&', "&6InventoryCache updates: &e" + InventoryCache.getClean()));
     }
 
 }

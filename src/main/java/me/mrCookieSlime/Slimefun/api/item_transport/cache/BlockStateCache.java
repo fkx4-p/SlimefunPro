@@ -34,6 +34,12 @@ public class BlockStateCache implements Listener {
     private static long hit = 0L;
     private static long miss = 0L;
 
+    public static long getClean() {
+        return clean;
+    }
+
+    private static long clean = 0L;
+
     public static int getSize() {
         return cache.size();
     }
@@ -70,7 +76,7 @@ public class BlockStateCache implements Listener {
                     if (event instanceof BlockEvent)
                         CacheGC.cleanThread.execute(() -> instance.onBlockEvents((BlockEvent) event));
                 }, EventPriority.MONITOR, SlimefunPlugin.instance,
-                false);
+                true);
         for (HandlerList handler : HandlerList.getHandlerLists())
             handler.register(registeredListener);
     }
@@ -129,7 +135,7 @@ public class BlockStateCache implements Listener {
      * @param location location of block to refresh
      */
     public static void remove(Location location) {
-        cache.remove(location);
+        if (cache.remove(location) != null) clean++;
     }
 
     public void onBlockEvents(BlockEvent event) {

@@ -41,9 +41,9 @@ import java.util.logging.Level;
 
 public class CargoNet extends Network {
 
-    public static final int energyConsumptionManager = 8;
-    public static final int energyConsumptionConnector = 4;
-    public static final int energyConsumptionNode = 2;
+    public static final int energyConsumptionManager = 4;
+    public static final int energyConsumptionConnector = 2;
+    public static final int energyConsumptionNode = 1;
     public static final int energyConsumptionSlot = 1;
 
     private static final int RANGE = 5;
@@ -213,7 +213,7 @@ public class CargoNet extends Network {
         if (tickingPool != null)
             tickingPool.shutdown();
         tickingPoolThreads.clear();
-        SlimefunPlugin.getCfg().getConfiguration().addDefault("cargonet.thread-pool.ticking", 4);
+        SlimefunPlugin.getCfg().getConfiguration().addDefault("cargonet.thread-pool.ticking", 10);
         tickingPool = Executors.newFixedThreadPool(SlimefunPlugin.getCfg().getInt("cargonet.thread-pool.ticking"), new ThreadFactory() {
             private int threadCount = 0;
 
@@ -229,7 +229,7 @@ public class CargoNet extends Network {
             if (requestQueuePool != null)
                 requestQueuePool.shutdown();
             requestQueuePoolThreads.clear();
-            SlimefunPlugin.getCfg().getConfiguration().addDefault("cargonet.thread-pool.request-queue", 4);
+            SlimefunPlugin.getCfg().getConfiguration().addDefault("cargonet.thread-pool.request-queue", 2);
             int threadCount = SlimefunPlugin.getCfg().getInt("cargonet.thread-pool.request-queue");
             requestQueuePool = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
                 private int threadCount = 0;
