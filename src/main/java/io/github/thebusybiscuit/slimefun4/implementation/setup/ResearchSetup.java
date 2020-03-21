@@ -228,7 +228,7 @@ public final class ResearchSetup {
         register("empowered_fisherman_android", 224, "Empowered Androids - Fisherman", 30, SlimefunItems.PROGRAMMABLE_ANDROID_3_FISHERMAN);
         register("high_tier_carbon_press", 225, "Ultimate Carbon Press", 32, SlimefunItems.CARBON_PRESS_3);
         register("wither_assembler", 226, "Automated Wither Killer", 35, SlimefunItems.WITHER_ASSEMBLER);
-        register("better_heated_pressure_chamber", 227, "Upgraded Heated Pressure Chamber", 20, SlimefunItems.HEATED_PRESSURE_CHAMBER_2);
+        register("better_heated_pressure_chamber", 227, "Upgraded Heated Pressure Chamber", 20, SlimefunItems.HEATED_PRESSURE_CHAMBER_2, SlimefunItems.HEATED_PRESSURE_CHAMBER_3);
         register("elytra", 228, "Elytras", 20, SlimefunItems.ELYTRA_SCALE, SlimefunItems.ELYTRA);
         register("special_elytras", 229, "Special Elytras", 30, SlimefunItems.INFUSED_ELYTRA, SlimefunItems.SOULBOUND_ELYTRA);
         register("electric_crucible", 230, "Electrified Crucible", 26, SlimefunItems.ELECTRIFIED_CRUCIBLE);
