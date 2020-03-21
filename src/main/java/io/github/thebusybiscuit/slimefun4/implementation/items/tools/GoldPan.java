@@ -28,7 +28,7 @@ public class GoldPan extends SimpleSlimefunItem<ItemUseHandler> implements Recip
     private int weights;
 
     public GoldPan(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
-        super(category, item, recipeType, recipe, new String[] { "chance.FLINT", "chance.CLAY", "chance.SIFTED_ORE", "chance.IRON_NUGGET", "chance.COAL" }, new Integer[] { 40, 5, 30, 5, 20 });
+        super(category, item, recipeType, recipe, new String[] { "chance.FLINT", "chance.CLAY", "chance.SIFTED_ORE", "chance.IRON_NUGGET", "chance.COAL" }, new Integer[] { 30, 5, 40, 5, 20 });
 
         recipes = Arrays.asList(
             new ItemStack(Material.GRAVEL), new ItemStack(Material.FLINT), 
