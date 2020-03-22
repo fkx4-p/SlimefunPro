@@ -87,8 +87,8 @@ final class CargoUtils {
                     maxSlot = 3;
                 }
                 for (int slot = minSlot; slot < maxSlot; slot++) {
-                    return withdrawFromVanillaInventory(node, template,
-                            ((InventoryHolder) state).getInventory(), (Container) state);
+                    ItemStack is = invContents[slot].clone();
+                    return withdrawFromVanillaInventory(node, template, ((InventoryHolder) state).getInventory());
                 }
             }
 
@@ -97,7 +97,7 @@ final class CargoUtils {
         return null;
     }
 
-    private static ItemStack withdrawFromVanillaInventory(Block node, ItemStack template, Inventory inv, Container state) {
+    private static ItemStack withdrawFromVanillaInventory(Block node, ItemStack template, Inventory inv) {
         int minSlot = 0;
         int maxSlot = inv.getContents().length;
 
@@ -133,8 +133,6 @@ final class CargoUtils {
                 }
             }
         }
-
-        Slimefun.runSync(state::update);
 
         return null;
     }
@@ -207,7 +205,6 @@ final class CargoUtils {
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
-                        Slimefun.runSync(state::update);
                         return new ItemStackAndInteger(is.clone(), slot);
                     }
                 }
@@ -248,9 +245,10 @@ final class CargoUtils {
                     int amount = is.getAmount() + stack.getAmount();
 
                     if (amount > is.getType().getMaxStackSize()) {
+                        ItemStack finalStack1 = stack;
                         try {
                             is.setAmount(is.getType().getMaxStackSize());
-                            stack.setAmount(amount - is.getType().getMaxStackSize());
+                            finalStack1.setAmount(amount - is.getType().getMaxStackSize());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -288,15 +286,14 @@ final class CargoUtils {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                return insertIntoVanillaInventory(invContents, stack, inv, (Container) state);
+                return insertIntoVanillaInventory(invContents, stack, inv);
             }
         }
 
         return stack;
     }
 
-    private static ItemStack insertIntoVanillaInventory(ItemStack[] invContents, ItemStack stack, Inventory inv,
-                                                        Container state) {
+    private static ItemStack insertIntoVanillaInventory(ItemStack[] invContents, ItemStack stack, Inventory inv) {
         int minSlot = 0;
         int maxSlot = invContents.length;
 
@@ -335,7 +332,6 @@ final class CargoUtils {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                Slimefun.runSync(state::update);
                 return null;
             } else if (SlimefunManager.isItemSimilar(new CustomItem(is, 1), new CustomItem(stack, 1), true) && is.getAmount() < is.getType().getMaxStackSize()) {
                 is = is.clone();
@@ -356,7 +352,6 @@ final class CargoUtils {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                Slimefun.runSync(state::update);
                 return stack;
             }
         }
