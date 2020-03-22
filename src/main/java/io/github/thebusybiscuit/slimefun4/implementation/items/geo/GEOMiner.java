@@ -1,15 +1,5 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.geo;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.OptionalInt;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.slimefun4.api.geo.GEOResource;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
@@ -17,7 +7,6 @@ import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu.AdvancedMenuClickHandler;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunBlockHandler;
@@ -26,11 +15,21 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.UnregisterReason;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.interfaces.InventoryBlock;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.OptionalInt;
 
 public abstract class GEOMiner extends AContainer implements InventoryBlock, RecipeDisplayItem {
 
@@ -172,6 +171,9 @@ public abstract class GEOMiner extends AContainer implements InventoryBlock, Rec
 
                 progress.remove(b);
                 processing.remove(b);
+
+                if (timeleft != -1)
+                    tick(b);
             }
         }
         else if (!BlockStorage.hasChunkInfo(b.getWorld(), b.getX() >> 4, b.getZ() >> 4)) {
@@ -194,9 +196,10 @@ public abstract class GEOMiner extends AContainer implements InventoryBlock, Rec
                             if (!menu.fits(r.getOutput()[0], getOutputSlots())) return;
 
                             processing.put(b, r);
-                            progress.put(b, r.getTicks());
+                            progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
                             SlimefunPlugin.getGPSNetwork().getResourceManager().setSupplies(resource, b.getWorld(), b.getX() >> 4, b.getZ() >> 4, supplies - 1);
                             SimpleHologram.update(b, "&7Mining: &r" + resource.getName());
+                            tick(b);
                             return;
                         }
                     }

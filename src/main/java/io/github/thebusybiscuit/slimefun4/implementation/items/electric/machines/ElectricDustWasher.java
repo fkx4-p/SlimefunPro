@@ -1,23 +1,22 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines;
 
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWasher;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
-import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Lists.SlimefunItems;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
+import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
 
 public abstract class ElectricDustWasher extends AContainer {
 
@@ -75,6 +74,9 @@ public abstract class ElectricDustWasher extends AContainer {
 
                 progress.remove(b);
                 processing.remove(b);
+
+                if (timeleft != -1)
+                    tick(b);
             }
         }
         else {
@@ -109,7 +111,8 @@ public abstract class ElectricDustWasher extends AContainer {
             if (!legacyMode || menu.fits(r.getOutput()[0], getOutputSlots())) {
                 menu.consumeItem(slot);
                 processing.put(b, r);
-                progress.put(b, r.getTicks());
+                progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
+                tick(b);
             }
             
             return true;
@@ -120,7 +123,8 @@ public abstract class ElectricDustWasher extends AContainer {
             if (menu.fits(r.getOutput()[0], getOutputSlots())) {
                 menu.consumeItem(slot);
                 processing.put(b, r);
-                progress.put(b, r.getTicks());
+                progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
+                tick(b);
             }
             
             return true;

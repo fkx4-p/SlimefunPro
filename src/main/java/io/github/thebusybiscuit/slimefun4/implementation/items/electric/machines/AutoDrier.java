@@ -1,13 +1,5 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Material;
-import org.bukkit.Tag;
-import org.bukkit.block.Block;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
@@ -21,6 +13,13 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import org.bukkit.Material;
+import org.bukkit.Tag;
+import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The {@link AutoDrier} is an implementation of {@link AContainer} that features recipes
@@ -117,6 +116,9 @@ public class AutoDrier extends AContainer implements RecipeDisplayItem {
 
                 progress.remove(b);
                 processing.remove(b);
+
+                if (timeleft != -1)
+                    tick(b);
             }
         }
         else {
@@ -142,7 +144,9 @@ public class AutoDrier extends AContainer implements RecipeDisplayItem {
 
                 menu.consumeItem(inputSlot);
                 processing.put(b, r);
-                progress.put(b, r.getTicks());
+                progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
+
+                tick(b);
             }
         }
     }

@@ -154,6 +154,9 @@ public abstract class HeatedPressureChamber extends AContainer {
 
                 progress.remove(b);
                 processing.remove(b);
+
+                if (timeleft != -1)
+                    tick(b);
             }
         } else {
             Map<Integer, Integer> found = new HashMap<>();
@@ -169,7 +172,8 @@ public abstract class HeatedPressureChamber extends AContainer {
                 }
 
                 processing.put(b, recipe);
-                progress.put(b, recipe.getTicks());
+                progress.put(b, recipe.getTicks() == 0 ? -1 : recipe.getTicks());
+                tick(b);
             }
         }
     }

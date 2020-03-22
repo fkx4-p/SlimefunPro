@@ -223,6 +223,9 @@ public abstract class Generator extends AContainer implements InventoryBlock, Re
 
                 progress.remove(b);
                 processing.remove(b);
+
+                if (timeLeft != -1)
+                    tick(b);
             }
         } else {
 
@@ -231,8 +234,9 @@ public abstract class Generator extends AContainer implements InventoryBlock, Re
             if (!menu.fits(r.getOutput()[0], getOutputSlots())) return;
 
             processing.put(b, r);
-            progress.put(b, r.getTicks());
+            progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
 
+            tick(b);
         }
     }
 

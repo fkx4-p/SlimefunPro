@@ -1,12 +1,5 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.inventory.ItemStack;
-
 import io.github.thebusybiscuit.cscorelib2.collections.RandomizedSet;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
@@ -22,6 +15,12 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class ElectricGoldPan extends AContainer implements RecipeDisplayItem {
 
@@ -107,15 +106,18 @@ public abstract class ElectricGoldPan extends AContainer implements RecipeDispla
 				else progress.put(b, timeleft - 1);
 			}
 			else if (ChargableBlock.isChargable(b)) {
-				if (ChargableBlock.getCharge(b) < getEnergyConsumption()) return;
-				ChargableBlock.addCharge(b, -getEnergyConsumption());
+                if (ChargableBlock.getCharge(b) < getEnergyConsumption()) return;
+                ChargableBlock.addCharge(b, -getEnergyConsumption());
 
-				menu.replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
-				menu.pushItem(processing.get(b).getOutput()[0].clone(), getOutputSlots());
-				
-				progress.remove(b);
-				processing.remove(b);
-			}
+                menu.replaceExistingItem(22, new CustomItem(new ItemStack(Material.BLACK_STAINED_GLASS_PANE), " "));
+                menu.pushItem(processing.get(b).getOutput()[0].clone(), getOutputSlots());
+
+                progress.remove(b);
+                processing.remove(b);
+
+                if (timeleft != -1)
+                    tick(b);
+            }
 		}
 		else {
 			for (int slot : getInputSlots()) {
@@ -135,7 +137,8 @@ public abstract class ElectricGoldPan extends AContainer implements RecipeDispla
             if (menu.fits(output, getOutputSlots())) {
                 menu.consumeItem(slot);
                 processing.put(b, r);
-                progress.put(b, r.getTicks());
+                progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
+                tick(b);
             }
             
             return true;
@@ -148,7 +151,8 @@ public abstract class ElectricGoldPan extends AContainer implements RecipeDispla
             if (menu.fits(output, getOutputSlots())) {
                 menu.consumeItem(slot);
                 processing.put(b, r);
-                progress.put(b, r.getTicks());
+                progress.put(b, r.getTicks() == 0 ? -1 : r.getTicks());
+                tick(b);
             }
             
             return true;
