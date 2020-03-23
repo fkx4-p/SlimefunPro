@@ -22,6 +22,7 @@ public class BlockLockManager {
         getLock(block).run(consumer, block);
     }
 
+    @SuppressWarnings("unused")
     static void runWithLock(@Nonnull SynchronizedLock<Block> lock, @Nonnull Block block, @Nonnull Consumer<Block> consumer) {
         lock.run(consumer, block);
     }

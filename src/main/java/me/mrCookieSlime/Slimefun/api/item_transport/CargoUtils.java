@@ -337,7 +337,8 @@ final class CargoUtils {
                 ItemStack is = inv.getContents()[finalSlot2];
                 ItemStack finalStack = finalStack2;
 
-                if (is == null) {
+                //noinspection ConstantConditions
+                if (is == null && finalStack != null) {
                     try {
                         try {
                             ItemStack finalStack1 = finalStack;
