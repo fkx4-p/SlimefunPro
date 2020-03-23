@@ -7,26 +7,41 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SlotLockManager {
 
     private static final ConcurrentHashMap<Location, SlotLock> locks = new ConcurrentHashMap<>();
 
-    static void runWithLock(Inventory inventory, int slot, Runnable runnable) {
-        synchronized (getLock(inventory, slot)) {
-            runnable.run();
-        }
+    static boolean runWithLock(Inventory inventory, int slot, Runnable runnable) {
+        return runWithLock(inventory.getLocation(), slot, runnable, false);
     }
 
-    static void runWithLock(Location location, int slot, Runnable runnable) {
-        synchronized (getLock(location, slot)) {
-            runnable.run();
-        }
+    @SuppressWarnings("SameParameterValue")
+    static boolean runWithLock(Inventory inventory, int slot, Runnable runnable, boolean tryOnly) {
+        return runWithLock(inventory.getLocation(), slot, runnable, tryOnly);
     }
 
-    @Nonnull
-    static SlotLock getLock(Inventory inventory, int slot) {
-        return getLock(Objects.requireNonNull(inventory.getLocation()), slot);
+    static boolean runWithLock(Location location, int slot, Runnable runnable) {
+        return runWithLock(location, slot, runnable, false);
+    }
+
+    static boolean runWithLock(Location location, int slot, Runnable runnable, boolean tryOnly) {
+        final SlotLock lock = getLock(location, slot);
+        return runWithLock(lock, runnable, tryOnly);
+    }
+
+    static boolean runWithLock(SlotLock lock, Runnable runnable, boolean tryOnly) {
+        if (tryOnly && !lock.lock.tryLock())
+            return false;
+        else
+            lock.lock.lock();
+        try {
+            runnable.run();
+            return true;
+        } finally {
+            lock.lock.unlock();
+        }
     }
 
     @Nonnull
@@ -42,6 +57,8 @@ public class SlotLockManager {
         @Nonnull
         public final Location location;
         public final int slot;
+
+        public final ReentrantLock lock = new ReentrantLock();
 
         public SlotLock(@NotNull Location location, int slot) {
             this.location = location;
