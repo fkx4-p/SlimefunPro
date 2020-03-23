@@ -1,5 +1,6 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
@@ -7,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SlotLockManager {
@@ -32,15 +34,41 @@ public class SlotLockManager {
     }
 
     static boolean runWithLock(SlotLock lock, Runnable runnable, boolean tryOnly) {
-        if (tryOnly && !lock.lock.tryLock())
-            return false;
-        else
-            lock.lock.lock();
+        final ReentrantLock lock1 = lock.lock;
+        if (tryOnly) {
+            try {
+                if (!lock1.tryLock(10, TimeUnit.MICROSECONDS))
+                    return false;
+            } catch (InterruptedException e) {
+                return false;
+            }
+        } else {
+            try {
+                if (!lock1.tryLock(10, TimeUnit.SECONDS)) {
+                    Slimefun.getLogger().warning("=======================================================");
+                    Slimefun.getLogger().warning("Possible deadlock of Async CargoNet was detected.");
+                    Slimefun.getLogger().warning("This may be caused by a bug of Slimefun Async CargoNet,");
+                    Slimefun.getLogger().warning("or misconfiguration.");
+                    Slimefun.getLogger().warning("To make the system function again, we removed the lock");
+                    Slimefun.getLogger().warning("and created a new lock for this operation.");
+                    Slimefun.getLogger().warning("Details of the operation: ");
+                    Slimefun.getLogger().warning("Location: " + lock.location);
+                    Slimefun.getLogger().warning("Slot being operated: " + lock.slot);
+                    Slimefun.getLogger().warning("Lock information: " + lock.lock.toString());
+                    Slimefun.getLogger().warning("=======================================================");
+                    lock.lock = new ReentrantLock();
+                    //noinspection ConstantConditions
+                    runWithLock(lock, runnable, tryOnly);
+                }
+            } catch (InterruptedException e) {
+                return false;
+            }
+        }
         try {
             runnable.run();
             return true;
         } finally {
-            lock.lock.unlock();
+            lock1.unlock();
         }
     }
 
@@ -58,7 +86,7 @@ public class SlotLockManager {
         public final Location location;
         public final int slot;
 
-        public final ReentrantLock lock = new ReentrantLock();
+        public ReentrantLock lock = new ReentrantLock();
 
         public SlotLock(@NotNull Location location, int slot) {
             this.location = location;
