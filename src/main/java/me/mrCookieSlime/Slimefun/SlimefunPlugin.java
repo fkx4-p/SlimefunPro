@@ -381,12 +381,18 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
         Bukkit.getScheduler().cancelTasks(this);
 
+        getLogger().info("Stopping ticker...");
         if (ticker != null) {
             // Finishes all started movements/removals of block data
             ticker.halt();
             ticker.run();
         }
 
+        getLogger().info("Shutting down Async CargoNet...");
+        Slimefun.isStopping = true;
+        CargoNet.shutdownPool();
+
+        getLogger().info("Saving data...");
         PlayerProfile.iterator().forEachRemaining(profile -> {
             if (profile.isDirty()) {
                 profile.save();
@@ -412,9 +418,6 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
         }
 
         backupService.run();
-
-        Slimefun.isStopping = true;
-        CargoNet.shutdownPool();
 
         // Prevent Memory Leaks
         AContainer.processing = null;
