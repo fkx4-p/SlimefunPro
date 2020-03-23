@@ -68,7 +68,7 @@ final class CargoUtils {
                             shouldReturn.set(true);
                         }
                     }
-                });
+                }, true);
                 if (shouldReturn.get()) return res.get();
             }
         } else {
@@ -126,7 +126,7 @@ final class CargoUtils {
                         shouldReturn.set(true);
                     }
                 }
-            });
+            }, true);
             if (shouldReturn.get()) return res[0].get();
         }
 
@@ -162,7 +162,7 @@ final class CargoUtils {
                         res.set(new ItemStackAndInteger(is.clone(), slot));
                         shouldReturn.set(true);
                     }
-                });
+                }, true);
                 if (shouldReturn.get()) return res.get();
             }
         } else {
@@ -206,7 +206,7 @@ final class CargoUtils {
                             res.set(new ItemStackAndInteger(is.clone(), finalSlot));
                             shouldReturn.set(true);
                         }
-                    });
+                    }, true);
                     if (shouldReturn.get()) return res.get();
                 }
             }
@@ -274,7 +274,7 @@ final class CargoUtils {
                         }
                         shouldReturn.set(true);
                     }
-                });
+                }, true);
                 if (shouldReturn.get()) return stack;
             }
         } else {
@@ -366,14 +366,11 @@ final class CargoUtils {
 
                     ItemStack finalIs = is;
                     try {
-                        SlotLockManager.runWithLock(inv, finalSlot2, () ->
-                        {
-                            try {
-                                Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2, finalIs)).get();
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
+                        try {
+                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2, finalIs)).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -381,7 +378,7 @@ final class CargoUtils {
                     shouldReturn.set(true);
                 }
                 fStack.set(finalStack);
-            });
+            }, true);
             if (shouldReturn.get()) return res.get();
             stack = fStack.get();
         }
