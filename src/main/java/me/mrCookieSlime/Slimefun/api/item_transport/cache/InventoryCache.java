@@ -129,10 +129,11 @@ public class InventoryCache implements Listener {
                     doubleChest.getLeftSide(), doubleChest.getRightSide(), doubleChest.getInventory()}).get();
             final CachedInventory cachedInventory = new CachedInventory((Inventory) objects1[2],
                     ((Chest) objects1[0]).getLocation(), ((Chest) objects1[1]).getLocation());
-            cache.put(((Chest) objects1[0]).getLocation(),
-                    cachedInventory);
-            cache.put(((Chest) objects1[0]).getLocation(),
-                    cachedInventory);
+            cache.put(((Chest) objects1[0]).getLocation(), cachedInventory);
+            cache.put(((Chest) objects1[1]).getLocation(), cachedInventory);
+            final Object v = locks.get(container.getLocation());
+            locks.put(((Chest) objects1[0]).getLocation(), v);
+            locks.put(((Chest) objects1[1]).getLocation(), v);
             return cachedInventory;
         } else {
             final CachedInventory cachedInventory = new CachedInventory(initialInventory, blockLocation);
