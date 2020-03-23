@@ -39,6 +39,7 @@ final class CargoUtils {
         if (menu != null) {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
                 AtomicReference<ItemStack> res = new AtomicReference<>();
+                AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 SlotLockManager.runWithLock(target.getLocation(), slot, () -> {
                     ItemStack is;
                     try {
@@ -56,6 +57,7 @@ final class CargoUtils {
                                 throw new RuntimeException(e);
                             }
                             res.set(template);
+                            shouldReturn.set(true);
                         } else {
                             try {
                                 menu.replaceExistingItem(slot, null);
@@ -63,10 +65,11 @@ final class CargoUtils {
                                 throw new RuntimeException(e);
                             }
                             res.set(is.clone());
+                            shouldReturn.set(true);
                         }
                     }
                 });
-                if (res.get() != null) return res.get();
+                if (shouldReturn.get()) return res.get();
             }
         } else {
             BlockState state;
@@ -98,10 +101,10 @@ final class CargoUtils {
 
         for (int slot = minSlot; slot < maxSlot; slot++) {
             int finalSlot2 = slot;
+            AtomicBoolean shouldReturn = new AtomicBoolean(false);
             @SuppressWarnings("unchecked") final AtomicReference<ItemStack>[] res = new AtomicReference[] { new AtomicReference<ItemStack>() };
             SlotLockManager.runWithLock(inv, slot, () -> {
                 ItemStack is = inv.getContents()[finalSlot2];
-
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                     if (is.getAmount() > template.getAmount()) {
                         try {
@@ -111,6 +114,7 @@ final class CargoUtils {
                             throw new RuntimeException(e);
                         }
                         res[0].set(template);
+                        shouldReturn.set(true);
                     } else {
                         try {
                             Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2,
@@ -119,10 +123,11 @@ final class CargoUtils {
                             throw new RuntimeException(e);
                         }
                         res[0].set(is.clone());
+                        shouldReturn.set(true);
                     }
                 }
             });
-            if (res[0].get() != null) return res[0].get();
+            if (shouldReturn.get()) return res[0].get();
         }
 
         return null;
@@ -139,6 +144,7 @@ final class CargoUtils {
         if (menu != null) {
             for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
                 AtomicReference<ItemStackAndInteger> res = new AtomicReference<>();
+                AtomicBoolean shouldReturn = new AtomicBoolean(false);
                 SlotLockManager.runWithLock(target.getLocation(), slot, () -> {
                     ItemStack is;
                     try {
@@ -154,9 +160,10 @@ final class CargoUtils {
                             throw new RuntimeException(e);
                         }
                         res.set(new ItemStackAndInteger(is.clone(), slot));
+                        shouldReturn.set(true);
                     }
                 });
-                if (res.get() != null) return res.get();
+                if (shouldReturn.get()) return res.get();
             }
         } else {
             BlockState state;
@@ -187,6 +194,7 @@ final class CargoUtils {
                 for (int slot = minSlot; slot < maxSlot; slot++) {
                     int finalSlot = slot;
                     AtomicReference<ItemStackAndInteger> res = new AtomicReference<>();
+                    AtomicBoolean shouldReturn = new AtomicBoolean(false);
                     SlotLockManager.runWithLock(inv, slot, () -> {
                         ItemStack is = inv.getContents()[finalSlot];
                         if (is != null && matchesFilter(node, is, index)) {
@@ -196,9 +204,10 @@ final class CargoUtils {
                                 throw new RuntimeException(e);
                             }
                             res.set(new ItemStackAndInteger(is.clone(), finalSlot));
+                            shouldReturn.set(true);
                         }
                     });
-                    if (res.get() != null) return res.get();
+                    if (shouldReturn.get()) return res.get();
                 }
             }
         }
@@ -278,10 +287,8 @@ final class CargoUtils {
 
             if (state instanceof Container) {
                 Inventory inv;
-                ItemStack[] invContents;
                 try {
                     inv = InventoryCache.query((Container) state).inventory;
-                    invContents = inv.getContents();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -325,6 +332,7 @@ final class CargoUtils {
             AtomicReference<ItemStack> res = new AtomicReference<>();
             AtomicReference<ItemStack> fStack = new AtomicReference<>();
             ItemStack finalStack2 = stack;
+            AtomicBoolean shouldReturn = new AtomicBoolean(false);
             SlotLockManager.runWithLock(inv, slot, () -> {
                 ItemStack is = inv.getContents()[finalSlot2];
                 ItemStack finalStack = finalStack2;
@@ -341,6 +349,7 @@ final class CargoUtils {
                         throw new RuntimeException(e);
                     }
                     res.set(null);
+                    shouldReturn.set(true);
                 } else if (SlimefunManager.isItemSimilar(new CustomItem(is, 1),
                         new CustomItem(finalStack, 1), true)
                         && is.getAmount() < is.getType().getMaxStackSize()) {
@@ -369,10 +378,11 @@ final class CargoUtils {
                         throw new RuntimeException(e);
                     }
                     res.set(finalStack);
+                    shouldReturn.set(true);
                 }
                 fStack.set(finalStack);
             });
-            if (res.get() != null) return res.get();
+            if (shouldReturn.get()) return res.get();
             stack = fStack.get();
         }
 
