@@ -31,12 +31,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class CargoNet extends Network {
@@ -48,14 +46,14 @@ public class CargoNet extends Network {
 
     private static final int RANGE = 5;
 
-    private static final int[] slots = {19, 20, 21, 28, 29, 30, 37, 38, 39};
+    private static final int[] slots = { 19, 20, 21, 28, 29, 30, 37, 38, 39 };
 
     // Chest Terminal Stuff
-    private static final int[] TERMINAL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42};
+    private static final int[] TERMINAL_SLOTS = { 0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 41, 42 };
     private static final int TERMINAL_OUT_SLOT = 17;
 
     // Chest Terminal Stuff
-    public static final int[] terminal_slots = new int[]{
+    public static final int[] terminal_slots = new int[] {
             0, 1, 2, 3, 4, 5, 6,
             9, 10, 11, 12, 13, 14, 15,
             18, 19, 20, 21, 22, 23, 24,
@@ -92,8 +90,6 @@ public class CargoNet extends Network {
 
     private final ConcurrentMap<Location, Integer> roundRobin = new ConcurrentHashMap<>();
     final LinkedBlockingQueue<ItemRequest> itemRequests = new LinkedBlockingQueue<>();
-
-    private static final Map<Location, SynchronizedLock<Block>> locks = new ConcurrentHashMap<>();
 
     public static Set<Thread> tickingPoolThreads = Sets.newConcurrentHashSet();
     public static ExecutorService tickingPool;
@@ -414,7 +410,7 @@ public class CargoNet extends Network {
 
                                     final Block attachedBlock = AttachedBlockCache.query(bus.getBlock());
                                     if (attachedBlock == null) return; // In case there is no block attached to it
-                                    runBlockWithLock(
+                                    BlockLockManager.runWithLock(
                                             attachedBlock,
                                             target -> {
                                                 try {
@@ -451,7 +447,7 @@ public class CargoNet extends Network {
 
                                     final Block attachedBlock = AttachedBlockCache.query(bus.getBlock());
                                     if (attachedBlock == null) return; // In case there is no block attached to it
-                                    runBlockWithLock(attachedBlock, target -> {
+                                    BlockLockManager.runWithLock(attachedBlock, target -> {
                                         try {
                                             ItemStack item17 = menu.getItemInSlot(17);
                                             if (item17 != null) {
@@ -525,12 +521,10 @@ public class CargoNet extends Network {
                                         return;
                                     }
 
-                                    Block inputTargetA = AttachedBlockCache.query(input.getBlock());
-                                    if (inputTargetA == null) return;
+                                    Block target = AttachedBlockCache.query(input.getBlock());
+                                    if (target == null) return;
 
                                     if (!consume(this, energyConsumptionNode)) return;
-
-                                    SynchronizedLock<Block> lock = getLock(inputTargetA);
 
                                     try {
                                         AtomicReference<ItemStack> stack = new AtomicReference<>(null);
@@ -541,14 +535,13 @@ public class CargoNet extends Network {
                                         boolean roundRobin = "true".equals(cfg.getString("round-robin"));
 
                                         AtomicReference<ItemStackAndInteger> slot = new AtomicReference<>();
-                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
-                                                    slot.set(CargoUtils.withdraw(input.getBlock(), inputTarget, Integer.parseInt(cfg.getString("index"))));
-                                                    if (slot.get() != null) {
-                                                        stack.set(slot.get().getItem());
-                                                        previousSlot.set(slot.get().getInt());
-                                                    }
-                                                }
-                                        );
+                                        slot.set(CargoUtils.withdraw(input.getBlock(), target,
+                                                Integer.parseInt(cfg.getString("index"))));
+                                        if (slot.get() != null) {
+                                            stack.set(slot.get().getItem());
+                                            previousSlot.set(slot.get().getInt());
+                                        }
+
 
                                         if (stack.get() != null) {
                                             List<Location> outputs = output.get(frequency);
@@ -575,17 +568,16 @@ public class CargoNet extends Network {
                                                     try {
                                                         //noinspection ConstantConditions
                                                         if (out.getBlock() == null) continue;
-                                                        final Block attachedBlock = AttachedBlockCache.query(out.getBlock());
+                                                        final Block attachedBlock = AttachedBlockCache
+                                                                .query(out.getBlock());
                                                         if (attachedBlock == null)
                                                             continue; // In case there is no block attached to it
-                                                        runBlockWithLock(attachedBlock, target -> {
-                                                            if (target != null) {
-                                                                stack.set(CargoUtils.insert(out.getBlock(), target, stack.get(), -1));
-                                                                if (stack.get() == null) {
-                                                                    throw new RuntimeException("break");
-                                                                }
-                                                            }
-                                                        });
+                                                        stack.set(CargoUtils.insert(
+                                                                out.getBlock(), attachedBlock,
+                                                                stack.get(), -1));
+                                                        if (stack.get() == null) {
+                                                            throw new RuntimeException("break");
+                                                        }
                                                     } catch (Exception e) {
                                                         if (e.getMessage() != null && e.getMessage().equals("break"))
                                                             break;
@@ -595,35 +587,45 @@ public class CargoNet extends Network {
                                             }
                                         }
 
-                                        runBlockWithLock(lock, inputTargetA, inputTarget -> {
-                                            try {
-                                                if (stack.get() != null && previousSlot.get() > -1) {
-                                                    DirtyChestMenu menu = CargoUtils.getChestMenu(inputTarget);
+                                        try {
+                                            if (stack.get() != null && previousSlot.get() > -1) {
+                                                DirtyChestMenu menu = CargoUtils.getChestMenu(target);
 
-                                                    if (menu != null) {
-                                                        int finalPreviousSlot = previousSlot.get();
-                                                        ItemStack finalStack = stack.get();
-                                                        menu.replaceExistingItem(finalPreviousSlot, finalStack);
-                                                    } else {
-                                                        BlockState state;
-                                                        try {
-                                                            state = BlockStateCache.query(inputTarget);
-                                                        } catch (Exception e) {
-                                                            throw new RuntimeException(e);
-                                                        }
-                                                        if (state instanceof Container) {
-                                                            Inventory inv = InventoryCache.query((Container) state).inventory;
-                                                            int finalPreviousSlot1 = previousSlot.get();
-                                                            ItemStack finalStack1 = stack.get();
-                                                            Slimefun.runSyncFuture(() -> inv.setItem(finalPreviousSlot1, finalStack1)).get();
-                                                        }
-
+                                                if (menu != null) {
+                                                    int finalPreviousSlot = previousSlot.get();
+                                                    ItemStack finalStack = stack.get();
+                                                    SlotLockManager.runWithLock(target.getLocation(), finalPreviousSlot,
+                                                            () ->
+                                                                    menu.replaceExistingItem(finalPreviousSlot,
+                                                                            finalStack));
+                                                } else {
+                                                    BlockState state;
+                                                    try {
+                                                        state = BlockStateCache.query(target);
+                                                    } catch (Exception e) {
+                                                        throw new RuntimeException(e);
                                                     }
+                                                    if (state instanceof Container) {
+                                                        Inventory inv = InventoryCache.query((Container) state).inventory;
+                                                        int finalPreviousSlot1 = previousSlot.get();
+                                                        ItemStack finalStack1 = stack.get();
+                                                        SlotLockManager.runWithLock(inv, finalPreviousSlot1, () ->
+                                                        {
+                                                            try {
+                                                                Slimefun.runSyncFuture(() ->
+                                                                        inv.setItem(finalPreviousSlot1, finalStack1))
+                                                                        .get();
+                                                            } catch (Exception e) {
+                                                                throw new RuntimeException(e);
+                                                            }
+                                                        });
+                                                    }
+
                                                 }
-                                            } catch (Exception e) {
-                                                throw new RuntimeException(e);
                                             }
-                                        });
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }
@@ -647,7 +649,7 @@ public class CargoNet extends Network {
                                         if (!consume(this, energyConsumptionNode)) return;
                                         final Block attachedBlock = AttachedBlockCache.query(l.getBlock());
                                         if (attachedBlock == null) return; // In case there is no block attached to it
-                                        runBlockWithLock(attachedBlock, target -> {
+                                        BlockLockManager.runWithLock(attachedBlock, target -> {
                                             try {
                                                 UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
 
@@ -786,58 +788,6 @@ public class CargoNet extends Network {
             });
         }
         return null;
-    }
-
-    static void runBlockWithLock(@Nonnull Block block, @Nonnull Consumer<Block> consumer)
-            throws ExecutionException, InterruptedException {
-        getLock(block).run(consumer, block);
-    }
-
-    static void runBlockWithLock(@Nonnull SynchronizedLock<Block> lock, @Nonnull Block block, @Nonnull Consumer<Block> consumer) {
-        lock.run(consumer, block);
-    }
-
-    static SynchronizedLock<Block> getLock(@Nonnull Block block) throws ExecutionException, InterruptedException {
-        SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
-        BlockState state = BlockStateCache.query(block);
-        if (state instanceof Container) {
-            InventoryCache.CachedInventory inventory;
-            try {
-                inventory = InventoryCache.query((Container) state);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            boolean lockExists = true;
-            SynchronizedLock<Block> originalLock = null;
-            {
-                for (Location location : inventory.locations) {
-                    if (originalLock == null) originalLock = locks.get(location);
-                    if (originalLock == null) {
-                        lockExists = false;
-                        break;
-                    }
-                    if (!Objects.equals(locks.get(location), originalLock)) {
-                        lockExists = false;
-                        break;
-                    }
-                }
-            }
-            if (!lockExists)
-                for (Location location : inventory.locations)
-                    locks.put(location, currentLock);
-            else currentLock = originalLock;
-        } else {
-            Location blockLocation = block.getLocation();
-            SynchronizedLock<Block> originalLock = CargoNet.locks.get(blockLocation);
-            if (originalLock == null) {
-                // Slimefun.getLogger().info("created block");
-                CargoNet.locks.put(blockLocation, currentLock);
-            } else {
-                // Slimefun.getLogger().info("reused block");
-                currentLock = originalLock;
-            }
-        }
-        return currentLock;
     }
 
     private static int getFrequency(Location l) {

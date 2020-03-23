@@ -39,7 +39,7 @@ public class ItemPostTransport {
                                 try {
                                     final Block attachedBlock = AttachedBlockCache.query(l.getBlock());
                                     if (attachedBlock == null) continue; // In case there is no block attached to it
-                                    CargoNet.runBlockWithLock(attachedBlock, target -> {
+                                    BlockLockManager.runWithLock(attachedBlock, target -> {
                                         requestedItem.set(CargoUtils.insert(
                                                 l.getBlock(), target, requestedItem.get(), -1));
 
@@ -87,7 +87,7 @@ public class ItemPostTransport {
                                 try {
                                     final Block attachedBlock = AttachedBlockCache.query(l.getBlock());
                                     if (attachedBlock == null) return; // In case there is no block attached to it
-                                    CargoNet.runBlockWithLock(attachedBlock, target -> {
+                                    BlockLockManager.runWithLock(attachedBlock, target -> {
                                         ItemStack is = CargoUtils.withdraw(l.getBlock(), target, requested[0]);
 
                                         if (is != null) {
