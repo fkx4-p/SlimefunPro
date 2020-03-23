@@ -351,7 +351,7 @@ final class CargoUtils {
                     }
                     res.set(null);
                     shouldReturn.set(true);
-                } else if (SlimefunManager.isItemSimilar(new CustomItem(is, 1),
+                } else if (finalStack != null && SlimefunManager.isItemSimilar(new CustomItem(is, 1),
                         new CustomItem(finalStack, 1), true)
                         && is.getAmount() < is.getType().getMaxStackSize()) {
                     is = is.clone();
