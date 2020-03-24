@@ -39,8 +39,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -309,9 +312,24 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                 BlockStateCache.registerEvents();
             if (InventoryCache.available)
                 Bukkit.getPluginManager().registerEvents(new InventoryCache(), this);
-
             if (AttachedBlockCache.available)
                 Bukkit.getPluginManager().registerEvents(new AttachedBlockCache(), this);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        final Field consoleField = Bukkit.getServer().getClass().getDeclaredField("console");
+                        consoleField.setAccessible(true);
+                        Object DedicatedServer = consoleField.get(Bukkit.getServer());
+                        final Field isRunningField = DedicatedServer.getClass().getDeclaredField("isRunning");
+                        isRunningField.setAccessible(true);
+                        Slimefun.isStopping = !isRunningField.getBoolean(DedicatedServer);
+                        Slimefun.getLogger().warning(String.valueOf(Slimefun.isStopping));
+                    } catch (IllegalAccessException | NoSuchFieldException e) {
+                        Slimefun.getLogger().log(Level.WARNING, "Error while fetching state", e);
+                    }
+                }
+            }, 5000, 25);
 
             // Hooray!
             getLogger().log(Level.INFO, "Finished!");

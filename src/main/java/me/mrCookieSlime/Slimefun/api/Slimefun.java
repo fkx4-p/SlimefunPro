@@ -14,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -280,15 +279,6 @@ public final class Slimefun {
     public static Future<Void> runSyncIfStopping(Runnable runnable) {
         FutureTask<Void> task = new FutureTask<>(runnable, null);
         boolean isStopping = Slimefun.isStopping;
-        try {
-            final Field consoleField = Bukkit.getServer().getClass().getDeclaredField("console");
-            consoleField.setAccessible(true);
-            Object DedicatedServer = consoleField.get(Bukkit.getServer());
-            final Field isRunningField = DedicatedServer.getClass().getDeclaredField("isRunning");
-            isRunningField.setAccessible(true);
-            isStopping = !isRunningField.getBoolean(DedicatedServer);
-        } catch (IllegalAccessException | NoSuchFieldException ignored) {
-        }
         if (isStopping)
             FUTURE_TASKS.add(task);
         else task.run();
