@@ -262,10 +262,6 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, new ItemStack(Material.NETHER_BRICK), SlimefunItems.GOLD_PAN, new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK)})
                 .register(plugin);
 
-        new SlimefunItem(Categories.RESOURCES, SlimefunItems.COMPRESSED_ENDER_PEARL, RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[]{new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL)})
-                .register(plugin);
-
         new SlimefunItem(Categories.MISC, (SlimefunItemStack) SlimefunItems.SIFTED_ORE, RecipeType.GOLD_PAN,
                 new ItemStack[]{new ItemStack(Material.GRAVEL), null, null, null, null, null, null, null, null})
                 .register(plugin);
@@ -3297,6 +3293,31 @@ public final class SlimefunItemSetup {
                 .register(plugin);
 
         CobblestoneGenerator.init(plugin);
+
+
+        new ItemCompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_COMPRESSOR, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 5;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 128;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 1;
+            }
+
+        }.register(plugin);
+
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE)})
+                .register(plugin);
     }
 
 }

@@ -679,6 +679,10 @@ public final class SlimefunItems {
     public static final ItemStack HEATED_PRESSURE_CHAMBER_2 = new SlimefunItemStack("HEATED_PRESSURE_CHAMBER_2", Material.LIGHT_GRAY_STAINED_GLASS, "&cHeated Pressure Chamber &7- &eII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 5x", LoreBuilder.powerPerSecond(44));
     public static final ItemStack HEATED_PRESSURE_CHAMBER_3 = new SlimefunItemStack("HEATED_PRESSURE_CHAMBER_3", Material.LIGHT_GRAY_STAINED_GLASS, "&cHeated Pressure Chamber &7- &eIII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 10x", LoreBuilder.powerPerSecond(80));
 
+    public static final ItemStack ITEM_COMPRESSOR = new SlimefunItemStack("ITEM_COMPRESSOR", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Compressor", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 1x", LoreBuilder.powerPerSecond(10));
+    public static final ItemStack ITEM_COMPRESSOR_2 = new SlimefunItemStack("ITEM_COMPRESSOR_2", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Compressor &7- &eII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 5x", LoreBuilder.powerPerSecond(44));
+    public static final ItemStack ITEM_COMPRESSOR_3 = new SlimefunItemStack("ITEM_COMPRESSOR_3", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Compressor &7- &eIII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 10x", LoreBuilder.powerPerSecond(80));
+
     public static final ItemStack ELECTRIC_SMELTERY = new SlimefunItemStack("ELECTRIC_SMELTERY", Material.FURNACE, "&cElectric Smeltery", "", "&4Alloys-Only, doesn't smelt Dust into Ingots", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 1x", LoreBuilder.powerPerSecond(20));
     public static final ItemStack ELECTRIC_SMELTERY_2 = new SlimefunItemStack("ELECTRIC_SMELTERY_2", Material.FURNACE, "&cElectric Smeltery &7- &eII", "", "&4Alloys-Only, doesn't smelt Dust into Ingots", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 3x", LoreBuilder.powerPerSecond(40));
 
@@ -788,7 +792,7 @@ public final class SlimefunItems {
     public static final SlimefunItemStack MAGNESIUM_GENERATOR = new SlimefunItemStack("MAGNESIUM_GENERATOR", "9343ce58da54c79924a2c9331cfc417fe8ccbbea9be45a7ac85860a6c730", "&cMagnesium-powered Generator", "", LoreBuilder.machine(MachineTier.MEDIUM, MachineType.GENERATOR), LoreBuilder.powerBuffer(128), LoreBuilder.powerPerSecond(36));
 
     /* Compressed Items */
-    public static final SlimefunItemStack COMPRESSED_ENDER_PEARL = new SlimefunItemStack("COMPRESSED_ENDER_PEARL", Material.COAL_BLOCK, "&cCompressed Ender Pearl", "", "&6A block of 9 pearls", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE = new SlimefunItemStack("COMPRESSED_COBBLESTONE", Material.COBBLESTONE, "&cCompressed Cobblestone", "", "&6A block of 9 cobblestones", "&bA great gift");
 
     static {
         INFUSED_ELYTRA.addUnsafeEnchantment(Enchantment.MENDING, 1);
