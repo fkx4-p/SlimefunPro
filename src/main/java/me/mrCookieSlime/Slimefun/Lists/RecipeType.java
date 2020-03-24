@@ -49,7 +49,7 @@ public class RecipeType implements Keyed {
     public static final RecipeType MOB_DROP = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "mob_drop"), new CustomItem(Material.IRON_SWORD, "&bMob Drop"), RecipeType::registerMobDrop, "", "&rKill the specified Mob to obtain this Item");
 
     public static final RecipeType HEATED_PRESSURE_CHAMBER = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "heated_pressure_chamber"), SlimefunItems.HEATED_PRESSURE_CHAMBER);
-    public static final RecipeType ITEM_COMPRESSOR = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "ITEM_COMPRESSOR"), SlimefunItems.HEATED_PRESSURE_CHAMBER);
+    public static final RecipeType ITEM_COMPRESSOR = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "item_compressor"), SlimefunItems.ITEM_COMPRESSOR);
     public static final RecipeType FOOD_FABRICATOR = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "food_fabricator"), SlimefunItems.FOOD_FABRICATOR);
     public static final RecipeType FOOD_COMPOSTER = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "food_composter"), SlimefunItems.FOOD_COMPOSTER);
     public static final RecipeType FREEZER = new RecipeType(new NamespacedKey(SlimefunPlugin.instance, "freezer"), SlimefunItems.FREEZER);

@@ -3316,8 +3316,12 @@ public final class SlimefunItemSetup {
         }.register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE)})
+                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 9), null, null, null, null})
                 .register(plugin);
+
+        // new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
+        //         new ItemStack[]{new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE)})
+        //         .register(plugin);
     }
 
 }
