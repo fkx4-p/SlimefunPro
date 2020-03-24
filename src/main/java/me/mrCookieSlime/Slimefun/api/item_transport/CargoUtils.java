@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.inventory.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ final class CargoUtils {
     private CargoUtils() {
     }
 
+    @Nullable
     public static ItemStack withdraw(Block node, Block target, ItemStack template) {
         DirtyChestMenu menu;
         try {
@@ -101,7 +103,8 @@ final class CargoUtils {
         for (int slot = minSlot; slot < maxSlot; slot++) {
             int finalSlot2 = slot;
             AtomicBoolean shouldReturn = new AtomicBoolean(false);
-            @SuppressWarnings("unchecked") final AtomicReference<ItemStack>[] res = new AtomicReference[] { new AtomicReference<ItemStack>() };
+            @SuppressWarnings("unchecked") final AtomicReference<ItemStack>[] res = new AtomicReference[] {
+                    new AtomicReference<ItemStack>() };
             SlotLockManager.runWithLock(inv, slot, () -> {
                 ItemStack is = inv.getContents()[finalSlot2];
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
@@ -274,6 +277,7 @@ final class CargoUtils {
                         shouldReturn.set(true);
                     }
                 }, true);
+                stack = finalStack[0];
                 if (shouldReturn.get()) return stack;
             }
         } else {
@@ -340,8 +344,7 @@ final class CargoUtils {
                 if (is == null && finalStack != null) {
                     try {
                         try {
-                            ItemStack finalStack1 = finalStack;
-                            inv.setItem(finalSlot2, finalStack1.clone());
+                            inv.setItem(finalSlot2, finalStack.clone());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -362,6 +365,7 @@ final class CargoUtils {
                     } else {
                         is.setAmount(amount);
                         finalStack = null;
+                        fStack.set(null);
                     }
 
                     ItemStack finalIs = is;
@@ -379,8 +383,8 @@ final class CargoUtils {
                 }
                 fStack.set(finalStack);
             }, true);
-            if (shouldReturn.get()) return res.get();
             stack = fStack.get();
+            if (shouldReturn.get()) return res.get();
         }
 
         return stack;
