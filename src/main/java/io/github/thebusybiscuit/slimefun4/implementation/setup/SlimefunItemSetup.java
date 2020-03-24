@@ -3359,8 +3359,12 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_2, RecipeType.ITEM_COMPRESSOR,
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_1, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE, 32), null, null, null, null})
+                .register(plugin);
+
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_2, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_1, 32), null, null, null, null})
                 .register(plugin);
         
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_3, RecipeType.ITEM_COMPRESSOR,
