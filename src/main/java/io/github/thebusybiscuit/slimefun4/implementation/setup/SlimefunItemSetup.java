@@ -262,6 +262,10 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, new ItemStack(Material.NETHER_BRICK), SlimefunItems.GOLD_PAN, new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK), new ItemStack(Material.NETHER_BRICK)})
                 .register(plugin);
 
+        new SlimefunItem(Categories.RESOURCES, SlimefunItems.COMPRESSED_ENDER_PEARL, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.ENDER_PEARL)})
+                .register(plugin);
+
         new SlimefunItem(Categories.MISC, (SlimefunItemStack) SlimefunItems.SIFTED_ORE, RecipeType.GOLD_PAN,
                 new ItemStack[]{new ItemStack(Material.GRAVEL), null, null, null, null, null, null, null, null})
                 .register(plugin);
