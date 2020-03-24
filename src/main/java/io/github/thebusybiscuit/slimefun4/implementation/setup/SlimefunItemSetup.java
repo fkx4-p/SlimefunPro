@@ -3359,6 +3359,68 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 9), null, null, null, null})
                 .register(plugin);
 
+        new ItemDecompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_DECOMPRESSOR, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 5;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 128;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 1;
+            }
+
+        }.register(plugin);
+
+        new ItemDecompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_DECOMPRESSOR_2, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.ITEM_DECOMPRESSOR, SlimefunItems.LEAD_INGOT, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.REINFORCED_ALLOY_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 22;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 256;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 5;
+            }
+
+        }.register(plugin);
+
+        new ItemDecompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_DECOMPRESSOR_3, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.ITEM_DECOMPRESSOR_2, SlimefunItems.LEAD_INGOT, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.REINFORCED_ALLOY_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 40;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 512;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 10;
+            }
+
+        }.register(plugin);
+
     }
+    
+    
 
 }

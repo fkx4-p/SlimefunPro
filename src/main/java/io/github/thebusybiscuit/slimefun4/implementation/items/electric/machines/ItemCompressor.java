@@ -85,7 +85,7 @@ public abstract class ItemCompressor extends AContainer {
 
     @Override
     protected void registerDefaultRecipes() {
-        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.COBBLESTONE), 9)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.COBBLESTONE), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE});
     }
 
     @Override
