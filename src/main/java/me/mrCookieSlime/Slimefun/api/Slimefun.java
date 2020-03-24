@@ -286,7 +286,7 @@ public final class Slimefun {
             Object DedicatedServer = consoleField.get(Bukkit.getServer());
             final Field isRunningField = DedicatedServer.getClass().getDeclaredField("isRunning");
             isRunningField.setAccessible(true);
-            isStopping = isRunningField.getBoolean(DedicatedServer);
+            isStopping = !isRunningField.getBoolean(DedicatedServer);
         } catch (IllegalAccessException | NoSuchFieldException ignored) {
         }
         if (isStopping)
