@@ -3356,11 +3356,35 @@ public final class SlimefunItemSetup {
         }.register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 9), null, null, null, null})
+                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 32), null, null, null, null})
                 .register(plugin);
 
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_2, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE, 32), null, null, null, null})
+                .register(plugin);
+        
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_3, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_2, 32), null, null, null, null})
+                .register(plugin);
+
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_4, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_3, 32), null, null, null, null})
+                .register(plugin);
+                
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_5, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_4, 32), null, null, null, null})
+                .register(plugin);
+        
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_6, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_5, 32), null, null, null, null})
+                .register(plugin);
+                
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE_7, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.COMPRESSED_COBBLESTONE_6, 32), null, null, null, null})
+                .register(plugin);
+        
         new ItemDecompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_DECOMPRESSOR, RecipeType.ENHANCED_CRAFTING_TABLE,
-                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.STICKY_PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
 
             @Override
             public int getEnergyConsumption() {
