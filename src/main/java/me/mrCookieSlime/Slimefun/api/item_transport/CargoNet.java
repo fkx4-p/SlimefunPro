@@ -291,21 +291,24 @@ public class CargoNet extends Network {
                 requestQueuePool.shutdown();
         }).start();
 
-        long startTime = System.currentTimeMillis();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                for (Thread thread : tickingPoolThreads)
+                    if (thread.isAlive() && thread.getState() == Thread.State.WAITING) {
+                        Unsafe.getUnsafe().unpark(thread);
+                    }
+                Slimefun.didUnpark = true;
+            }
+        }, 2000);
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
-            while (System.currentTimeMillis() - startTime < 10 * 1000)
-                try {
-                    FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
-                    if (task == null) continue;
-                    task.run();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-            for (Thread thread : tickingPoolThreads)
-                if (thread.isAlive() && thread.getState() == Thread.State.WAITING)
-                    Unsafe.getUnsafe().unpark(thread);
-            Slimefun.getLogger().warning("Stopping timeout for 10s! Tried to interrupt ticking threads.");
+            try {
+                FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
+                if (task == null) continue;
+                task.run();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

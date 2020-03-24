@@ -32,6 +32,7 @@ public final class Slimefun {
     public static final LinkedBlockingQueue<FutureTask<?>> FUTURE_TASKS = new LinkedBlockingQueue<>();
 
     public static Boolean isStopping = false;
+    public static Boolean didUnpark = false;
 
     private Slimefun() {
     }
@@ -267,6 +268,7 @@ public final class Slimefun {
         return task;
     }
 
+    @SuppressWarnings("unused")
     @Nonnull
     public static Future<Void> runSyncFuture(Runnable runnable) {
         FutureTask<Void> task = new FutureTask<>(runnable, null);
@@ -281,6 +283,7 @@ public final class Slimefun {
         if (isStopping)
             FUTURE_TASKS.add(task);
         else task.run();
+        if (didUnpark) task.run();
         return task;
     }
 
