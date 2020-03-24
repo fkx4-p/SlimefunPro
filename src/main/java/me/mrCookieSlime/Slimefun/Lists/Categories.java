@@ -41,7 +41,7 @@ public final class Categories {
     public static final Category TECH_MISC = new Category(new NamespacedKey(SlimefunPlugin.instance, "tech_misc"), new CustomItem(SlimefunItems.HEATING_COIL, "&7Technical Components"), 2);
     public static final Category MAGIC_ARMOR = new Category(new NamespacedKey(SlimefunPlugin.instance, "magical_armor"), new CustomItem(SlimefunItems.ENDER_HELMET, "&7Magical Armor"), 2);
     public static final Category TALISMANS_1 = new Category(new NamespacedKey(SlimefunPlugin.instance, "talismans"), new CustomItem(SlimefunItems.TALISMAN, "&7Talismans - &aTier I"), 2);
-    public static final Category COMPRESSED_ITEMS = new Category(new NamespacedKey(SlimefunPlugin.instance, "compressed items"), new CustomItem(Material.ELECTRIC_PRESS, "&7Compressed Items"), 1);
+    public static final Category COMPRESSED_ITEMS = new Category(new NamespacedKey(SlimefunPlugin.instance, "compressed items"), new CustomItem(SlimefunItems.ELECTRIC_PRESS, "&7Compressed Items"), 1);
 
     // Locked Categories
     public static final LockedCategory ELECTRICITY = new LockedCategory(new NamespacedKey(SlimefunPlugin.instance, "electricity"), new CustomItem(SlimefunItems.NUCLEAR_REACTOR, "&bEnergy and Electricity"), 4, MACHINES_1);
