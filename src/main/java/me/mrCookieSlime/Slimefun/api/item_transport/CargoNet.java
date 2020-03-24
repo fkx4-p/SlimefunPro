@@ -30,6 +30,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import sun.misc.Unsafe;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -290,14 +291,21 @@ public class CargoNet extends Network {
                 requestQueuePool.shutdown();
         }).start();
 
+        long startTime = System.currentTimeMillis();
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
-            try {
-                FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
-                if (task == null) continue;
-                task.run();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            while (System.currentTimeMillis() - startTime < 10 * 1000)
+                try {
+                    FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
+                    if (task == null) continue;
+                    task.run();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+            for (Thread thread : tickingPoolThreads)
+                if (thread.isAlive() && thread.getState() == Thread.State.WAITING)
+                    Unsafe.getUnsafe().unpark(thread);
+            Slimefun.getLogger().warning("Stopping timeout for 10s! Tried to interrupt ticking threads.");
         }
     }
 
