@@ -86,6 +86,13 @@ public abstract class ItemCompressor extends AContainer {
     @Override
     protected void registerDefaultRecipes() {
         registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.COBBLESTONE), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_1});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_1), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_2});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_2), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_3});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_3), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_4});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_4), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_5});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_5), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_6});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(SlimefunItems.COMPRESSED_COBBLESTONE_6), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE_7});
     }
 
     @Override

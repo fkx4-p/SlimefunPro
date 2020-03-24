@@ -796,7 +796,14 @@ public final class SlimefunItems {
     public static final SlimefunItemStack MAGNESIUM_GENERATOR = new SlimefunItemStack("MAGNESIUM_GENERATOR", "9343ce58da54c79924a2c9331cfc417fe8ccbbea9be45a7ac85860a6c730", "&cMagnesium-powered Generator", "", LoreBuilder.machine(MachineTier.MEDIUM, MachineType.GENERATOR), LoreBuilder.powerBuffer(128), LoreBuilder.powerPerSecond(36));
 
     /* Compressed Items */
-    public static final SlimefunItemStack COMPRESSED_COBBLESTONE = new SlimefunItemStack("COMPRESSED_COBBLESTONE", Material.COBBLESTONE, "&cCompressed Cobblestone", "", "&6A block of 9 cobblestones", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE = new SlimefunItemStack("COMPRESSED_COBBLESTONE", Material.COBBLESTONE, "&cCobblestone.tar", "", "&6A block of 32 cobblestones", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_1 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_1", Material.COBBLESTONE, "&cCobblestone.tar.gz", "", "&6A block of 32 cobblestone.tar", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_2 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_2", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz", "", "&6A block of 32 cobblestone.tar.gz", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_3 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_3", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz.bz2", "", "&6A block of 32 cobblestone.tar.gz.xz", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_4 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_4", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz.bz2.zip", "", "&6A block of 32 cobblestone.tar.gz.xz.bz2", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_5 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_5", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz.bz2.zip.rar", "", "&6A block of 32 cobblestone.tar.gz.xz.bz2.zip", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_6 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_6", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz.bz2.zip.rar.lama", "", "&6A block of 32 cobblestone.tar.gz.xz.bz2.zip.rar", "&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_COBBLESTONE_7 = new SlimefunItemStack("COMPRESSED_COBBLESTONE_7", Material.COBBLESTONE, "&cCobblestone.tar.gz.xz.bz2.zip.rar.lama.lz", "", "&6A block of 32 cobblestone.tar.gz.xz.bz2.zip.rar.lama", "&bA great gift");
 
     static {
         INFUSED_ELYTRA.addUnsafeEnchantment(Enchantment.MENDING, 1);
