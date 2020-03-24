@@ -3294,7 +3294,7 @@ public final class SlimefunItemSetup {
 
         CobblestoneGenerator.init(plugin);
 
-
+        /* compressing */
         new ItemCompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_COMPRESSOR, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {
 
@@ -3315,13 +3315,50 @@ public final class SlimefunItemSetup {
 
         }.register(plugin);
 
+        new ItemCompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_COMPRESSOR_2, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.ITEM_COMPRESSOR, SlimefunItems.LEAD_INGOT, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.REINFORCED_ALLOY_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 22;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 256;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 5;
+            }
+
+        }.register(plugin);
+
+        new ItemCompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_COMPRESSOR_3, RecipeType.ENHANCED_CRAFTING_TABLE,
+                new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.ITEM_COMPRESSOR_2, SlimefunItems.LEAD_INGOT, SlimefunItems.REINFORCED_ALLOY_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.REINFORCED_ALLOY_INGOT}) {
+
+            @Override
+            public int getEnergyConsumption() {
+                return 40;
+            }
+
+            @Override
+			public int getCapacity() {
+				return 512;
+			}
+
+			@Override
+            public int getSpeed() {
+                return 10;
+            }
+
+        }.register(plugin);
+
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 9), null, null, null, null})
                 .register(plugin);
 
-        // new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_COBBLESTONE, RecipeType.ITEM_COMPRESSOR,
-        //         new ItemStack[]{new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE), new ItemStack(Material.COBBLESTONE)})
-        //         .register(plugin);
     }
 
 }

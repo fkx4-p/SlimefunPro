@@ -683,6 +683,10 @@ public final class SlimefunItems {
     public static final ItemStack ITEM_COMPRESSOR_2 = new SlimefunItemStack("ITEM_COMPRESSOR_2", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Compressor &7- &eII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 5x", LoreBuilder.powerPerSecond(44));
     public static final ItemStack ITEM_COMPRESSOR_3 = new SlimefunItemStack("ITEM_COMPRESSOR_3", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Compressor &7- &eIII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 10x", LoreBuilder.powerPerSecond(80));
 
+    public static final ItemStack ITEM_DECOMPRESSOR = new SlimefunItemStack("ITEM_DECOMPRESSOR", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Decompressor", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 1x", LoreBuilder.powerPerSecond(10));
+    public static final ItemStack ITEM_DECOMPRESSOR_2 = new SlimefunItemStack("ITEM_DECOMPRESSOR_2", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Decompressor &7- &eII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 5x", LoreBuilder.powerPerSecond(44));
+    public static final ItemStack ITEM_DECOMPRESSOR_3 = new SlimefunItemStack("ITEM_DECOMPRESSOR_3", Material.LIGHT_GRAY_STAINED_GLASS, "&cItem Decompressor &7- &eIII", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 10x", LoreBuilder.powerPerSecond(80));
+
     public static final ItemStack ELECTRIC_SMELTERY = new SlimefunItemStack("ELECTRIC_SMELTERY", Material.FURNACE, "&cElectric Smeltery", "", "&4Alloys-Only, doesn't smelt Dust into Ingots", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 1x", LoreBuilder.powerPerSecond(20));
     public static final ItemStack ELECTRIC_SMELTERY_2 = new SlimefunItemStack("ELECTRIC_SMELTERY_2", Material.FURNACE, "&cElectric Smeltery &7- &eII", "", "&4Alloys-Only, doesn't smelt Dust into Ingots", "", LoreBuilder.machine(MachineTier.END_GAME, MachineType.MACHINE), "&8\u21E8 &7Speed: 3x", LoreBuilder.powerPerSecond(40));
 

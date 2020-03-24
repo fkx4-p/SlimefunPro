@@ -27,9 +27,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-public abstract class ItemCompressor extends AContainer {
+public abstract class ItemDecompressor extends AContainer {
 
-    public ItemCompressor(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
+    public ItemDecompressor(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(category, item, recipeType, recipe);
 
         new BlockMenuPreset(getID(), getInventoryTitle()) {
@@ -85,12 +85,12 @@ public abstract class ItemCompressor extends AContainer {
 
     @Override
     protected void registerDefaultRecipes() {
-        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.COBBLESTONE), 9)}, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE});
+        registerRecipe(5, new ItemStack[]{SlimefunItems.COMPRESSED_COBBLESTONE}, new ItemStack[]{new CustomItem(new ItemStack(Material.COBBLESTONE), 9)});
     }
 
     @Override
     public String getInventoryTitle() {
-        return "&cItem Compressor";
+        return "&cItem Decompressor";
     }
 
     @Override
@@ -114,7 +114,7 @@ public abstract class ItemCompressor extends AContainer {
 
             @Override
             public void tick(Block b, SlimefunItem sf, Config data) {
-                ItemCompressor.this.tick(b);
+                ItemDecompressor.this.tick(b);
             }
 
             @Override
@@ -190,7 +190,7 @@ public abstract class ItemCompressor extends AContainer {
 
     @Override
     public String getMachineIdentifier() {
-        return "ITEM_COMPRESSOR";
+        return "ITEM_DECOMPRESSOR";
     }
 
 }
