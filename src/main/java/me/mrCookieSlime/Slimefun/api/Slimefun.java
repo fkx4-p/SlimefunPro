@@ -31,7 +31,7 @@ public final class Slimefun {
 
     public static final LinkedBlockingQueue<FutureTask<?>> FUTURE_TASKS = new LinkedBlockingQueue<>();
 
-    public static boolean isStopping = false;
+    public static Boolean isStopping = false;
 
     private Slimefun() {
     }
@@ -278,7 +278,6 @@ public final class Slimefun {
 
     public static Future<Void> runSyncIfStopping(Runnable runnable) {
         FutureTask<Void> task = new FutureTask<>(runnable, null);
-        boolean isStopping = Slimefun.isStopping;
         if (isStopping)
             FUTURE_TASKS.add(task);
         else task.run();

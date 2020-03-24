@@ -325,7 +325,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                                 .getSuperclass().getDeclaredField("isRunning");
                         isRunningField.setAccessible(true);
                         Slimefun.isStopping = !isRunningField.getBoolean(DedicatedServer);
-                        Slimefun.getLogger().warning(String.valueOf(Slimefun.isStopping));
+                        // Slimefun.getLogger().warning(String.valueOf(Slimefun.isStopping));
                     } catch (IllegalAccessException | NoSuchFieldException e) {
                         Slimefun.getLogger().log(Level.WARNING, "Error while fetching state", e);
                     }
