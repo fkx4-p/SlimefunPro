@@ -28,7 +28,7 @@ public class BlockLockManager {
     }
 
     static SynchronizedLock<Block> getLock(@Nonnull Block block) throws ExecutionException, InterruptedException {
-        SynchronizedLock<Block> currentLock = new SynchronizedLock<Block>();
+        SynchronizedLock<Block> currentLock = new SynchronizedLock<>();
         BlockState state = BlockStateCache.query(block);
         if (state instanceof Container) {
             InventoryCache.CachedInventory inventory;

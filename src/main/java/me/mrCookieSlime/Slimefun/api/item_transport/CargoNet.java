@@ -612,9 +612,7 @@ public class CargoNet extends Network {
                                                         SlotLockManager.runWithLock(inv, finalPreviousSlot1, () ->
                                                         {
                                                             try {
-                                                                Slimefun.runSyncFuture(() ->
-                                                                        inv.setItem(finalPreviousSlot1, finalStack1))
-                                                                        .get();
+                                                                inv.setItem(finalPreviousSlot1, finalStack1);
                                                             } catch (Exception e) {
                                                                 throw new RuntimeException(e);
                                                             }

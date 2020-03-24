@@ -4,7 +4,6 @@ import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
-import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
@@ -108,8 +107,8 @@ final class CargoUtils {
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
                     if (is.getAmount() > template.getAmount()) {
                         try {
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2,
-                                    new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                            inv.setItem(finalSlot2,
+                                    new CustomItem(is, is.getAmount() - template.getAmount()));
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -117,8 +116,8 @@ final class CargoUtils {
                         shouldReturn.set(true);
                     } else {
                         try {
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2,
-                                    new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                            inv.setItem(finalSlot2,
+                                    new CustomItem(is, is.getAmount() - template.getAmount()));
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -199,7 +198,7 @@ final class CargoUtils {
                         ItemStack is = inv.getContents()[finalSlot];
                         if (is != null && matchesFilter(node, is, index)) {
                             try {
-                                Slimefun.runSyncFuture(() -> inv.setItem(finalSlot, null)).get();
+                                inv.setItem(finalSlot, null);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -342,7 +341,7 @@ final class CargoUtils {
                     try {
                         try {
                             ItemStack finalStack1 = finalStack;
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2, finalStack1.clone())).get();
+                            inv.setItem(finalSlot2, finalStack1.clone());
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -368,7 +367,7 @@ final class CargoUtils {
                     ItemStack finalIs = is;
                     try {
                         try {
-                            Slimefun.runSyncFuture(() -> inv.setItem(finalSlot2, finalIs)).get();
+                            inv.setItem(finalSlot2, finalIs);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
