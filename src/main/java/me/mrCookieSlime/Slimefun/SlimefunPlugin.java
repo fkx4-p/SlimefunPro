@@ -330,7 +330,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                         Slimefun.getLogger().log(Level.WARNING, "Error while fetching state", e);
                     }
                 }
-            }, 5000, 25);
+            }, 5000, 1);
 
             // Hooray!
             getLogger().log(Level.INFO, "Finished!");
