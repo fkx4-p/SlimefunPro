@@ -1,5 +1,9 @@
 package me.mrCookieSlime.Slimefun;
 
+import com.ishland.slimefun.core.cargonet.CargoNet;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.cscorelib2.config.Config;
 import io.github.thebusybiscuit.cscorelib2.protection.ProtectionManager;
 import io.github.thebusybiscuit.cscorelib2.reflection.ReflectionUtils;
@@ -28,10 +32,6 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AReactor;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
-import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -288,21 +288,15 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
             // Slimefun Async CargoNet Scheduler
             Slimefun.isStopping = false;
-            config.getConfiguration().addDefault("cargonet.max-server-thread-time", 40);
-            CargoNet.maxServerThreadTime = config.getInt("cargonet.max-server-thread-time");
             CargoNet.restartPool();
             Bukkit.getScheduler().runTaskTimer(this, () -> {
-                long startTime = System.nanoTime();
-                int maxTimeMillis = CargoNet.maxServerThreadTime;
-                while ((System.nanoTime() - startTime) / 1000 / 1000 < maxTimeMillis) {
                     try {
-                        FutureTask<?> task = Slimefun.FUTURE_TASKS.poll((System.nanoTime() - startTime) / 8, TimeUnit.NANOSECONDS);
+                        FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(100, TimeUnit.MICROSECONDS);
                         if (task == null) return;
                         task.run();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                }
             }, 5, 1);
             config.save();
             if (BlockStateCache.available)
@@ -408,7 +402,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
                     getLogger().log(Level.SEVERE, "Could not save Slimefun Blocks for World \"{0}\"", world.getName());
                 }
             } catch (Exception x) {
-                getLogger().log(Level.SEVERE, x, () -> "An Error occured while saving Slimefun-Blocks in World '" + world.getName() + "' for Slimefun " + getVersion());
+                getLogger().log(Level.SEVERE, x, () -> "An Error occurred while saving Slimefun-Blocks in World '" + world.getName() + "' for Slimefun " + getVersion());
             }
         }
 

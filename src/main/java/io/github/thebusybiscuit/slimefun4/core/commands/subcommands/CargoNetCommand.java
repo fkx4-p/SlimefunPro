@@ -1,9 +1,9 @@
 package io.github.thebusybiscuit.slimefun4.core.commands.subcommands;
 
+import com.ishland.slimefun.core.cargonet.CargoNetTimings;
 import io.github.thebusybiscuit.slimefun4.core.commands.SlimefunCommand;
 import io.github.thebusybiscuit.slimefun4.core.commands.SubCommand;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.api.item_transport.CargoNetTimings;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 

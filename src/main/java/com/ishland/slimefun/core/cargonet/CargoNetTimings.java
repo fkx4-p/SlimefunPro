@@ -1,9 +1,9 @@
-package me.mrCookieSlime.Slimefun.api.item_transport;
+package com.ishland.slimefun.core.cargonet;
 
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.slimefun4.implementation.tasks.TickerTask;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

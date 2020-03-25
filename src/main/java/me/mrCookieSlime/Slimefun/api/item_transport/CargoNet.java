@@ -2,6 +2,12 @@ package me.mrCookieSlime.Slimefun.api.item_transport;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.ishland.slimefun.core.cargonet.BlockLockManager;
+import com.ishland.slimefun.core.cargonet.CargoNetTickerThread;
+import com.ishland.slimefun.core.cargonet.SlotLockManager;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.cscorelib2.chat.ChatColors;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import io.github.thebusybiscuit.cscorelib2.math.DoubleHandler;
@@ -18,9 +24,6 @@ import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -38,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+@Deprecated
 public class CargoNet extends Network {
 
     public static final int energyConsumptionManager = 4;
@@ -81,7 +85,6 @@ public class CargoNet extends Network {
     private final Object consumeLock = new Object();
     private Integer triedConsume = 0;
     private Integer successConsume = 0;
-    private boolean secondTick = false;
     private long lastUpdate = System.currentTimeMillis();
 
     // Chest Terminal Stuff
@@ -521,6 +524,7 @@ public class CargoNet extends Network {
                     }
 
 
+                    Slimefun.getLogger().warning("==================== Tick start =====================");
                     // All operations happen here: Everything gets iterated from the Input Nodes. (Apart from ChestTerminal Buses)
                     {
                         for (Location input : inputNodes) {
@@ -664,7 +668,8 @@ public class CargoNet extends Network {
                                                 UniversalBlockMenu menu = BlockStorage.getUniversalInventory(target);
 
                                                 if (menu != null) {
-                                                    for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(menu, ItemTransportFlow.WITHDRAW, null)) {
+                                                    for (int slot : menu.getPreset().getSlotsAccessedByItemTransport(
+                                                            menu, ItemTransportFlow.WITHDRAW, null)) {
                                                         ItemStack is = menu.getItemInSlot(slot);
                                                         filter(is, items, l);
                                                     }
@@ -673,24 +678,32 @@ public class CargoNet extends Network {
                                                     @SuppressWarnings("deprecation")
                                                     Config cfg = BlockStorage.getLocationInfo(target.getLocation());
 
-                                                    if (cfg.getString("id").startsWith("BARREL_") && cfg.getString("storedItems") != null) {
-                                                        int stored = Integer.parseInt(cfg.getString("storedItems"));
+                                                    if (cfg.getString("id").startsWith("BARREL_")
+                                                            && cfg.getString("storedItems") != null) {
+                                                        int stored = Integer.parseInt(cfg
+                                                                .getString("storedItems"));
 
-                                                        for (int slot : blockMenu.getPreset().getSlotsAccessedByItemTransport(blockMenu, ItemTransportFlow.WITHDRAW, null)) {
+                                                        for (int slot : blockMenu.getPreset()
+                                                                .getSlotsAccessedByItemTransport(blockMenu,
+                                                                        ItemTransportFlow.WITHDRAW, null)) {
                                                             ItemStack is = blockMenu.getItemInSlot(slot);
 
-                                                            if (is != null && CargoUtils.matchesFilter(l.getBlock(), is, -1)) {
+                                                            if (is != null && CargoUtils.matchesFilter(l.getBlock(),
+                                                                    is, -1)) {
                                                                 boolean add = true;
 
                                                                 for (ItemStackAndInteger item : items) {
-                                                                    if (SlimefunManager.isItemSimilar(is, item.getItem(), true)) {
+                                                                    if (SlimefunManager.isItemSimilar(is,
+                                                                            item.getItem(), true)) {
                                                                         add = false;
                                                                         item.add(is.getAmount() + stored);
                                                                     }
                                                                 }
 
                                                                 if (add) {
-                                                                    items.add(new ItemStackAndInteger(new CustomItem(is, 1), is.getAmount() + stored));
+                                                                    items.add(new ItemStackAndInteger(
+                                                                            new CustomItem(is, 1),
+                                                                            is.getAmount() + stored));
                                                                 }
                                                             }
                                                         }

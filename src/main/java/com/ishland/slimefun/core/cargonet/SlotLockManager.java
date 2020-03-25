@@ -1,4 +1,4 @@
-package me.mrCookieSlime.Slimefun.api.item_transport;
+package com.ishland.slimefun.core.cargonet;
 
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
@@ -15,20 +15,20 @@ public class SlotLockManager {
 
     private static final ConcurrentHashMap<Location, SlotLock> locks = new ConcurrentHashMap<>();
 
-    static boolean runWithLock(Inventory inventory, int slot, Runnable runnable) {
+    public static boolean runWithLock(Inventory inventory, int slot, Runnable runnable) {
         return runWithLock(inventory.getLocation(), slot, runnable, false);
     }
 
     @SuppressWarnings("SameParameterValue")
-    static boolean runWithLock(Inventory inventory, int slot, Runnable runnable, boolean tryOnly) {
+    public static boolean runWithLock(Inventory inventory, int slot, Runnable runnable, boolean tryOnly) {
         return runWithLock(inventory.getLocation(), slot, runnable, tryOnly);
     }
 
-    static boolean runWithLock(Location location, int slot, Runnable runnable) {
+    public static boolean runWithLock(Location location, int slot, Runnable runnable) {
         return runWithLock(location, slot, runnable, false);
     }
 
-    static boolean runWithLock(Location location, int slot, Runnable runnable, boolean tryOnly) {
+    public static boolean runWithLock(Location location, int slot, Runnable runnable, boolean tryOnly) {
         final SlotLock lock = getLock(location, slot);
         return runWithLock(lock, runnable, tryOnly);
     }

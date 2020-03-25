@@ -1,4 +1,4 @@
-package me.mrCookieSlime.Slimefun.api.item_transport;
+package com.ishland.slimefun.core.cargonet;
 
 import java.util.Objects;
 import java.util.function.Consumer;

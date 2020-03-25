@@ -1,11 +1,12 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import com.ishland.slimefun.core.cargonet.BlockLockManager;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;

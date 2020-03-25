@@ -1,5 +1,10 @@
 package io.github.thebusybiscuit.slimefun4.implementation.items.cargo;
 
+import com.ishland.slimefun.core.cargonet.CargoNet;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.CacheGC;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.slimefun4.api.events.PlayerRightClickEvent;
 import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNet;
@@ -15,11 +20,6 @@ import me.mrCookieSlime.Slimefun.Objects.handlers.BlockUseHandler;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.SlimefunItemStack;
-import me.mrCookieSlime.Slimefun.api.item_transport.CargoNet;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.AttachedBlockCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.CacheGC;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -87,8 +87,8 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                         CacheGC.cleanThread.execute(() -> {
                             p.sendTitle("CargoNet fix started", "Progress: ...", 0, 80, 10);
                             CargoNet instance = CargoNet.getNetworkFromLocationOrCreate(b.getLocation());
-                            Set<Location> inputs = instance.getInputNodes();
-                            Set<Location> outputs = instance.getOutputNodes();
+                            Set<Location> inputs = instance.getInputs();
+                            Set<Location> outputs = instance.getOutputs();
                             int nodeCount = inputs.size() + outputs.size();
                             List<Location> nodes = new ArrayList<>(nodeCount);
                             nodes.addAll(inputs);

@@ -1,5 +1,8 @@
 package me.mrCookieSlime.Slimefun.api.item_transport;
 
+import com.ishland.slimefun.core.cargonet.SlotLockManager;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.cscorelib2.item.CustomItem;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Setup.SlimefunManager;
@@ -7,8 +10,6 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.inventory.DirtyChestMenu;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -55,6 +56,7 @@ final class CargoUtils {
                             try {
                                 menu.replaceExistingItem(slot,
                                         new CustomItem(is, is.getAmount() - template.getAmount()));
+                                Slimefun.getLogger().warning("Got " + template.getAmount() + " item from " + target.getLocation() + " slot " + slot);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -63,6 +65,7 @@ final class CargoUtils {
                         } else {
                             try {
                                 menu.replaceExistingItem(slot, null);
+                                Slimefun.getLogger().warning("Got all item from " + target.getLocation() + " slot " + slot);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -106,6 +109,7 @@ final class CargoUtils {
             AtomicBoolean shouldReturn = new AtomicBoolean(false);
             @SuppressWarnings("unchecked") final AtomicReference<ItemStack>[] res = new AtomicReference[] {
                     new AtomicReference<ItemStack>() };
+            int finalSlot = slot;
             SlotLockManager.runWithLock(inv, slot, () -> {
                 ItemStack is = inv.getContents()[finalSlot2];
                 if (SlimefunManager.isItemSimilar(is, template, true) && matchesFilter(node, is, -1)) {
@@ -113,6 +117,7 @@ final class CargoUtils {
                         try {
                             Slimefun.runSyncIfStopping(() -> inv.setItem(finalSlot2,
                                     new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                            Slimefun.getLogger().warning("Got " + template.getAmount() + " item from " + inv.getLocation() + " slot " + finalSlot);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
@@ -122,6 +127,7 @@ final class CargoUtils {
                         try {
                             Slimefun.runSyncIfStopping(() -> inv.setItem(finalSlot2,
                                     new CustomItem(is, is.getAmount() - template.getAmount()))).get();
+                            Slimefun.getLogger().warning("Got " + template.getAmount() + " item from " + inv.getLocation() + " slot " + finalSlot);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }

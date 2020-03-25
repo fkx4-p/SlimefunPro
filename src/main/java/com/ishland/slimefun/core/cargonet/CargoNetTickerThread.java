@@ -1,4 +1,4 @@
-package me.mrCookieSlime.Slimefun.api.item_transport;
+package com.ishland.slimefun.core.cargonet;
 
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -46,7 +46,7 @@ public class CargoNetTickerThread extends Thread {
             Map.Entry<Location, CargoNet> cargoNetEntry = iterator.next();
             try {
                 final CargoNet instance = cargoNetEntry.getValue();
-                if (System.currentTimeMillis() - instance.lastHeartbeat > 5000) {
+                if (System.currentTimeMillis() - instance.getLastHeartbeat() > 5000) {
                     iterator.remove();
                     continue;
                 }

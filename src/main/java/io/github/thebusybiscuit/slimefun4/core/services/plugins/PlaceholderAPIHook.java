@@ -1,11 +1,11 @@
 package io.github.thebusybiscuit.slimefun4.core.services.plugins;
 
+import com.ishland.slimefun.core.cargonet.CargoNetTimings;
 import io.github.thebusybiscuit.slimefun4.api.player.PlayerProfile;
 import io.github.thebusybiscuit.slimefun4.implementation.tasks.TickerTask;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.mrCookieSlime.Slimefun.Objects.Research;
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.api.item_transport.CargoNetTimings;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 

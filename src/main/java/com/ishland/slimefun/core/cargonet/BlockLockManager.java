@@ -1,7 +1,7 @@
-package me.mrCookieSlime.Slimefun.api.item_transport;
+package com.ishland.slimefun.core.cargonet;
 
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.BlockStateCache;
-import me.mrCookieSlime.Slimefun.api.item_transport.cache.InventoryCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 public class BlockLockManager {
     private static final Map<Location, SynchronizedLock<Block>> locks = new ConcurrentHashMap<>();
 
-    static void runWithLock(@Nonnull Block block, @Nonnull Consumer<Block> consumer)
+    public static void runWithLock(@Nonnull Block block, @Nonnull Consumer<Block> consumer)
             throws ExecutionException, InterruptedException {
         getLock(block).run(consumer, block);
     }
