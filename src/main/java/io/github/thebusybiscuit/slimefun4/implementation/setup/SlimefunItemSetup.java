@@ -3355,28 +3355,12 @@ public final class SlimefunItemSetup {
 
         }.register(plugin);
 
-                new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_ACACIA_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.ACACIA_LOG), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_BIRCH_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.BIRCH_LOG), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_BLAZE_ROD, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.BLAZE_ROD), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_BLUE_ICE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.BLUE_ICE), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_BONE, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.BONE), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_CHEST, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.CHEST), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_CLAY, RecipeType.ITEM_COMPRESSOR,
@@ -3395,28 +3379,8 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.COBBLESTONE), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_DARK_OAK_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.DARK_OAK_LOG), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_DIAMOND_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.DIAMOND_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_DRIED_KELP, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.DRIED_KELP), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_DRIED_KELP_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.DRIED_KELP_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_EMERALD_BLOCK, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.EMERALD_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_END_STONE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.END_STONE), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_FLINT, RecipeType.ITEM_COMPRESSOR,
@@ -3427,80 +3391,16 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.GOLD_BLOCK), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_GRAVEL, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.GRAVEL), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_HAY_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.HAY_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_ICE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.ICE), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_IRON_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.IRON_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_JUNGLE_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.JUNGLE_LOG), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_LAPIS_BLOCK, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.LAPIS_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_LEATHER, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.LEATHER), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_NETHERRACK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.NETHERRACK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_NETHER_BRICK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.NETHER_BRICK), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_NETHER_STAR, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.NETHER_STAR), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_NETHER_WART_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.NETHER_WART_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_OAK_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.OAK_LOG), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_OBSIDIAN, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.OBSIDIAN), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_PACKED_ICE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.PACKED_ICE), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_POTATO, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.POTATO), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_PRISMARINE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.PRISMARINE), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_PUMPKIN, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.PUMPKIN), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_QUARTZ, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.QUARTZ), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_QUARTZ_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.QUARTZ_BLOCK), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_REDSTONE_BLOCK, RecipeType.ITEM_COMPRESSOR,
@@ -3511,44 +3411,16 @@ public final class SlimefunItemSetup {
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SAND), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SCAFFOLDING, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SCAFFOLDING), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SLIME_BLOCK, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SLIME_BLOCK), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SOUL_SAND, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SOUL_SAND), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SPONGE, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SPONGE), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SPRUCE_LOG, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SPRUCE_LOG), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_STONE, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.STONE), 32), null, null, null, null})
                 .register(plugin);
 
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_STRING, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.STRING), 32), null, null, null, null})
-                .register(plugin);
-
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SUGAR_CANE, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SUGAR_CANE), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_WHEAT, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.WHEAT), 32), null, null, null, null})
-                .register(plugin);
-
-        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_WHEAT_SEEDS, RecipeType.ITEM_COMPRESSOR,
-                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.WHEAT_SEEDS), 32), null, null, null, null})
                 .register(plugin);
 
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_WITHER_SKELETON_SKULL, RecipeType.ITEM_COMPRESSOR,
