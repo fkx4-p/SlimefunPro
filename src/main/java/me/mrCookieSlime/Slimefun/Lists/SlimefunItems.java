@@ -846,6 +846,7 @@ public final class SlimefunItems {
     public static final SlimefunItemStack COMPRESSED_WHEAT = new SlimefunItemStack("COMPRESSED_WHEAT", Material.WHEAT,"&cWHEAT.tar","","&6A block of 32 WHEAT","&bA great gift");
     public static final SlimefunItemStack COMPRESSED_WHEAT_SEEDS = new SlimefunItemStack("COMPRESSED_WHEAT_SEEDS", Material.WHEAT_SEEDS,"&cWHEAT_SEEDS.tar","","&6A block of 32 WHEAT_SEEDS","&bA great gift");
     public static final SlimefunItemStack COMPRESSED_WITHER_SKELETON_SKULL = new SlimefunItemStack("COMPRESSED_WITHER_SKELETON_SKULL", Material.WITHER_SKELETON_SKULL,"&cWITHER_SKELETON_SKULL.tar","","&6A block of 32 WITHER_SKELETON_SKULL","&bA great gift");
+    public static final SlimefunItemStack COMPRESSED_SMOOTH_STONE = new SlimefunItemStack("COMPRESSED_SMOOTH_STONE", Material.SMOOTH_STONE,"&cSMOOTH_STONE.tar","","&6A block of 32 SMOOTH_STONE","&bA great gift");
     public static final SlimefunItemStack COMPRESSED_GOLD_DUST = new SlimefunItemStack("COMPRESSED_GOLD_DUST", Material.GLOWSTONE_DUST, "&cGOLD_DUST.tar","","&6A block of 32 GOLD_DUST","&bA great gift");
 
     static {

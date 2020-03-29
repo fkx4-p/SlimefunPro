@@ -3558,6 +3558,10 @@ public final class SlimefunItemSetup {
         new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_GOLD_DUST, RecipeType.ITEM_COMPRESSOR,
                 new ItemStack[]{null, null, null, null, new CustomItem(SlimefunItems.GOLD_DUST, 32), null, null, null, null})
                 .register(plugin);
+
+        new SlimefunItem(Categories.COMPRESSED_ITEMS, SlimefunItems.COMPRESSED_SMOOTH_STONE, RecipeType.ITEM_COMPRESSOR,
+                new ItemStack[]{null, null, null, null, new CustomItem(new ItemStack(Material.SMOOTH_STONE), 32), null, null, null, null})
+                .register(plugin);
         
         new ItemDecompressor(Categories.ELECTRICITY, (SlimefunItemStack) SlimefunItems.ITEM_DECOMPRESSOR, RecipeType.ENHANCED_CRAFTING_TABLE,
                 new ItemStack[]{SlimefunItems.LEAD_INGOT, SlimefunItems.ELECTRIC_MOTOR, SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, new ItemStack(Material.STICKY_PISTON), SlimefunItems.LEAD_INGOT, SlimefunItems.LEAD_INGOT, SlimefunItems.HEATING_COIL, SlimefunItems.LEAD_INGOT}) {

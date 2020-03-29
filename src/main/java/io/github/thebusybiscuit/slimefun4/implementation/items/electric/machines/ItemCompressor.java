@@ -135,6 +135,7 @@ public abstract class ItemCompressor extends AContainer {
         registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.WHEAT), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_WHEAT});
         registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.WHEAT_SEEDS), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_WHEAT_SEEDS});
         registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.WITHER_SKELETON_SKULL), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_WITHER_SKELETON_SKULL});
+        registerRecipe(5, new ItemStack[]{new CustomItem(new ItemStack(Material.SMOOTH_STONE), 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_SMOOTH_STONE});
         registerRecipe(5, new ItemStack[]{new CustomItem(SlimefunItems.GOLD_DUST, 32)}, new ItemStack[]{SlimefunItems.COMPRESSED_GOLD_DUST});
 
     }
