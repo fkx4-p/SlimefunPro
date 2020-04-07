@@ -1,6 +1,11 @@
 package com.ishland.slimefun.core.cargonet;
 
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import io.github.thebusybiscuit.slimefun4.api.network.Network;
 import io.github.thebusybiscuit.slimefun4.api.network.NetworkComponent;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
@@ -10,6 +15,8 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 
@@ -18,15 +25,32 @@ import java.util.concurrent.*;
 
 public class CargoNet extends Network {
 
+    // Instances
     public static ConcurrentHashMap<Location, CargoNet> instances = new ConcurrentHashMap<>();
+
+    // Executors
     public static Set<Thread> tickingPoolThreads = Sets.newConcurrentHashSet();
     public static ExecutorService tickingPool;
     public static Set<Thread> executePoolThreads = Sets.newConcurrentHashSet();
     public static ExecutorService executePool;
+
+    // Ticker
     public static CargoNetTickerThread tickerThread;
+
+    // Energy consumption
+    public static final int energyConsumptionManager = 4;
+    public static final int energyConsumptionConnector = 2;
+    public static final int energyConsumptionNode = 1;
+    public static final int energyConsumptionSlot = 1;
+
+    // Energy consumption lock
     private final Object consumeLock = new Object();
+
+    // Input & output nodes
     private Set<Location> inputs = Sets.newConcurrentHashSet();
     private Set<Location> outputs = Sets.newConcurrentHashSet();
+
+    // Stats
     private long lastHeartbeat;
     private Block lastHeartbeatBlock;
     private Integer triedConsume = 0;
@@ -123,14 +147,14 @@ public class CargoNet extends Network {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean consume(CargoNet instance, int consumption) {
-        synchronized (instance.consumeLock) {
-            instance.triedConsume += consumption;
+    public boolean consume(int consumption) {
+        synchronized (this.consumeLock) {
+            this.triedConsume += consumption;
         }
-        if (ChargableBlock.getCharge(instance.lastHeartbeatBlock) < consumption) return false;
-        ChargableBlock.addCharge(instance.lastHeartbeatBlock, -consumption);
-        synchronized (instance.consumeLock) {
-            instance.successConsume += consumption;
+        if (ChargableBlock.getCharge(this.lastHeartbeatBlock) < consumption) return false;
+        ChargableBlock.addCharge(this.lastHeartbeatBlock, -consumption);
+        synchronized (this.consumeLock) {
+            this.successConsume += consumption;
         }
         return true;
     }
@@ -213,7 +237,7 @@ public class CargoNet extends Network {
         lastHeartbeatBlock = b;
     }
 
-    public Future<Void> tick() {
+    public Future<?> tick() {
         if (!regulator.equals(lastHeartbeatBlock.getLocation())) {
             SimpleHologram.update(lastHeartbeatBlock, "&4Multiple Cargo Regulators connected");
             return null;
@@ -237,6 +261,50 @@ public class CargoNet extends Network {
             }
         }
 
-        return null;
+        if (!consume(energyConsumptionManager
+                + (energyConsumptionConnector * connectorNodes.size() + 1))) return null;
+
+        return executePool.submit(() -> {
+            try {
+                // Prepare for inventories
+                ConcurrentHashMultiset<InventoryCache.CachedInventory> inventories =
+                        ConcurrentHashMultiset.create();
+                {
+                    List<Future<?>> futures = new LinkedList<>();
+                    for (Location location : inputs)
+                        futures.add(tickingPool.submit(() -> {
+                            try {
+                                Block attachedBlock = AttachedBlockCache.query(location.getBlock());
+                                if (attachedBlock == null) return;
+                                BlockState state = BlockStateCache.query(attachedBlock);
+                                if (!(state instanceof Container)) return;
+                                Container container = (Container) state;
+                                inventories.add(InventoryCache.query(container));
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }));
+                    for (Future<?> future : futures)
+                        future.get();
+                }
+
+                // Iterate over inventories
+                {
+                    List<Future<?>> futures = new LinkedList<>();
+                    for (Multiset.Entry<InventoryCache.CachedInventory> entry : inventories.createEntrySet())
+                        futures.add(tickingPool.submit(() -> {
+                            try {
+
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }));
+                    for (Future<?> future : futures)
+                        future.get();
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

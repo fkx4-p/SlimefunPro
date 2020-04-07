@@ -4,9 +4,9 @@ import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.block.TNTPrimeEvent;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
-import org.bukkit.block.*;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
+import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.inventory.Inventory;
@@ -14,6 +14,8 @@ import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -161,7 +163,7 @@ public class InventoryCache implements Listener {
      *
      * @param location location of inventory to be updated
      */
-    private static void updateCache(Location location) {
+    static void updateCache(Location location) {
         CacheGC.cleanThread.execute(() -> {
             CachedInventory cachedInventory = cache.get(location);
             if (cachedInventory == null) return;
@@ -170,65 +172,6 @@ public class InventoryCache implements Listener {
             for (Location loc : cachedInventory.locations)
                 updateCache(loc);
         });
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockDestroy(BlockDestroyEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockExplode(BlockExplodeEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-        for (Block block : event.blockList())
-            updateCache(block.getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockFade(BlockFadeEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockFertilize(BlockFertilizeEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-        for (BlockState state : event.getBlocks())
-            updateCache(state.getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockFromTo(BlockFromToEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-        updateCache(event.getToBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockPhysics(BlockPhysicsEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onLeavesDecay(LeavesDecayEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onTNTPrime(TNTPrimeEvent event) {
-        if (event.isCancelled()) return;
-        updateCache(event.getBlock().getLocation());
     }
 
     /**
@@ -243,6 +186,22 @@ public class InventoryCache implements Listener {
         public CachedInventory(@NotNull Inventory inventory, @NotNull Location... locations) {
             this.inventory = inventory;
             this.locations = locations;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CachedInventory that = (CachedInventory) o;
+            return inventory.equals(that.inventory) &&
+                    Arrays.equals(locations, that.locations);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(inventory);
+            result = 31 * result + Arrays.hashCode(locations);
+            return result;
         }
     }
 

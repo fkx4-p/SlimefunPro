@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Deprecated
 final class CargoUtils {
 
     //Whitelist or blacklist slots

@@ -23,6 +23,17 @@ import java.util.concurrent.ExecutionException;
  */
 public class BlockStateCache implements Listener {
 
+    public static final boolean available;
+    private static long hit = 0L;
+    private static long miss = 0L;
+    private static long clean = 0L;
+    private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
+
+    static {
+        available = isAvailable();
+    }
+
     public static long getHit() {
         return hit;
     }
@@ -31,25 +42,12 @@ public class BlockStateCache implements Listener {
         return miss;
     }
 
-    private static long hit = 0L;
-    private static long miss = 0L;
-
     public static long getClean() {
         return clean;
     }
 
-    private static long clean = 0L;
-
     public static int getSize() {
         return cache.size();
-    }
-
-    private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
-    public static final boolean available;
-
-    static {
-        available = isAvailable();
     }
 
     /**
@@ -139,7 +137,10 @@ public class BlockStateCache implements Listener {
     }
 
     public void onBlockEvents(BlockEvent event) {
-        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
+        CacheGC.cleanThread.execute(() -> {
+            cache.remove(event.getBlock().getLocation());
+            InventoryCache.updateCache(event.getBlock().getLocation());
+        });
     }
 
 }
