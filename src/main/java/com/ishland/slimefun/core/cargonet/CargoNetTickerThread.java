@@ -1,12 +1,10 @@
 package com.ishland.slimefun.core.cargonet;
 
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
-import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -42,23 +40,15 @@ public class CargoNetTickerThread extends Thread {
         long startTime = System.nanoTime();
 
         Map<Location, Future<?>> futures = new HashMap<>();
-        for (Iterator<Map.Entry<Location, CargoNet>> iterator = CargoNet.instances.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Location, CargoNet> cargoNetEntry = iterator.next();
+        for (CargoNet cargoNetEntry : SlimefunPlugin.getNetworkManager()
+                .getNetworks(CargoNet.class)) {
             try {
-                final CargoNet instance = cargoNetEntry.getValue();
-                if (System.currentTimeMillis() - instance.getLastHeartbeat() > 5000) {
-                    iterator.remove();
-                    continue;
-                }
-                final Future<?> future = instance.tick();
+                final Future<?> future = cargoNetEntry.tick();
                 if (future != null)
-                    futures.put(cargoNetEntry.getKey(), future);
+                    futures.put(cargoNetEntry.getRegulator(), future);
             } catch (Exception e) {
-                final Location location = cargoNetEntry.getKey();
-                int errors = SlimefunPlugin.getTicker().getBuggedBlocks()
-                        .getOrDefault(location, 0);
-                SlimefunPlugin.getTicker().reportErrors(location,
-                        BlockStorage.check(location), e, errors);
+                final Location location = cargoNetEntry.getRegulator();
+                SlimefunPlugin.getTicker().reportErrors(location, e);
             }
         }
 
@@ -67,10 +57,7 @@ public class CargoNetTickerThread extends Thread {
                 entry.getValue().get();
             } catch (Exception e) {
                 final Location location = entry.getKey();
-                int errors = SlimefunPlugin.getTicker().getBuggedBlocks()
-                        .getOrDefault(location, 0);
-                SlimefunPlugin.getTicker().reportErrors(location,
-                        BlockStorage.check(location), e, errors);
+                SlimefunPlugin.getTicker().reportErrors(location, e);
             }
         }
 

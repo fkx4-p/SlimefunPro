@@ -419,7 +419,6 @@ final class CargoUtils {
         if (id.equals("CARGO_NODE_OUTPUT")) return true;
 
         // Store the returned Config instance to avoid heavy calls
-        @SuppressWarnings("deprecation")
         Config blockInfo = BlockStorage.getLocationInfo(block.getLocation());
         if (blockInfo.getString("id").equals("CARGO_NODE_OUTPUT")) return true;
 

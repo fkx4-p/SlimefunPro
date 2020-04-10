@@ -14,7 +14,6 @@ import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Lists.RecipeType;
 import me.mrCookieSlime.Slimefun.Objects.Category;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.SlimefunItem;
-import me.mrCookieSlime.Slimefun.Objects.handlers.BlockBreakHandler;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockUseHandler;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -133,9 +132,6 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                     }
                 }
             }
-        }, (BlockBreakHandler) (e, item, fortune, drops) -> {
-            CargoNet.instances.remove(e.getBlock().getLocation());
-            return false;
         });
     }
 

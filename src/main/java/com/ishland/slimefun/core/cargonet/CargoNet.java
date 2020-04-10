@@ -1,11 +1,8 @@
 package com.ishland.slimefun.core.cargonet;
 
-import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
-import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
-import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
+import com.ishland.slimefun.core.cargonet.data.CargoNetFilter;
+import com.ishland.slimefun.core.cargonet.data.CargoNetRoute;
 import io.github.thebusybiscuit.slimefun4.api.network.Network;
 import io.github.thebusybiscuit.slimefun4.api.network.NetworkComponent;
 import io.github.thebusybiscuit.slimefun4.utils.holograms.SimpleHologram;
@@ -15,8 +12,6 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Container;
 import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 
@@ -71,11 +66,14 @@ public class CargoNet extends Network {
 
         if (cargoNetwork == null) {
             cargoNetwork = new CargoNet(l);
-            instances.put(l, cargoNetwork);
             SlimefunPlugin.getNetworkManager().registerNetwork(cargoNetwork);
         }
 
         return cargoNetwork;
+    }
+
+    public Location getRegulator() {
+        return regulator;
     }
 
     public static void restartPool() {
@@ -125,7 +123,7 @@ public class CargoNet extends Network {
         if (tickingPool != null)
             tickingPool.shutdown();
 
-        new Timer().schedule(new TimerTask() {
+        final TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 for (Thread thread : tickingPoolThreads)
@@ -134,7 +132,8 @@ public class CargoNet extends Network {
                     }
                 Slimefun.didUnpark = true;
             }
-        }, 2000);
+        };
+        new Timer().schedule(timerTask, 2000, 2000);
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
             try {
                 FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
@@ -266,38 +265,36 @@ public class CargoNet extends Network {
 
         return executePool.submit(() -> {
             try {
-                // Prepare for inventories
-                ConcurrentHashMultiset<InventoryCache.CachedInventory> inventories =
-                        ConcurrentHashMultiset.create();
+                display();
+
+                // Routes
+                Set<CargoNetRoute> routes = Sets.newConcurrentHashSet();
                 {
                     List<Future<?>> futures = new LinkedList<>();
-                    for (Location location : inputs)
+                    for (Location input : inputs)
                         futures.add(tickingPool.submit(() -> {
-                            try {
-                                Block attachedBlock = AttachedBlockCache.query(location.getBlock());
-                                if (attachedBlock == null) return;
-                                BlockState state = BlockStateCache.query(attachedBlock);
-                                if (!(state instanceof Container)) return;
-                                Container container = (Container) state;
-                                inventories.add(InventoryCache.query(container));
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
+                            int inputChannel = CargoUtils.getChannel(input);
+                            CargoNetFilter inputFilter = CargoUtils.getFilters(input);
+
+                            for (Location output : outputs)
+                                if (CargoUtils.getChannel(output) == inputChannel) {
+                                    CargoNetFilter outputFilter = CargoUtils.getFilters(output);
+                                    CargoNetFilter filteredFilter = inputFilter.intersection(outputFilter);
+                                    if (!filteredFilter.getContent().isEmpty())
+                                        routes.add(new CargoNetRoute(input, output, filteredFilter));
+                                }
+
                         }));
                     for (Future<?> future : futures)
                         future.get();
                 }
 
-                // Iterate over inventories
+                // Iterate over routes
                 {
                     List<Future<?>> futures = new LinkedList<>();
-                    for (Multiset.Entry<InventoryCache.CachedInventory> entry : inventories.createEntrySet())
+                    for (CargoNetRoute route : routes)
                         futures.add(tickingPool.submit(() -> {
-                            try {
 
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
                         }));
                     for (Future<?> future : futures)
                         future.get();
@@ -307,4 +304,5 @@ public class CargoNet extends Network {
             }
         });
     }
+
 }

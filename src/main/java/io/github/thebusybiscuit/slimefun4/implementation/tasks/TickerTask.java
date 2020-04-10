@@ -72,7 +72,6 @@ public class TickerTask implements Runnable {
 		machineTimings.clear();
 		blockTimings.clear();
 
-        Map<Location, Integer> bugged = new HashMap<>(buggedBlocks);
         buggedBlocks.clear();
 
         Map<Location, Boolean> remove = new HashMap<>(delete);
@@ -112,10 +111,9 @@ public class TickerTask implements Runnable {
                                             chunkItemCount.put(tickedChunk, (chunk != null ? chunk : 0) + 1);
                                             machineCount.put(item.getID(), (machine != null ? machine : 0) + 1);
                                             blockTimings.put(l, System.nanoTime() - timestamp3);
-                                        }
-                                        catch (Exception x) {
-                                            int errors = bugged.getOrDefault(l, 0);
-                                            reportErrors(l, item, x, errors);
+                                            buggedBlocks.put(l, 0);
+                                        } catch (Throwable x) {
+                                            reportErrors(l, x);
                                         }
                                     });
                                 }
@@ -130,10 +128,9 @@ public class TickerTask implements Runnable {
                                 }
 
                                 tickers.add(item.getBlockTicker());
-                            }
-                            catch (Exception x) {
-                                int errors = bugged.getOrDefault(l, 0);
-                                reportErrors(l, item, x, errors);
+                                buggedBlocks.put(l, 0);
+                            } catch (Throwable x) {
+                                reportErrors(l, x);
                             }
                         }
                         else skipped++;
@@ -165,16 +162,18 @@ public class TickerTask implements Runnable {
         running = false;
     }
 
-    public void reportErrors(Location l, SlimefunItem item, Exception x, int errors) {
+    public void reportErrors(Location l, Throwable x) {
+        int errors = buggedBlocks.getOrDefault(l, 0);
+        SlimefunItem item = BlockStorage.check(l);
         errors++;
 
         if (errors == 1) {
             // Generate a new Error-Report
             new ErrorReport(x, l, item);
 
-			buggedBlocks.put(l, errors);
-		} else if (errors == 4) {
-			Slimefun.getLogger().log(Level.SEVERE, "X: {0} Y: {1} Z: {2} ({3})", new Object[] { l.getBlockX(), l.getBlockY(), l.getBlockZ(), item.getID() });
+            buggedBlocks.put(l, errors);
+        } else if (errors == 4) {
+            Slimefun.getLogger().log(Level.SEVERE, "X: {0} Y: {1} Z: {2} ({3})", new Object[] { l.getBlockX(), l.getBlockY(), l.getBlockZ(), item.getID() });
             Slimefun.getLogger().log(Level.SEVERE, "has thrown 4 Exceptions in the last 4 Ticks, the Block has been terminated.");
             Slimefun.getLogger().log(Level.SEVERE, "Check your /plugins/Slimefun/error-reports/ folder for details.");
             Slimefun.getLogger().log(Level.SEVERE, " ");

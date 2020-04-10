@@ -1,22 +1,19 @@
 package io.github.thebusybiscuit.slimefun4.api.network;
 
+import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
+import org.bukkit.Location;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bukkit.Location;
-
-import io.github.thebusybiscuit.slimefun4.implementation.listeners.NetworkListener;
-
 /**
  * The {@link NetworkManager} is responsible for holding all instances of {@link Network}
  * and providing some utility methods that would have probably been static otherwise.
- * 
+ *
  * @author TheBusyBiscuit
- * 
  * @see Network
  * @see NetworkListener
- *
  */
 public final class NetworkManager {
 
@@ -53,6 +50,15 @@ public final class NetworkManager {
                 list.add(type.cast(network));
             }
         }
+
+        return list;
+    }
+
+    public <T extends Network> List<T> getNetworks(Class<T> type) {
+        List<T> list = new ArrayList<>();
+        for (Network network : networks)
+            if (type.isInstance(network))
+                list.add(type.cast(network));
 
         return list;
     }
