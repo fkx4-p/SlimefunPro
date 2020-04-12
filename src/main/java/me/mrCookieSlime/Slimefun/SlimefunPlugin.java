@@ -93,7 +93,7 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     private GrapplingHookListener grapplingHookListener;
     private SlimefunBowListener bowListener;
 
-    @SuppressWarnings({"ConstantConditions", "deprecation"})
+    @SuppressWarnings({ "ConstantConditions", "deprecation" })
     @Override
     public void onEnable() {
         if (getServer().getPluginManager().isPluginEnabled("CS-CoreLib")) {
@@ -389,7 +389,11 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
         getLogger().info("Shutting down Async CargoNet...");
         Slimefun.isStopping = true;
-        CargoNet.shutdownPool();
+        try {
+            CargoNet.shutdownPool();
+        } catch (Throwable throwable) {
+            getLogger().log(Level.WARNING, "Error while shutting down Async CargoNet", throwable);
+        }
 
         getLogger().info("Saving data...");
         PlayerProfile.iterator().forEachRemaining(profile -> {
@@ -436,8 +440,8 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
     }
 
     private void createDirectories() {
-        String[] storage = {"Players", "blocks", "stored-blocks", "stored-inventories", "stored-chunks", "universal-inventories", "waypoints", "block-backups"};
-        String[] general = {"scripts", "generators", "error-reports", "cache/github"};
+        String[] storage = { "Players", "blocks", "stored-blocks", "stored-inventories", "stored-chunks", "universal-inventories", "waypoints", "block-backups" };
+        String[] general = { "scripts", "generators", "error-reports", "cache/github" };
 
         for (String file : storage) {
             createDir("data-storage/Slimefun/" + file);

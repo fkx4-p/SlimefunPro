@@ -301,7 +301,7 @@ public class CargoNet extends Network {
                 requestQueuePool.shutdown();
         }).start();
 
-        final TimerTask task1 = new TimerTask() {
+        final Runnable task1 = new Runnable() {
             Unsafe unsafe = null;
 
             {
@@ -330,17 +330,24 @@ public class CargoNet extends Network {
                 Slimefun.didUnpark = true;
             }
         };
-        new Timer().schedule(task1, 1000, 1000);
+        long startTime = System.currentTimeMillis();
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
             try {
-                FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
+                if (System.currentTimeMillis() - startTime > 30 * 1000) {
+                    Slimefun.getLogger().log(Level.WARNING,
+                            "Timeout waiting for Async CargoNet to shutdown!");
+                    Slimefun.getLogger().log(Level.WARNING,
+                            "This can cause items which is currently transferring being lost.");
+                    throw new RuntimeException("Timeout waiting for Async CargoNet to shutdown");
+                }
+                task1.run();
+                FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(50, TimeUnit.MILLISECONDS);
                 if (task == null) continue;
                 task.run();
-            } catch (InterruptedException e) {
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         }
-        task1.cancel();
     }
 
     public void alive(Block block) {
