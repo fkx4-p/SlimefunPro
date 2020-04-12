@@ -63,7 +63,10 @@ public class CargoUtils {
         boolean isWhitelist = "whitelist".equals(blockInfo.getString("filter-type"));
 
         for (int slot : FILTER_SLOT) {
-            ItemStack current = menu.getItemInSlot(slot).clone();
+            ItemStack current = menu.getItemInSlot(slot);
+            if (current == null)
+                continue;
+            current = current.clone();
             current.setAmount(0);
             filters.add(current);
         }

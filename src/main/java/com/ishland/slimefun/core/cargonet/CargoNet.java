@@ -216,7 +216,7 @@ public class CargoNet extends Network {
      */
     @Override
     public int getRange() {
-        return 0;
+        return 6;
     }
 
     /**
