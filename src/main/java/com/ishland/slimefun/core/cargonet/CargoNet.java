@@ -134,7 +134,7 @@ public class CargoNet extends Network {
         if (tickingPool != null)
             tickingPool.shutdown();
 
-        final TimerTask timerTask = new TimerTask() {
+        final Runnable task1 = new Runnable() {
             Unsafe unsafe = null;
 
             {
@@ -168,17 +168,24 @@ public class CargoNet extends Network {
                 Slimefun.didUnpark = true;
             }
         };
-        new Timer().schedule(timerTask, 1000, 1000);
+        long startTime = System.currentTimeMillis();
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
             try {
+                if (System.currentTimeMillis() - startTime > 30 * 1000) {
+                    Slimefun.getLogger().log(Level.WARNING,
+                            "Timeout waiting for Async CargoNet to shutdown!");
+                    Slimefun.getLogger().log(Level.WARNING,
+                            "This can cause items which is currently transferring being lost.");
+                    throw new RuntimeException("Timeout waiting for Async CargoNet to shutdown");
+                }
+                task1.run();
                 FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
                 if (task == null) continue;
                 task.run();
             } catch (InterruptedException e) {
-                throw new RuntimeException("Error while shutting down ", e);
+                throw new RuntimeException("Error while shutting down Async CargoNet", e);
             }
         }
-        timerTask.cancel();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
