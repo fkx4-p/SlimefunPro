@@ -32,6 +32,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -260,6 +261,15 @@ public class CargoNet extends Network {
     }
 
     public static void shutdownPool() {
+        if (!Thread.currentThread().getName().equals("Server thread")) {
+            Slimefun.getLogger().log(Level.SEVERE, "Attempted to shut down Slimefun Async CargoNet off-thread!");
+            Slimefun.getLogger().log(Level.SEVERE, "This is not supported so it will be skipped!");
+            Slimefun.getLogger().log(Level.SEVERE, "If this is a crash, you can ignore this message.");
+            Slimefun.getLogger().log(Level.SEVERE,
+                    "However, this can cause items which is currently transferring being lost.");
+            return;
+        }
+
         if (tickerThread != null)
             tickerThread.stopTicker();
 
@@ -291,16 +301,36 @@ public class CargoNet extends Network {
                 requestQueuePool.shutdown();
         }).start();
 
-        new Timer().schedule(new TimerTask() {
+        final TimerTask task1 = new TimerTask() {
+            Unsafe unsafe = null;
+
+            {
+                try {
+                    unsafe = Unsafe.getUnsafe();
+                } catch (SecurityException e) {
+                    Slimefun.getLogger().log(Level.WARNING, "Unable to obtain Unsafe by getUnsafe", e);
+                }
+                if (unsafe == null)
+                    try {
+                        Field f = Unsafe.class.getDeclaredField("theUnsafe");
+                        f.setAccessible(true);
+                        unsafe = (Unsafe) f.get(null);
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        Slimefun.getLogger().log(Level.WARNING, "Unable to obtain Unsafe by reflection", e);
+                        throw new RuntimeException(e);
+                    }
+            }
+
             @Override
             public void run() {
                 for (Thread thread : tickingPoolThreads)
                     if (thread.isAlive() && thread.getState() == Thread.State.WAITING) {
-                        Unsafe.getUnsafe().unpark(thread);
+                        unsafe.unpark(thread);
                     }
                 Slimefun.didUnpark = true;
             }
-        }, 2000);
+        };
+        new Timer().schedule(task1, 1000, 1000);
         while ((executePool != null && !executePool.isTerminated()) || (tickingPool != null && !tickingPool.isTerminated())) {
             try {
                 FutureTask<?> task = Slimefun.FUTURE_TASKS.poll(1, TimeUnit.SECONDS);
@@ -310,6 +340,7 @@ public class CargoNet extends Network {
                 throw new RuntimeException(e);
             }
         }
+        task1.cancel();
     }
 
     public void alive(Block block) {
