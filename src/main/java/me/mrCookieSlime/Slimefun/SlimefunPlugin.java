@@ -383,7 +383,11 @@ public final class SlimefunPlugin extends JavaPlugin implements SlimefunAddon {
 
         getLogger().info("Shutting down Async CargoNet...");
         Slimefun.isStopping = true;
-        CargoNet.shutdownPool();
+        try {
+            CargoNet.shutdownPool();
+        } catch (Throwable throwable) {
+            getLogger().log(Level.WARNING, "Error while shutting down Async CargoNet", throwable);
+        }
 
         getLogger().info("Saving data...");
         PlayerProfile.iterator().forEachRemaining(profile -> {
