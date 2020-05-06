@@ -1,6 +1,11 @@
 package com.ishland.slimefun.core.cargonet;
 
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.ishland.slimefun.core.cargonet.cache.AttachedBlockCache;
+import com.ishland.slimefun.core.cargonet.cache.BlockStateCache;
+import com.ishland.slimefun.core.cargonet.cache.InventoryCache;
 import com.ishland.slimefun.core.cargonet.data.CargoNetFilter;
 import com.ishland.slimefun.core.cargonet.data.CargoNetRoute;
 import io.github.thebusybiscuit.slimefun4.api.network.Network;
@@ -12,6 +17,8 @@ import me.mrCookieSlime.Slimefun.api.Slimefun;
 import me.mrCookieSlime.Slimefun.api.energy.ChargableBlock;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.jetbrains.annotations.NotNull;
 import sun.misc.Unsafe;
 
@@ -44,8 +51,8 @@ public class CargoNet extends Network {
     private final Object consumeLock = new Object();
 
     // Input & output nodes
-    private Set<Location> inputs = Sets.newConcurrentHashSet();
-    private Set<Location> outputs = Sets.newConcurrentHashSet();
+    private final Set<Location> inputs = Sets.newConcurrentHashSet();
+    private final Set<Location> outputs = Sets.newConcurrentHashSet();
 
     // Stats
     private long lastHeartbeat;
@@ -311,21 +318,54 @@ public class CargoNet extends Network {
                 display();
 
                 // Routes
-                Set<CargoNetRoute> routes = Sets.newConcurrentHashSet();
+                ConcurrentHashMultiset<CargoNetRoute> routes = ConcurrentHashMultiset.create();
                 {
                     List<Future<?>> futures = new LinkedList<>();
                     for (Location input : inputs)
                         futures.add(tickingPool.submit(() -> {
+                            Block inputAttachedBlock = null;
+                            BlockState inputState = null;
+                            InventoryCache.CachedInventory inputCachedInventory = null;
+                            Location inputLocation = null;
+                            try {
+                                inputAttachedBlock = AttachedBlockCache.query(input.getBlock());
+                                if (inputAttachedBlock == null) return;
+                                inputState = BlockStateCache.query(inputAttachedBlock);
+                                if (inputState instanceof Container) {
+                                    inputCachedInventory = InventoryCache.query((Container) inputState);
+                                    inputLocation = inputCachedInventory.inventory.getLocation();
+                                } else inputLocation = inputAttachedBlock.getLocation();
+                            } catch (Throwable throwable) {
+                                SlimefunPlugin.getTicker().reportErrors(input, throwable);
+                            }
+
+                            if (inputLocation == null)
+                                return;
+
                             int inputChannel = CargoUtils.getChannel(input);
                             CargoNetFilter inputFilter = CargoUtils.getFilters(input);
 
-                            for (Location output : outputs)
+                            for (Location output : outputs) {
+                                Block outputAttachedBlock = null;
+                                try {
+                                    outputAttachedBlock = AttachedBlockCache.query(output.getBlock());
+                                } catch (Throwable throwable) {
+                                    SlimefunPlugin.getTicker().reportErrors(output, throwable);
+                                }
+                                if (outputAttachedBlock == null)
+                                    return;
+
                                 if (CargoUtils.getChannel(output) == inputChannel) {
                                     CargoNetFilter outputFilter = CargoUtils.getFilters(output);
                                     CargoNetFilter filteredFilter = inputFilter.intersection(outputFilter);
-                                    if (!filteredFilter.getContent().isEmpty())
-                                        routes.add(new CargoNetRoute(input, output, filteredFilter));
+                                    if (!filteredFilter.getContent().isEmpty()) {
+                                        routes.add(new CargoNetRoute(
+                                                inputLocation,
+                                                outputAttachedBlock.getLocation(), filteredFilter
+                                        ));
+                                    }
                                 }
+                            }
 
                         }));
                     for (Future<?> future : futures)
@@ -335,7 +375,7 @@ public class CargoNet extends Network {
                 // Iterate over routes
                 {
                     List<Future<?>> futures = new LinkedList<>();
-                    for (CargoNetRoute route : routes)
+                    for (Multiset.Entry<CargoNetRoute> route : routes.entrySet())
                         futures.add(tickingPool.submit(() -> {
 
                         }));
