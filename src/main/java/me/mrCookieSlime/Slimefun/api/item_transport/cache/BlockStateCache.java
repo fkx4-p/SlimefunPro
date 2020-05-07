@@ -2,18 +2,20 @@ package me.mrCookieSlime.Slimefun.api.item_transport.cache;
 
 import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -44,8 +46,8 @@ public class BlockStateCache implements Listener {
         return cache.size();
     }
 
-    private static ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Location, BlockState> cache = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
     public static final boolean available;
 
     static {
@@ -75,6 +77,8 @@ public class BlockStateCache implements Listener {
                 (listener, event) -> {
                     if (event instanceof BlockEvent)
                         CacheGC.cleanThread.execute(() -> instance.onBlockEvents((BlockEvent) event));
+                    if (event instanceof ChunkUnloadEvent)
+                        CacheGC.cleanThread.execute(() -> instance.onChunkUnload((ChunkUnloadEvent) event));
                 }, EventPriority.MONITOR, SlimefunPlugin.instance,
                 true);
         for (HandlerList handler : HandlerList.getHandlerLists())
@@ -124,7 +128,7 @@ public class BlockStateCache implements Listener {
     private static BlockState getBlockStateSlow(Block block, Location blockLocation)
             throws InterruptedException, ExecutionException {
         miss++;
-        final BlockState queriedState = Slimefun.runSyncFuture((Callable<@NotNull BlockState>) block::getState).get();
+        final BlockState queriedState = Slimefun.runSyncFuture(() -> block.getState(false)).get();
         cache.put(blockLocation, queriedState);
         return queriedState;
     }
@@ -138,8 +142,20 @@ public class BlockStateCache implements Listener {
         if (cache.remove(location) != null) clean++;
     }
 
-    public void onBlockEvents(BlockEvent event) {
-        CacheGC.cleanThread.execute(() -> cache.remove(event.getBlock().getLocation()));
+    private void onBlockEvents(BlockEvent event) {
+        CacheGC.cleanThread.execute(() -> remove(event.getBlock().getLocation()));
+    }
+
+    private void onChunkUnload(ChunkUnloadEvent event) {
+        CacheGC.cleanThread.execute(() -> {
+            final Chunk chunk = event.getChunk();
+            final World world = chunk.getWorld();
+            for (long x = chunk.getX() << 4; x < chunk.getX() << 4 + 16; x++)
+                for (long z = chunk.getZ() << 4; z < chunk.getZ() << 4 + 16; z++)
+                    for (long y = 0; y < 256; y++)
+                        remove(new Location(world, x, y, z).getBlock().getLocation());
+
+        });
     }
 
 }

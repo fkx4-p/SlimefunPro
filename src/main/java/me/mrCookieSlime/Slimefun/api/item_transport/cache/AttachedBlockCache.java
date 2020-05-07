@@ -3,7 +3,9 @@ package me.mrCookieSlime.Slimefun.api.item_transport.cache;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.block.TNTPrimeEvent;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -12,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,8 +47,8 @@ public class AttachedBlockCache implements Listener {
         return cache.size();
     }
 
-    private static ConcurrentMap<Location, Object> cache = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Location, Object> cache = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Location, Object> locks = new ConcurrentHashMap<>();
     public static final boolean available;
 
     static {
@@ -204,6 +207,19 @@ public class AttachedBlockCache implements Listener {
     public void onTNTPrime(TNTPrimeEvent event) {
         if (event.isCancelled()) return;
         CacheGC.cleanThread.execute(() -> cleanCache(event.getBlock()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        CacheGC.cleanThread.execute(() -> {
+            final Chunk chunk = event.getChunk();
+            final World world = chunk.getWorld();
+            for (long x = chunk.getX() << 4; x < chunk.getX() << 4 + 16; x++)
+                for (long z = chunk.getZ() << 4; z < chunk.getZ() << 4 + 16; z++)
+                    for (long y = 0; y < 256; y++)
+                        remove(new Location(world, x, y, z).getBlock().getLocation());
+
+        });
     }
 
     private static class Null {
