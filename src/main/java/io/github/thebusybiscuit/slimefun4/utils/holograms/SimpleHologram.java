@@ -1,12 +1,13 @@
 package io.github.thebusybiscuit.slimefun4.utils.holograms;
 
 import io.github.thebusybiscuit.cscorelib2.chat.ChatColors;
-import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+
+import java.util.concurrent.CompletableFuture;
 
 public final class SimpleHologram {
 
@@ -14,57 +15,40 @@ public final class SimpleHologram {
     }
 
     public static void update(Block b, String name) {
-        Slimefun.runSync(() -> {
-            ArmorStand hologram = getArmorStand(b, true);
-            hologram.setCustomName(ChatColors.color(name));
-        });
-    }
+        getArmorStand(b, true).thenAccept(hologram ->
+                hologram.setCustomName(ChatColors.color(name)));
 
-    public static void update(Block b, String name, float yOffset) {
-        Slimefun.runSync(() -> {
-            ArmorStand hologram = getArmorStand(b, true, yOffset);
-            hologram.setCustomName(ChatColors.color(name));
-        });
     }
 
     public static void remove(Block b) {
-        Slimefun.runSync(() -> {
-            ArmorStand hologram = getArmorStand(b, false);
+        getArmorStand(b, false).thenAccept(hologram -> {
             if (hologram != null) hologram.remove();
         });
+
     }
 
-    public static void remove(Block b, float yOffset) {
-        Slimefun.runSync(() -> {
-            ArmorStand hologram = getArmorStand(b, false, yOffset);
-            if (hologram != null) hologram.remove();
-        });
-    }
-
-    private static ArmorStand getArmorStand(Block b, boolean createIfNoneExists) {
+    private static CompletableFuture<ArmorStand> getArmorStand(Block b, boolean createIfNoneExists) {
         Location l = new Location(b.getWorld(), b.getX() + 0.5, b.getY() + 0.7F, b.getZ() + 0.5);
 
-        for (Entity n : l.getChunk().getEntities()) {
-            if (n instanceof ArmorStand && n.getCustomName() != null && l.distanceSquared(n.getLocation()) < 1.0D) {
-                return (ArmorStand) n;
+        CompletableFuture<ArmorStand> future = new CompletableFuture<>();
+
+        l.getWorld().getChunkAtAsync(l).thenAccept(chunk -> {
+            try {
+                for (Entity n : chunk.getEntities()) {
+                    if (n instanceof ArmorStand && n.getCustomName() != null && l.distanceSquared(n.getLocation()) < 1.0D) {
+                        future.complete((ArmorStand) n);
+                        return;
+                    }
+                }
+                if (!createIfNoneExists) future.complete(null);
+                else future.complete(create(l));
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
             }
-        }
+        });
 
-        if (!createIfNoneExists) return null;
-        else return create(l);
-    }
+        return future;
 
-    private static ArmorStand getArmorStand(Block b, boolean createIfNoneExists, float yOffset) {
-        Location l = new Location(b.getWorld(), b.getX() + 0.5, b.getY() + 0.7F + yOffset, b.getZ() + 0.5);
-
-        for (Entity n : l.getChunk().getEntities()) {
-            if (n instanceof ArmorStand && n.getCustomName() != null && l.distance(n.getLocation()) < 0.1D) {
-                return (ArmorStand) n;
-            }
-        }
-
-        if (!createIfNoneExists) return null;
-        else return create(l);
     }
 
     public static ArmorStand create(Location l) {
