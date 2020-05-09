@@ -61,7 +61,7 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
         }, new BlockUseHandler() {
 
             private static final String visualizerKey = "visualizer";
-            private Map<Location, Boolean> purges = new ConcurrentHashMap<>();
+            private final Map<Location, Boolean> purges = new ConcurrentHashMap<>();
 
             @Override
             public void onRightClick(PlayerRightClickEvent e) {
@@ -109,7 +109,7 @@ public class CargoManager extends SlimefunItem implements EnergyNetComponent {
                                     if (attachedBlock == null) continue; // In case there is no block attached to it
                                     final Location location1 = attachedBlock.getLocation();
                                     BlockStateCache.remove(location1);
-                                    InventoryCache.remove(location1);
+                                    InventoryCache.updateCache(location1);
                                     BlockState blockState = BlockStateCache.query(location1.getBlock());
                                     if (blockState instanceof Container)
                                         InventoryCache.query((Container) blockState);

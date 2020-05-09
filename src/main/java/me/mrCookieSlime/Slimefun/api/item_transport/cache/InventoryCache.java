@@ -5,7 +5,6 @@ import com.destroystokyo.paper.event.block.TNTPrimeEvent;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -146,32 +145,18 @@ public class InventoryCache implements Listener {
     }
 
     /**
-     * Flush cache of specific position
-     *
-     * @param location location of block to refresh
-     */
-    public static void remove(Location location) {
-        CachedInventory cachedInventory = cache.get(location);
-        if (cachedInventory == null) return;
-        clean++;
-        cache.remove(location);
-        for (Location loc : cachedInventory.locations)
-            remove(loc);
-    }
-
-    /**
      * Update cache using recursion
      *
      * @param location location of inventory to be updated
      */
-    private static void updateCache(Location location) {
+    public static void updateCache(Location location) {
         CacheGC.cleanThread.execute(() -> {
             CachedInventory cachedInventory = cache.get(location);
             if (cachedInventory == null) return;
             clean++;
             cache.remove(location);
             for (Location loc : cachedInventory.locations)
-                updateCache(loc);
+                CacheGC.cleanThread.execute(() -> updateCache(loc));
         });
     }
 
@@ -238,11 +223,8 @@ public class InventoryCache implements Listener {
     public void onChunkUnload(ChunkUnloadEvent event) {
         CacheGC.cleanThread.execute(() -> {
             final Chunk chunk = event.getChunk();
-            final World world = chunk.getWorld();
-            for (long x = chunk.getX() << 4; x < chunk.getX() << 4 + 16; x++)
-                for (long z = chunk.getZ() << 4; z < chunk.getZ() << 4 + 16; z++)
-                    for (long y = 0; y < 256; y++)
-                        updateCache(new Location(world, x, y, z).getBlock().getLocation());
+            for (BlockState state : chunk.getTileEntities())
+                updateCache(state.getLocation());
         });
     }
 
@@ -255,7 +237,7 @@ public class InventoryCache implements Listener {
         @Nonnull
         public Location[] locations;
 
-        public CachedInventory(@NotNull Inventory inventory, @NotNull Location... locations) {
+        public CachedInventory(@NotNull Inventory inventory, @NotNull Location @NotNull ... locations) {
             this.inventory = inventory;
             this.locations = locations;
         }

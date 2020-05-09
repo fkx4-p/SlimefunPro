@@ -4,7 +4,6 @@ import me.mrCookieSlime.Slimefun.SlimefunPlugin;
 import me.mrCookieSlime.Slimefun.api.Slimefun;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventPriority;
@@ -149,12 +148,8 @@ public class BlockStateCache implements Listener {
     private void onChunkUnload(ChunkUnloadEvent event) {
         CacheGC.cleanThread.execute(() -> {
             final Chunk chunk = event.getChunk();
-            final World world = chunk.getWorld();
-            for (long x = chunk.getX() << 4; x < chunk.getX() << 4 + 16; x++)
-                for (long z = chunk.getZ() << 4; z < chunk.getZ() << 4 + 16; z++)
-                    for (long y = 0; y < 256; y++)
-                        remove(new Location(world, x, y, z).getBlock().getLocation());
-
+            for (BlockState state : chunk.getTileEntities())
+                remove(state.getLocation());
         });
     }
 
