@@ -146,11 +146,9 @@ public class BlockStateCache implements Listener {
     }
 
     private void onChunkUnload(ChunkUnloadEvent event) {
-        CacheGC.cleanThread.execute(() -> {
-            final Chunk chunk = event.getChunk();
-            for (BlockState state : chunk.getTileEntities())
-                remove(state.getLocation());
-        });
+        final Chunk chunk = event.getChunk();
+        for (BlockState state : chunk.getTileEntities())
+            remove(state.getLocation());
     }
 
 }

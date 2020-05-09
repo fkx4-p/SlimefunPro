@@ -221,11 +221,9 @@ public class InventoryCache implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        CacheGC.cleanThread.execute(() -> {
-            final Chunk chunk = event.getChunk();
-            for (BlockState state : chunk.getTileEntities())
-                updateCache(state.getLocation());
-        });
+        final Chunk chunk = event.getChunk();
+        for (BlockState state : chunk.getTileEntities())
+            updateCache(state.getLocation());
     }
 
     /**
