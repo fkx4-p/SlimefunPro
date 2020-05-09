@@ -77,7 +77,7 @@ public class BlockStateCache implements Listener {
                     if (event instanceof BlockEvent)
                         CacheGC.cleanThread.execute(() -> instance.onBlockEvents((BlockEvent) event));
                     if (event instanceof ChunkUnloadEvent)
-                        CacheGC.cleanThread.execute(() -> instance.onChunkUnload((ChunkUnloadEvent) event));
+                        instance.onChunkUnload((ChunkUnloadEvent) event);
                 }, EventPriority.MONITOR, SlimefunPlugin.instance,
                 true);
         for (HandlerList handler : HandlerList.getHandlerLists())
